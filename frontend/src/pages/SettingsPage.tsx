@@ -1,0 +1,6 @@
+// Settings page — no logic yet
+const SettingsPage = () => {
+  return <main><h1>Settings</h1></main>
+}
+
+export default SettingsPage
