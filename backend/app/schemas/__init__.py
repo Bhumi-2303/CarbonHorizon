@@ -1,6 +1,33 @@
-# Schemas package — Pydantic request/response models
-from app.schemas.user import UserCreate, UserUpdate, UserResponse  # noqa: F401
-from app.schemas.organization import OrganizationCreate, OrganizationUpdate, OrganizationResponse  # noqa: F401
-from app.schemas.emission import EmissionCreate, EmissionUpdate, EmissionResponse  # noqa: F401
-from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse  # noqa: F401
-from app.schemas.token import Token, TokenPayload  # noqa: F401
+"""
+Schemas package — re-exports all public schemas for easy imports.
+
+Usage:
+    from app.schemas import APIResponse, RegisterRequest, ProfileResponse
+    from app.schemas import TokenResponse, LoginRequest
+"""
+# Standard API envelope (use this in all routers)
+from app.schemas.auth import (                    # noqa: F401
+    APIResponse,
+    ErrorDetail,
+    RegisterRequest,
+    LoginRequest,
+    RefreshRequest,
+    TokenResponse,
+    ProfileResponse,
+    RegisterResponse,
+    TokenAPIResponse,
+    ProfileAPIResponse,
+    RegisterAPIResponse,
+)
+
+# User schemas (legacy names kept for backward compat)
+from app.schemas.user import (                    # noqa: F401
+    UpdateProfileRequest,
+    UserProfile,
+    UserCreate,
+    UserUpdate,
+    UserResponse,
+)
+
+# Token schemas (legacy)
+from app.schemas.token import TokenPayload         # noqa: F401
