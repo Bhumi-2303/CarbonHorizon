@@ -43,8 +43,14 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User
-from app.schemas.token import RefreshRequest, TokenResponse
-from app.schemas.user import RegisterRequest, RegisterResponse, UpdateProfileRequest, UserProfile
+from app.schemas.auth import (
+    ProfileResponse,
+    RefreshRequest,
+    RegisterRequest,
+    RegisterResponse,
+    TokenResponse,
+)
+from app.schemas.user import UpdateProfileRequest
 
 
 # ---------------------------------------------------------------------------
@@ -142,7 +148,7 @@ def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
     db.commit()
     db.refresh(user)
 
-    return RegisterResponse(user=UserProfile.model_validate(user))
+    return RegisterResponse(user=ProfileResponse.model_validate(user))
 
 
 def login_user(db: Session, email: str, password: str) -> TokenResponse:
@@ -214,21 +220,21 @@ def refresh_tokens(db: Session, payload: RefreshRequest) -> TokenResponse:
     return _token_response(user)
 
 
-def get_profile(current_user: User) -> UserProfile:
+def get_profile(current_user: User) -> ProfileResponse:
     """
     Return the authenticated user's public profile.
 
     No DB query needed — the User ORM object is already loaded by the
     get_current_active_user dependency.
     """
-    return UserProfile.model_validate(current_user)
+    return ProfileResponse.model_validate(current_user)
 
 
 def update_profile(
     db: Session,
     current_user: User,
     payload: UpdateProfileRequest,
-) -> UserProfile:
+) -> ProfileResponse:
     """
     Patch mutable profile fields.
 
@@ -246,7 +252,7 @@ def update_profile(
 
     db.commit()
     db.refresh(current_user)
-    return UserProfile.model_validate(current_user)
+    return ProfileResponse.model_validate(current_user)
 
 
 def soft_delete_account(db: Session, current_user: User) -> None:
