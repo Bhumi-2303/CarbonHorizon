@@ -1,26 +1,274 @@
 """
-AuthService — authentication business logic.
-No logic implemented yet; method stubs only.
+AuthService  —  authentication business logic for Carbon Horizon.
+
+Responsibilities
+----------------
+register_user      Hash password with bcrypt, persist new User row,
+                   return UserProfile + TokenResponse in one step.
+login_user         Verify bcrypt hash, stamp last_login, return token pair.
+refresh_tokens     Validate a refresh JWT, issue a fresh token pair.
+get_profile        Fetch the authenticated user's public profile.
+update_profile     Patch mutable profile fields.
+soft_delete_account  Set deleted_at; the account is invisible to queries
+                     but data is retained for 90 days per the retention policy.
+
+Token strategy
+--------------
+  Access  token: 30 min,  type="access"   — sent in every API request header
+  Refresh token: 7 days,  type="refresh"  — used only on POST /auth/refresh
+
+Both tokens are signed with the app SECRET_KEY using HS256.  There is no
+server-side token store: logout is stateless (client discards the tokens).
+For production, add a Redis blocklist for refresh tokens on logout.
+
+Error handling
+--------------
+All public methods raise FastAPI HTTPException so callers (routers) stay thin.
 """
+from __future__ import annotations
+
+import uuid
+from datetime import datetime, timezone
+
+from fastapi import HTTPException, status
+from jose import JWTError
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    hash_password,
+    verify_password,
+)
 from app.models.user import User
-from app.schemas.token import Token
+from app.schemas.token import RefreshRequest, TokenResponse
+from app.schemas.user import RegisterRequest, RegisterResponse, UpdateProfileRequest, UserProfile
 
 
-class AuthService:
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
 
-    @staticmethod
-    def authenticate(db: Session, email: str, password: str) -> User | None:
-        """Verify credentials and return User or None."""
-        raise NotImplementedError
+def _token_response(user: User) -> TokenResponse:
+    """Build a TokenResponse for *user*."""
+    return TokenResponse(
+        access_token=create_access_token(subject=str(user.id)),
+        refresh_token=create_refresh_token(subject=str(user.id)),
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
 
-    @staticmethod
-    def create_tokens(user: User) -> Token:
-        """Issue access + refresh token pair for a user."""
-        raise NotImplementedError
 
-    @staticmethod
-    def refresh_access_token(refresh_token: str) -> Token:
-        """Validate refresh token and return a new token pair."""
-        raise NotImplementedError
+def _assert_email_free(db: Session, email: str) -> None:
+    """Raise HTTP 409 if *email* is already registered."""
+    exists = (
+        db.query(User)
+        .filter(User.email == email, User.deleted_at.is_(None))
+        .first()
+    )
+    if exists:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email already exists",
+        )
+
+
+def _get_active_user_by_email(db: Session, email: str) -> User:
+    """Return an active User by email or raise HTTP 401."""
+    user = (
+        db.query(User)
+        .filter(User.email == email, User.deleted_at.is_(None))
+        .first()
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+    return user
+
+
+def _get_active_user_by_id(db: Session, user_id: str | uuid.UUID) -> User:
+    """Return an active User by UUID or raise HTTP 404."""
+    user = (
+        db.query(User)
+        .filter(User.id == str(user_id), User.deleted_at.is_(None))
+        .first()
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    return user
+
+
+# ---------------------------------------------------------------------------
+# Public service functions
+# ---------------------------------------------------------------------------
+
+def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
+    """
+    Create a new user account.
+
+    Steps
+    -----
+    1. Assert the email is not already taken.
+    2. Hash the plain-text password with bcrypt.
+    3. Persist the User row.
+    4. Return the public profile together with a fresh token pair so the
+       client is logged in immediately after registration.
+
+    Raises
+    ------
+    HTTP 409  if the email is already registered.
+    """
+    _assert_email_free(db, payload.email)
+
+    user = User(
+        id=uuid.uuid4(),
+        full_name=payload.full_name,
+        email=payload.email,
+        password_hash=hash_password(payload.password),
+        age_group=payload.age_group,
+        lifestyle_type=payload.lifestyle_type,
+        city=payload.city,
+        country=payload.country,
+        email_verified=False,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return RegisterResponse(user=UserProfile.model_validate(user))
+
+
+def login_user(db: Session, email: str, password: str) -> TokenResponse:
+    """
+    Authenticate a user and return a token pair.
+
+    Steps
+    -----
+    1. Fetch the active user by email.
+    2. Verify the plain-text password against the stored bcrypt hash.
+    3. Stamp last_login with the current UTC time.
+    4. Return access + refresh tokens.
+
+    Raises
+    ------
+    HTTP 401  if email not found or password is wrong.
+    HTTP 403  if the account is soft-deleted (handled by _get_active_user_by_email).
+    """
+    user = _get_active_user_by_email(db, email)
+
+    if not verify_password(password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
+    # Stamp last login
+    user.last_login = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(user)
+
+    return _token_response(user)
+
+
+def refresh_tokens(db: Session, payload: RefreshRequest) -> TokenResponse:
+    """
+    Validate a refresh token and issue a fresh token pair.
+
+    Steps
+    -----
+    1. Decode and verify the JWT signature.
+    2. Assert token type is "refresh".
+    3. Load the user from `sub`; ensure account is still active.
+    4. Return a brand-new access + refresh pair.
+
+    Raises
+    ------
+    HTTP 401  on any invalid / expired / wrong-type token.
+    HTTP 404  if the user in `sub` no longer exists.
+    """
+    credentials_exc = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or expired refresh token",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        claims = decode_token(payload.refresh_token)
+    except JWTError:
+        raise credentials_exc
+
+    if claims.get("type") != "refresh":
+        raise credentials_exc
+
+    user_id: str | None = claims.get("sub")
+    if not user_id:
+        raise credentials_exc
+
+    user = _get_active_user_by_id(db, user_id)
+    return _token_response(user)
+
+
+def get_profile(current_user: User) -> UserProfile:
+    """
+    Return the authenticated user's public profile.
+
+    No DB query needed — the User ORM object is already loaded by the
+    get_current_active_user dependency.
+    """
+    return UserProfile.model_validate(current_user)
+
+
+def update_profile(
+    db: Session,
+    current_user: User,
+    payload: UpdateProfileRequest,
+) -> UserProfile:
+    """
+    Patch mutable profile fields.
+
+    Only fields explicitly set in the request body are updated (exclude_unset).
+    Password changes are handled by a separate endpoint (not implemented here).
+
+    Raises
+    ------
+    HTTP 404  if the user row disappears between request and commit (very rare).
+    """
+    update_data = payload.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+
+    db.commit()
+    db.refresh(current_user)
+    return UserProfile.model_validate(current_user)
+
+
+def soft_delete_account(db: Session, current_user: User) -> None:
+    """
+    Soft-delete the authenticated user's account.
+
+    Sets deleted_at to the current UTC time.  The row is retained for 90 days
+    per the data retention policy (see Backend Schema Documentation §21).
+
+    After this call the client should discard its tokens — subsequent requests
+    using the old access token will be rejected by get_current_active_user
+    (which checks deleted_at).
+
+    Raises
+    ------
+    HTTP 409  if the account is already soft-deleted (idempotency guard).
+    """
+    if current_user.is_deleted:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Account is already deactivated",
+        )
+
+    current_user.deleted_at = datetime.now(timezone.utc)
+    db.commit()
