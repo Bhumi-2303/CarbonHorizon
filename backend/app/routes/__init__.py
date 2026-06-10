@@ -1,18 +1,35 @@
 """
 API v1 router — aggregates all resource routers.
+
+Route map
+---------
+/api/v1/auth           →  auth.py
+/api/v1/assessment     →  assessment.py
+/api/v1/dashboard      →  dashboard.py
+/api/v1/simulator      →  simulator.py
+/api/v1/forecast       →  forecast.py
+/api/v1/goals          →  goals.py
+/api/v1/habits         →  habits.py
+/api/v1/coach          →  coach.py
 """
 from fastapi import APIRouter
 
 from app.routes.auth import router as auth_router
-from app.routes.users import router as users_router
-from app.routes.organizations import router as organizations_router
-from app.routes.emissions import router as emissions_router
-from app.routes.reports import router as reports_router
+from app.routes.assessment import router as assessment_router
+from app.routes.dashboard import router as dashboard_router
+from app.routes.simulator import router as simulator_router
+from app.routes.forecast import router as forecast_router
+from app.routes.goals import router as goals_router
+from app.routes.habits import router as habits_router
+from app.routes.coach import router as coach_router
 
 api_router = APIRouter()
 
-api_router.include_router(auth_router,          prefix="/auth",          tags=["Auth"])
-api_router.include_router(users_router,         prefix="/users",         tags=["Users"])
-api_router.include_router(organizations_router, prefix="/organizations", tags=["Organizations"])
-api_router.include_router(emissions_router,     prefix="/emissions",     tags=["Emissions"])
-api_router.include_router(reports_router,       prefix="/reports",       tags=["Reports"])
+api_router.include_router(auth_router,       prefix="/auth",       tags=["Auth"])
+api_router.include_router(assessment_router, prefix="/assessment",  tags=["Assessment"])
+api_router.include_router(dashboard_router,  prefix="/dashboard",   tags=["Dashboard"])
+api_router.include_router(simulator_router,  prefix="/simulator",   tags=["Simulator"])
+api_router.include_router(forecast_router,   prefix="/forecast",    tags=["Forecast"])
+api_router.include_router(goals_router,      prefix="/goals",       tags=["Goals"])
+api_router.include_router(habits_router,     prefix="/habits",      tags=["Habits"])
+api_router.include_router(coach_router,      prefix="/coach",       tags=["Coach"])
