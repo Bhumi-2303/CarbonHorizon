@@ -10,8 +10,8 @@ Table: simulations
 import uuid
 from typing import Any
 
-from sqlalchemy import Float, ForeignKey, Index, String, Text
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Float, ForeignKey, Index, JSON, String, Text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -41,7 +41,7 @@ class Simulation(Base, TimestampMixin):
     estimated_carbon_saved: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Flexible scenario payload (transport choices, energy mix, etc.)
-    simulation_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    simulation_data: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="simulations")

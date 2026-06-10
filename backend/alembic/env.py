@@ -1,82 +1,139 @@
-from logging.config import fileConfig
-import sys
+"""
+Alembic environment configuration for Carbon Horizon.
+
+Supports:
+  • Offline mode  — generates SQL scripts without a live DB connection
+  • Online mode   — runs migrations against a live sync connection
+  • SQLite (dev)  — render_as_batch=True required for ALTER TABLE support
+  • PostgreSQL    — full DDL support, no batch mode needed
+
+DATABASE_URL is read from Settings (which reads .env) so switching between
+SQLite (dev) and PostgreSQL (prod) requires only a .env change.
+
+Run migrations:
+  alembic upgrade head          # apply all pending migrations
+  alembic downgrade -1          # roll back one migration
+  alembic revision --autogenerate -m "describe change"
+"""
+from __future__ import annotations
+
 import os
+import sys
+from logging.config import fileConfig
 
-# Ensure the backend root is on the path so app.* imports work
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool, text
+from sqlalchemy import create_engine
 
 from alembic import context
 
-# Import settings (reads .env)
-from app.core.config import settings
+# ── Ensure backend root is on sys.path ────────────────────────────────────
+# Works whether alembic is run from /backend or from project root.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_BACKEND_ROOT = os.path.dirname(_HERE)
+if _BACKEND_ROOT not in sys.path:
+    sys.path.insert(0, _BACKEND_ROOT)
 
-# Import all models so Alembic autogenerate can detect them
-import app.models  # noqa: F401
-from app.db.base import Base
+# ── App imports ────────────────────────────────────────────────────────────
+from app.core.config import settings                    # reads .env
+import app.models                                       # registers all 12 ORM models # noqa: F401
+from app.db.base import Base                            # shared DeclarativeBase
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# ── Alembic config object ──────────────────────────────────────────────────
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+# Override sqlalchemy.url in alembic.ini with the value from Settings.
+# This is the single source of truth — .env → Settings → Alembic.
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+
+# Set up loggers from alembic.ini [loggers] section.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Use our SQLAlchemy Base metadata for autogenerate support
+# ── Target metadata ────────────────────────────────────────────────────────
+# Alembic uses this to diff the ORM schema against the live DB schema.
 target_metadata = Base.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+# ── Dialect helpers ────────────────────────────────────────────────────────
 
+def _is_sqlite(url: str) -> bool:
+    return url.startswith("sqlite")
+
+
+def _migration_context_kwargs(url: str) -> dict:
+    """
+    Return context.configure() kwargs appropriate for the target dialect.
+
+    SQLite requires render_as_batch=True because it does not support most
+    ALTER TABLE statements natively; Alembic emulates them via table rebuild.
+    """
+    kwargs: dict = {
+        "target_metadata": target_metadata,
+        "compare_type": True,           # detect column type changes
+        "compare_server_default": True, # detect server default changes
+        "include_schemas": False,
+    }
+    if _is_sqlite(url):
+        kwargs["render_as_batch"] = True
+    return kwargs
+
+
+# ── Offline migration ──────────────────────────────────────────────────────
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode.
-
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the given string to the
-    script output.
-
     """
-    url = settings.DATABASE_URL
+    Generate SQL migration scripts without a live DB connection.
+
+    Useful for reviewing DDL before applying, or for environments where
+    direct DB access is restricted.
+
+    Usage:
+        alembic upgrade head --sql > migration.sql
+    """
+    url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
-        target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        **_migration_context_kwargs(url),
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
 
+# ── Online migration ───────────────────────────────────────────────────────
+
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
     """
-    from sqlalchemy import create_engine
-    connectable = create_engine(settings.DATABASE_URL, poolclass=pool.NullPool)
+    Run migrations against a live database using a synchronous connection.
+
+    Alembic does not support async engines directly; we always use the sync
+    DATABASE_URL here.  For PostgreSQL the sync driver is psycopg2;
+    for SQLite no extra driver is required.
+
+    The async application engine (asyncpg / aiosqlite) is separate and used
+    only by FastAPI request handlers.
+    """
+    url = config.get_main_option("sqlalchemy.url")
+
+    # Build a sync engine scoped to this migration run (NullPool prevents
+    # connection leaks when running multiple `alembic upgrade` calls).
+    connectable = create_engine(
+        url,
+        poolclass=pool.NullPool,
+        # SQLite: allow multi-threaded access during migration scripts
+        **({"connect_args": {"check_same_thread": False}} if _is_sqlite(url) else {}),
+    )
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            **_migration_context_kwargs(url),
         )
-
         with context.begin_transaction():
             context.run_migrations()
 
+
+# ── Entrypoint ─────────────────────────────────────────────────────────────
 
 if context.is_offline_mode():
     run_migrations_offline()
