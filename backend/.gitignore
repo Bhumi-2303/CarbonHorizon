@@ -10,3 +10,8 @@ dist/
 .ruff_cache/
 htmlcov/
 .coverage
+
+# SQLite dev database
+*.db
+*.db-shm
+*.db-wal
