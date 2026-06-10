@@ -1,22 +1,33 @@
-# Web Framework
+# ============================================================
+# Carbon Horizon — Backend Dependencies
+# ============================================================
+
+# ── Web Framework ────────────────────────────────────────────
 fastapi==0.115.5
 uvicorn[standard]==0.32.1
+python-multipart==0.0.18      # required for form data / file uploads
 
-# Database
+# ── Database ─────────────────────────────────────────────────
 sqlalchemy==2.0.36
 alembic==1.14.0
-psycopg2-binary==2.9.10
+psycopg2-binary==2.9.10       # PostgreSQL sync driver (prod)
+aiosqlite==0.21.0             # SQLite async driver (dev)
 
-# Validation & Serialization
+# ── Validation & Serialisation ───────────────────────────────
 pydantic==2.10.3
+pydantic[email]==2.10.3       # email-validator for EmailStr
 pydantic-settings==2.6.1
 
-# Authentication & Security
-python-jose[cryptography]==3.3.0
-bcrypt==4.2.1
-passlib[bcrypt]==1.7.4
-python-multipart==0.0.18
+# ── Authentication & Security ────────────────────────────────
+python-jose[cryptography]==3.3.0  # JWT encode / decode
+bcrypt==4.2.1                     # bcrypt password hashing (used directly — passlib 1.7.4 is
+                                  # incompatible with bcrypt>=4.0 on Python 3.14)
 
-# Utilities
-python-dotenv==1.0.1
+# ── HTTP client (internal / testing) ────────────────────────
 httpx==0.28.0
+
+# ── Utilities ────────────────────────────────────────────────
+python-dotenv==1.0.1
+
+# ── Dev / test (install separately with pip install -r requirements-dev.txt)
+# pytest, pytest-asyncio, httpx, factory-boy
