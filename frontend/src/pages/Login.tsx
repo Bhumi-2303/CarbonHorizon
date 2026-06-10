@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AuthLayout } from '@/components/ui/AuthLayout'
 import { FormField } from '@/components/ui/FormField'
 import { useAuth } from '@/context/AuthContext'
@@ -51,10 +51,14 @@ function EyeOffIcon() {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function Login() {
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
+  const location  = useLocation()
   const { login } = useAuth()
-  const [apiError, setApiError] = useState<string | null>(null)
+  const [apiError, setApiError]       = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+
+  // Redirect back to the page the user was trying to visit
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? '/dashboard'
 
   const {
     register,
@@ -71,7 +75,7 @@ export default function Login() {
       const tokens = await authApi.login(data)
       const profile = await authApi.getProfile()
       login(tokens, profile)
-      navigate('/dashboard', { replace: true })
+      navigate(redirectTo, { replace: true })
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'Login failed. Please try again.')
     }
