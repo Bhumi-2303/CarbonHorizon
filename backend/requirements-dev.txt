@@ -1,0 +1,11 @@
+# ============================================================
+# Carbon Horizon — Dev / Test Dependencies
+# ============================================================
+# Install:  pip install -r requirements-dev.txt
+
+pytest==9.0.3
+pytest-cov==7.1.0
+httpx==0.28.1          # HTTPX TestClient for FastAPI integration tests
+factory-boy==3.3.3     # Model factories for test data
+freezegun==1.5.5       # Freeze/travel time for JWT expiry tests
+Faker==40.22.0         # Realistic fake data (used by factory-boy)
