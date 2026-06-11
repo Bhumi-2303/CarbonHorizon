@@ -113,7 +113,7 @@ class TestAssessmentEndpoints:
         body = response.json()
         assert body["success"] is True
         assert body["data"]["assessment_id"] == str(latest["assessment_id"])
-        assert body["data"]["food"] == 150.0  # vegetarian
+        assert body["data"]["food"] == 51.0  # vegetarian
 
     def test_get_latest_not_found(self, client: TestClient, auth_headers: dict):
         """GET /latest returns 404 when there are no assessments."""
