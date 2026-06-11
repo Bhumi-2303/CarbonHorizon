@@ -9,7 +9,7 @@ and carbon score normalization/clamping.
 import pytest
 from sqlalchemy.orm import Session
 from app.models.carbon_factor import CarbonFactor
-from app.models.enums import TransportMode, DietType
+from app.models.enums import TransportMode, DietType, AssessmentPeriod
 from app.services import calculation_engine
 
 
@@ -185,6 +185,13 @@ class TestCalculateFood:
         result = calculation_engine.calculate_food("vegetarian", 3, db=db)
         # 1.5 * 30 / 3 = 15.0
         assert result == 15.0
+
+    def test_food_assessment_periods(self):
+        """calculate_food scales daily diet factors based on assessment period (daily/monthly/annual)."""
+        # Daily: vegetarian = 1.7 * 1 / 1 = 1.7
+        assert calculation_engine.calculate_food("vegetarian", 1, assessment_period="daily") == 1.7
+        # Annual: vegetarian = 1.7 * 365 / 1 = 620.5
+        assert calculation_engine.calculate_food("vegetarian", 1, assessment_period=AssessmentPeriod.annual) == 620.5
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
