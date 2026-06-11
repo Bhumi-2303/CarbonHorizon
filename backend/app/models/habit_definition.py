@@ -33,9 +33,6 @@ class HabitDefinition(Base, TimestampMixin):
     unit: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g. "kg CO₂e per trip"
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    __table_args__ = (
-        Index("ix_habit_definitions_habit_type", "habit_type"),
-    )
 
     def __repr__(self) -> str:
         return (

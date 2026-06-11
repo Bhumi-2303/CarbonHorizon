@@ -23,6 +23,7 @@ We call bcrypt.hashpw / bcrypt.checkpw directly.
 from __future__ import annotations
 
 import bcrypt
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Generator, Optional
 
@@ -178,7 +179,12 @@ def get_current_user(
     if not user_id:
         raise credentials_exc
 
-    user: User | None = db.query(User).filter(User.id == user_id).first()
+    try:
+        uuid_obj = uuid.UUID(user_id)
+    except ValueError:
+        raise credentials_exc
+
+    user: User | None = db.query(User).filter(User.id == uuid_obj).first()
     if user is None:
         raise credentials_exc
 

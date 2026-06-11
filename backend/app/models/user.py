@@ -76,8 +76,6 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
 
     # Table-level indexes (email index declared inline above; extra below)
     __table_args__ = (
-        Index("ix_users_email", "email"),           # fast auth lookup
-        Index("ix_users_deleted_at", "deleted_at"), # soft-delete filter
         Index("ix_users_country", "country"),       # geographic queries
     )
 

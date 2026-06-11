@@ -71,7 +71,7 @@ def _assert_email_free(db: Session, email: str) -> None:
     """Raise HTTP 409 if *email* is already registered."""
     exists = (
         db.query(User)
-        .filter(User.email == email, User.deleted_at.is_(None))
+        .filter(User.email == email)
         .first()
     )
     if exists:
@@ -98,9 +98,20 @@ def _get_active_user_by_email(db: Session, email: str) -> User:
 
 def _get_active_user_by_id(db: Session, user_id: str | uuid.UUID) -> User:
     """Return an active User by UUID or raise HTTP 404."""
+    if isinstance(user_id, str):
+        try:
+            parsed_id = uuid.UUID(user_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+    else:
+        parsed_id = user_id
+
     user = (
         db.query(User)
-        .filter(User.id == str(user_id), User.deleted_at.is_(None))
+        .filter(User.id == parsed_id, User.deleted_at.is_(None))
         .first()
     )
     if not user:
