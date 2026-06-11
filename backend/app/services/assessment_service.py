@@ -14,6 +14,17 @@ from app.schemas.assessment import AssessmentInputs
 from app.services import calculation_engine
 
 
+def _get_val(obj, key, default=None):
+    """
+    Helper to extract a field from a dictionary or object (ORM model / Pydantic schema).
+    """
+    if obj is None:
+        return default
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
+
 def _map_to_dict(assessment: CarbonAssessment) -> dict:
     """
     Map CarbonAssessment ORM fields to the schema-conforming dictionary format.
@@ -47,6 +58,8 @@ class AssessmentService:
         # Run calculations using backend calculation engine
         results = calculation_engine.calculate_total_emissions(db, inputs)
 
+        period = _get_val(inputs, "assessment_period", "monthly")
+
         # Build CarbonAssessment record
         assessment = CarbonAssessment(
             user_id=user_id,
@@ -58,7 +71,7 @@ class AssessmentService:
             carbon_score=results["carbon_score"],
             calculation_version=results["calculation_version"],
             factor_version=results["factor_version"],
-            assessment_period=inputs.assessment_period or "monthly"
+            assessment_period=period
         )
         db.add(assessment)
         db.flush()  # Populate the generated assessment ID
@@ -66,16 +79,16 @@ class AssessmentService:
         # Build raw inputs record linked to the assessment
         inputs_record = EmissionInputs(
             assessment_id=assessment.id,
-            transport_mode=inputs.transport_mode,
-            distance_km=inputs.distance_km,
-            electricity_kwh=inputs.electricity_kwh,
-            ac_hours=inputs.ac_hours,
-            lpg_usage=inputs.lpg_usage,
-            solar_usage=inputs.solar_usage,
-            diet_type=inputs.diet_type,
-            recycling_score=inputs.recycling_score,
-            plastic_usage_score=inputs.plastic_usage_score,
-            household_size=inputs.household_size
+            transport_mode=_get_val(inputs, "transport_mode"),
+            distance_km=_get_val(inputs, "distance_km"),
+            electricity_kwh=_get_val(inputs, "electricity_kwh"),
+            ac_hours=_get_val(inputs, "ac_hours"),
+            lpg_usage=_get_val(inputs, "lpg_usage"),
+            solar_usage=_get_val(inputs, "solar_usage"),
+            diet_type=_get_val(inputs, "diet_type"),
+            recycling_score=_get_val(inputs, "recycling_score"),
+            plastic_usage_score=_get_val(inputs, "plastic_usage_score"),
+            household_size=_get_val(inputs, "household_size")
         )
         db.add(inputs_record)
         db.commit()
