@@ -7,7 +7,7 @@ assigns a normalized carbon score, and stamps version metadata.
 import logging
 from sqlalchemy.orm import Session
 from app.models.carbon_factor import CarbonFactor
-from app.models.enums import TransportMode, DietType
+from app.models.enums import TransportMode, DietType, AssessmentPeriod
 
 logger = logging.getLogger(__name__)
 
@@ -127,10 +127,12 @@ def calculate_food(
     diet_type: str | DietType | None,
     household_size: int | None,
     db: Session | None = None,
-    version_tracker: dict | None = None
+    version_tracker: dict | None = None,
+    assessment_period: str | AssessmentPeriod | None = None
 ) -> float:
     """
     Calculate dietary emissions normalized per household size.
+    Scaled based on assessment period (default is monthly = 30 days).
     """
     if not diet_type:
         return 0.0
@@ -142,16 +144,30 @@ def calculate_food(
     )
 
     if diet_str == "vegetarian":
-        fallback = 150.0
+        fallback = 1.7
     elif diet_str == "non_vegetarian":
-        fallback = 400.0
+        fallback = 3.3
     else:
-        fallback = 250.0  # mixed or other
+        fallback = 2.5  # mixed or other
 
     diet_factor = _get_factor(db, "food", diet_str, fallback, version_tracker)
     h_size = household_size if household_size is not None and household_size > 0 else 1
 
-    return float(diet_factor / h_size)
+    # Scale daily factor to period
+    period_str = (
+        assessment_period.value
+        if isinstance(assessment_period, AssessmentPeriod)
+        else str(assessment_period or "monthly")
+    )
+
+    if period_str == "daily":
+        days = 1.0
+    elif period_str == "annual":
+        days = 365.0
+    else:
+        days = 30.0  # default monthly
+
+    return float((diet_factor * days) / h_size)
 
 
 def calculate_waste(
@@ -204,6 +220,7 @@ def calculate_total_emissions(
     recycling_score = _get_val(inp, "recycling_score")
     plastic_usage_score = _get_val(inp, "plastic_usage_score")
     household_size = _get_val(inp, "household_size")
+    assessment_period = _get_val(inp, "assessment_period", "monthly")
 
     # Tracking factors database version
     version_tracker = {"factor_version": DEFAULT_FACTOR_VERSION}
@@ -229,7 +246,8 @@ def calculate_total_emissions(
         diet_type=diet_type,
         household_size=household_size,
         db=db,
-        version_tracker=version_tracker
+        version_tracker=version_tracker,
+        assessment_period=assessment_period
     )
 
     waste_emission = calculate_waste(
