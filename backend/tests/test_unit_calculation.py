@@ -158,33 +158,33 @@ class TestCalculateFood:
 
     def test_food_diet_types_fallbacks(self):
         """calculate_food uses standard fallback values for diets."""
-        # Vegetarian: 150 / 1
-        assert calculation_engine.calculate_food("vegetarian", 1) == 150.0
-        # Mixed: 250 / 1
-        assert calculation_engine.calculate_food("mixed", 1) == 250.0
-        # Non-vegetarian: 400 / 1
-        assert calculation_engine.calculate_food("non_vegetarian", None) == 400.0
+        # Vegetarian: 1.7 * 30 / 1 = 51.0
+        assert calculation_engine.calculate_food("vegetarian", 1) == 51.0
+        # Mixed: 2.5 * 30 / 1 = 75.0
+        assert calculation_engine.calculate_food("mixed", 1) == 75.0
+        # Non-vegetarian: 3.3 * 30 / 1 = 99.0
+        assert calculation_engine.calculate_food("non_vegetarian", None) == 99.0
 
     def test_food_household_division(self):
         """calculate_food divides diet emissions by household size."""
-        # Non-vegetarian = 400.0, size = 4 -> 100.0
-        assert calculation_engine.calculate_food("non_vegetarian", 4) == 100.0
-        # Mixed = 250.0, size = 2 -> 125.0
-        assert calculation_engine.calculate_food(DietType.mixed, 2) == 125.0
+        # Non-vegetarian = 3.3 * 30 = 99.0, size = 4 -> 24.75
+        assert calculation_engine.calculate_food("non_vegetarian", 4) == 24.75
+        # Mixed = 2.5 * 30 = 75.0, size = 2 -> 37.5
+        assert calculation_engine.calculate_food(DietType.mixed, 2) == 37.5
 
     def test_food_invalid_household_size(self):
         """calculate_food defaults household_size to 1 if <= 0 or None."""
-        assert calculation_engine.calculate_food("vegetarian", 0) == 150.0
-        assert calculation_engine.calculate_food("vegetarian", -5) == 150.0
+        assert calculation_engine.calculate_food("vegetarian", 0) == 51.0
+        assert calculation_engine.calculate_food("vegetarian", -5) == 51.0
 
     def test_food_db_lookup(self, db: Session):
         """calculate_food queries DB factors correctly."""
-        db.add(CarbonFactor(category="food", sub_category="vegetarian", factor_value=90.0, unit="kg", version="FOOD-V1"))
+        db.add(CarbonFactor(category="food", sub_category="vegetarian", factor_value=1.5, unit="kg", version="FOOD-V1"))
         db.flush()
 
         result = calculation_engine.calculate_food("vegetarian", 3, db=db)
-        # 90.0 / 3 = 30.0
-        assert result == 30.0
+        # 1.5 * 30 / 3 = 15.0
+        assert result == 15.0
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -240,21 +240,21 @@ class TestCalculateTotalEmissions:
             "ac_hours": 10.0,              # 8.0
             "lpg_usage": 5.0,              # 15.0
             "solar_usage": False,
-            "diet_type": "vegetarian",     # 150.0 / 2 = 75.0
+            "diet_type": "vegetarian",     # 1.7 * 30 / 2 = 25.5
             "household_size": 2,
             "recycling_score": 1,          # 3 * 15 - 1 * 5 = 40.0
             "plastic_usage_score": 3,
         }
-        # Total: 18.0 + (50.0 + 8.0 + 15.0) + 75.0 + 40.0 = 18 + 73 + 75 + 40 = 206.0
-        # Score: 100 - (206.0 / 1000.0) * 100 = 100 - 20.6 = 79.4 -> round to 79.
+        # Total: 18.0 + (50.0 + 8.0 + 15.0) + 25.5 + 40.0 = 18 + 73 + 25.5 + 40 = 156.5
+        # Score: 100 - (156.5 / 1000.0) * 100 = 100 - 15.65 = 84.35 -> round to 84.
         result = calculation_engine.calculate_total_emissions(db=None, emission_input=payload)
 
         assert result["transport_emission"] == 18.0
         assert result["energy_emission"] == 73.0
-        assert result["food_emission"] == 75.0
+        assert result["food_emission"] == 25.5
         assert result["waste_emission"] == 40.0
-        assert result["total_emission"] == 206.0
-        assert result["carbon_score"] == 79
+        assert result["total_emission"] == 156.5
+        assert result["carbon_score"] == 84
         assert result["calculation_version"] == "1.0.0"
         assert result["factor_version"] == "IPCC-2024"
 
@@ -273,7 +273,7 @@ class TestCalculateTotalEmissions:
             plastic_usage_score=3,
         )
         result = calculation_engine.calculate_total_emissions(db=None, emission_input=payload)
-        assert result["total_emission"] == 206.0
+        assert result["total_emission"] == 156.5
 
     def test_signature_overloads(self):
         """calculate_total_emissions supports running with and without DB parameters."""
