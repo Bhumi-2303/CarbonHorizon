@@ -10,7 +10,6 @@
  * Bearer token injected automatically by AuthContext interceptor.
  */
 import apiClient from './client'
-import type { AssessmentResult } from './assessment'
 
 // ─── Change types (mirror backend ScenarioChanges) ───────────────────────────
 
@@ -51,14 +50,6 @@ export interface SimulationRunRequest {
   scenario_name:         string
   scenario_description?: string
   changes:               ScenarioChanges
-
-  // Baseline inputs (from latest assessment)
-  transport_mode?:      TransportMode
-  distance_km?:         number
-  electricity_kwh?:     number
-  ac_hours?:            number
-  lpg_usage?:           number
-  solar_usage?:         boolean
   diet_type?:           DietType
   recycling_score?:     number
   plastic_usage_score?: number

@@ -13,7 +13,7 @@
  *   4. "Save Scenario"  → POST /simulator/save.
  *   5. "View History"   → navigate('/simulator/history').
  */
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -218,7 +218,7 @@ const DEFAULT_STATE: ScenarioState = {
   plasticReduction:        2,
 }
 
-function buildChanges(s: ScenarioState, baseline: AssessmentResult | null): ScenarioChanges {
+function buildChanges(s: ScenarioState): ScenarioChanges {
   const changes: ScenarioChanges = {}
   if (s.transportActive) {
     changes.transport = { new_mode: s.newMode }
@@ -316,7 +316,7 @@ export default function Simulator() {
     setRunError('')
     setSaved(false)
     try {
-      const changes = buildChanges(sc, baseline)
+      const changes = buildChanges(sc)
       const req = {
         scenario_name: scenarioName,
         changes,
