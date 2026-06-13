@@ -23,7 +23,7 @@ Stubs (not yet implemented):
   POST /forgot-password
   POST /reset-password
 """
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_active_user, get_db
@@ -42,6 +42,7 @@ from app.schemas.auth import (
 )
 from app.schemas.user import UpdateProfileRequest
 from app.services import auth_service
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
@@ -76,7 +77,9 @@ async def register(
     response_model=TokenAPIResponse,
     summary="Obtain access + refresh tokens",
 )
+@limiter.limit("5/minute")
 async def login(
+    request: Request,
     payload: LoginRequest,
     db: Session = Depends(get_db),
 ) -> TokenAPIResponse:

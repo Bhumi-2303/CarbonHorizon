@@ -5,7 +5,7 @@ All responses are wrapped in the standard APIResponse envelope:
     {"success": true,  "data": { ... }}
     {"success": false, "error": {"code": "...", "message": "..."}}
 """
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 from uuid import UUID
 
@@ -18,6 +18,7 @@ from app.schemas.assessment import (
     AssessmentListAPIResponse,
 )
 from app.services.assessment_service import AssessmentService
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
@@ -28,7 +29,9 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     summary="Submit a new carbon assessment with emission inputs",
 )
+@limiter.limit("10/minute")
 async def create_assessment(
+    request: Request,
     payload: AssessmentInputs,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),

@@ -6,11 +6,27 @@ Docs:        /api/docs   (Swagger UI)
 ReDoc:       /api/redoc
 OpenAPI:     /api/openapi.json
 """
-from fastapi import FastAPI
+import time
+import logging
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
+from app.core.rate_limit import limiter
 from app.routes import api_router
+
+logger = logging.getLogger("uvicorn.access")
+
+# ---------------------------------------------------------------------------
+# Rate Limiter Setup
+# ---------------------------------------------------------------------------
+from slowapi import _rate_limit_exceeded_handler
 
 # ---------------------------------------------------------------------------
 # App factory
@@ -41,6 +57,8 @@ app = FastAPI(
     ],
 )
 
+app.state.limiter = limiter
+
 # ---------------------------------------------------------------------------
 # Middleware
 # ---------------------------------------------------------------------------
@@ -53,6 +71,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    logger.info(f"{request.method} {request.url.path} - {response.status_code} - {process_time:.4f}s")
+    return response
+
+# ---------------------------------------------------------------------------
+# Exception Handlers
+# ---------------------------------------------------------------------------
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"success": False, "message": exc.detail},
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    msg = ", ".join([f"{'.'.join(str(l) for l in err['loc'])}: {err['msg']}" for err in errors])
+    return JSONResponse(
+        status_code=422,
+        content={"success": False, "message": msg},
+    )
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"success": False, "message": "Internal Server Error"},
+    )
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -63,7 +119,6 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 # Health probes
 # ---------------------------------------------------------------------------
 
-
 @app.get("/", tags=["Health"], summary="Root — service identity")
 async def root():
     return {
@@ -73,7 +128,6 @@ async def root():
         "status": "healthy",
         "docs": "/api/docs",
     }
-
 
 @app.get("/health", tags=["Health"], summary="Liveness probe")
 async def health_check():

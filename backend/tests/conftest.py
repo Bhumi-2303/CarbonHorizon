@@ -41,6 +41,10 @@ from app.models.user import User  # noqa: F401 — triggers model registration
 # Import every model so all tables exist in Base.metadata before create_all
 import app.models  # noqa: F401
 
+# Disable rate limiter for testing
+from app.core.rate_limit import limiter
+limiter.enabled = False
+
 
 # ---------------------------------------------------------------------------
 # Database engine — fresh temp-file SQLite per test session

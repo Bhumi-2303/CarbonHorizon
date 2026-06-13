@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 import uuid
 
@@ -7,12 +7,15 @@ from app.models.user import User
 from app.schemas.auth import APIResponse
 from app.schemas.coach import ChatRequest, ChatResponse, ConversationHistoryResponse
 from app.services import coach_service
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
 @router.post("/chat", response_model=APIResponse[ChatResponse], status_code=status.HTTP_200_OK)
+@limiter.limit("20/minute")
 def chat_with_coach(
-    request: ChatRequest,
+    request: Request,
+    payload: ChatRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -24,8 +27,8 @@ def chat_with_coach(
         response_data = coach_service.chat(
             db=db,
             user_id=current_user.id,
-            conversation_id=request.conversation_id,
-            user_message=request.message
+            conversation_id=payload.conversation_id,
+            user_message=payload.message
         )
         return APIResponse(success=True, data=ChatResponse(**response_data))
     except HTTPException as e:
