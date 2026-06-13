@@ -14,6 +14,9 @@ import EmissionsPage from '@/pages/EmissionsPage'
 import ReportsPage from '@/pages/ReportsPage'
 import OrganizationPage from '@/pages/OrganizationPage'
 import SettingsPage from '@/pages/SettingsPage'
+import AssessmentForm from '@/pages/AssessmentForm'
+import AssessmentHistory from '@/pages/AssessmentHistory'
+import AssessmentDetail from '@/pages/AssessmentDetail'
 
 function App() {
   return (
@@ -24,7 +27,10 @@ function App() {
 
       {/* Protected routes — require valid JWT in AuthContext */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard"    element={<DashboardPage />} />
+        <Route path="/dashboard"           element={<DashboardPage />} />
+        <Route path="/assessment"           element={<AssessmentForm />} />
+        <Route path="/assessment/history"   element={<AssessmentHistory />} />
+        <Route path="/assessment/history/:id" element={<AssessmentDetail />} />
         <Route path="/emissions"    element={<EmissionsPage />} />
         <Route path="/reports"      element={<ReportsPage />} />
         <Route path="/organization" element={<OrganizationPage />} />

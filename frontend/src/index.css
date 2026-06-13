@@ -68,3 +68,14 @@
     @apply bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent;
   }
 }
+
+@layer utilities {
+  /* Wizard step fade-in animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.22s ease-out both;
+  }
+}
