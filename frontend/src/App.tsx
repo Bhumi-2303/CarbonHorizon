@@ -12,6 +12,7 @@ import NotFoundPage from '@/pages/NotFoundPage'
 // Lazy-loaded protected pages (kept as stubs for now)
 import AICoach from '@/pages/AICoach'
 import Goals from '@/pages/Goals'
+import HabitTracker from '@/pages/HabitTracker'
 import EmissionsPage from '@/pages/EmissionsPage'
 import ReportsPage from '@/pages/ReportsPage'
 import OrganizationPage from '@/pages/OrganizationPage'
@@ -41,6 +42,7 @@ function App() {
         <Route path="/forecast"               element={<Forecast />} />
         <Route path="/coach"                  element={<AICoach />} />
         <Route path="/goals"                  element={<Goals />} />
+        <Route path="/habits"                 element={<HabitTracker />} />
         <Route path="/emissions"    element={<EmissionsPage />} />
         <Route path="/reports"      element={<ReportsPage />} />
         <Route path="/organization" element={<OrganizationPage />} />
