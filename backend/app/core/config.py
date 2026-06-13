@@ -78,5 +78,8 @@ class Settings(BaseSettings):
         "http://localhost:5173",
     ]
 
+    # ── External APIs ───────────────────────────────────────────────────────
+    GEMINI_API_KEY: Optional[str] = None
+
 
 settings = Settings()
