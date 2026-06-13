@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import AppLayout from '@/components/AppLayout'
 
 // Public pages
 import Login from '@/pages/Login'
@@ -33,20 +34,22 @@ function App() {
 
       {/* Protected routes — require valid JWT in AuthContext */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard"           element={<DashboardPage />} />
-        <Route path="/assessment"           element={<AssessmentForm />} />
-        <Route path="/assessment/history"   element={<AssessmentHistory />} />
-        <Route path="/assessment/history/:id" element={<AssessmentDetail />} />
-        <Route path="/simulator"              element={<Simulator />} />
-        <Route path="/simulator/history"      element={<SimulatorHistory />} />
-        <Route path="/forecast"               element={<Forecast />} />
-        <Route path="/coach"                  element={<AICoach />} />
-        <Route path="/goals"                  element={<Goals />} />
-        <Route path="/habits"                 element={<HabitTracker />} />
-        <Route path="/emissions"    element={<EmissionsPage />} />
-        <Route path="/reports"      element={<ReportsPage />} />
-        <Route path="/organization" element={<OrganizationPage />} />
-        <Route path="/settings"     element={<SettingsPage />} />
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard"           element={<DashboardPage />} />
+          <Route path="/assessment"           element={<AssessmentForm />} />
+          <Route path="/assessment/history"   element={<AssessmentHistory />} />
+          <Route path="/assessment/history/:id" element={<AssessmentDetail />} />
+          <Route path="/simulator"              element={<Simulator />} />
+          <Route path="/simulator/history"      element={<SimulatorHistory />} />
+          <Route path="/forecast"               element={<Forecast />} />
+          <Route path="/coach"                  element={<AICoach />} />
+          <Route path="/goals"                  element={<Goals />} />
+          <Route path="/habits"                 element={<HabitTracker />} />
+          <Route path="/emissions"    element={<EmissionsPage />} />
+          <Route path="/reports"      element={<ReportsPage />} />
+          <Route path="/organization" element={<OrganizationPage />} />
+          <Route path="/settings"     element={<SettingsPage />} />
+        </Route>
       </Route>
 
       {/* Root redirect */}
