@@ -19,6 +19,7 @@ import AssessmentHistory from '@/pages/AssessmentHistory'
 import AssessmentDetail from '@/pages/AssessmentDetail'
 import Simulator from '@/pages/Simulator'
 import SimulatorHistory from '@/pages/SimulatorHistory'
+import { Forecast } from '@/pages/Forecast'
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
         <Route path="/assessment/history/:id" element={<AssessmentDetail />} />
         <Route path="/simulator"              element={<Simulator />} />
         <Route path="/simulator/history"      element={<SimulatorHistory />} />
+        <Route path="/forecast"               element={<Forecast />} />
         <Route path="/emissions"    element={<EmissionsPage />} />
         <Route path="/reports"      element={<ReportsPage />} />
         <Route path="/organization" element={<OrganizationPage />} />
