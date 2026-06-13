@@ -1,54 +1,57 @@
-"""
-Coach router  —  /api/coach
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+import uuid
 
-Endpoints
----------
-POST /api/coach/chat               Send a user message; get AI response
-GET  /api/coach/conversations      List all conversation sessions for the user
-GET  /api/coach/conversations/{conversation_id}
-                                   Fetch all messages in a conversation session
-DELETE /api/coach/conversations/{conversation_id}
-                                   Delete a conversation session and all its messages
-
-All endpoints return {"detail": "not implemented"} until services are wired.
-"""
-from fastapi import APIRouter, status
-from uuid import UUID
+from app.core.security import get_db, get_current_user
+from app.models.user import User
+from app.schemas.auth import APIResponse
+from app.schemas.coach import ChatRequest, ChatResponse, ConversationHistoryResponse
+from app.services import coach_service
 
 router = APIRouter()
 
-_NOT_IMPLEMENTED = {"detail": "not implemented"}
+@router.post("/chat", response_model=APIResponse[ChatResponse], status_code=status.HTTP_200_OK)
+def chat_with_coach(
+    request: ChatRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Send a message to the AI Sustainability Coach.
+    Returns the AI's response along with context injected automatically.
+    """
+    try:
+        response_data = coach_service.chat(
+            db=db,
+            user_id=current_user.id,
+            conversation_id=request.conversation_id,
+            user_message=request.message
+        )
+        return APIResponse(success=True, data=ChatResponse(**response_data))
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-
-@router.post(
-    "/chat",
-    status_code=status.HTTP_201_CREATED,
-    summary="Send a message to the AI coach and receive a response",
-)
-async def chat():
-    return _NOT_IMPLEMENTED
-
-
-@router.get(
-    "/conversations",
-    summary="List all AI coach conversation sessions for the current user",
-)
-async def list_conversations():
-    return _NOT_IMPLEMENTED
-
-
-@router.get(
-    "/conversations/{conversation_id}",
-    summary="Fetch all messages in a specific conversation session",
-)
-async def get_conversation(conversation_id: UUID):
-    return _NOT_IMPLEMENTED
-
-
-@router.delete(
-    "/conversations/{conversation_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete a conversation session and all its messages",
-)
-async def delete_conversation(conversation_id: UUID):
-    return _NOT_IMPLEMENTED
+@router.get("/history", response_model=APIResponse[ConversationHistoryResponse])
+def get_chat_history(
+    conversation_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Retrieve the full chat history for a specific conversation session.
+    """
+    messages = coach_service.get_conversation_history(
+        db=db,
+        user_id=current_user.id,
+        conversation_id=conversation_id
+    )
+    
+    return APIResponse(
+        success=True,
+        data=ConversationHistoryResponse(
+            conversation_id=conversation_id,
+            messages=messages
+        )
+    )
