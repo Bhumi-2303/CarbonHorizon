@@ -37,7 +37,7 @@ export default function AppLayout() {
   const score = latestAssessment ? latestAssessment.carbon_score.toFixed(0) : 'N/A'
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[var(--color-bg-primary)] flex flex-col md:flex-row">
       
       {/* Sidebar Navigation (Desktop) */}
       <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen sticky top-0 flex-shrink-0">

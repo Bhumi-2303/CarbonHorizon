@@ -5,8 +5,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Google Fonts — Inter */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@600&family=Poppins:wght@400;600;700&display=swap');
+
+:root {
+  --color-bg-primary: #08121E;
+  --color-bg-card: #0F172A;
+  --color-green-primary: #2ECC71;
+  --color-green-forest: #1B5E20;
+  --color-green-accent: #A3E635;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+}
 
 @layer base {
   *, *::before, *::after {
@@ -20,7 +31,9 @@
   }
 
   body {
-    @apply bg-slate-950 text-slate-100;
+    background-color: var(--color-bg-primary);
+    color: white;
+    font-family: 'Inter', sans-serif;
     margin: 0;
     min-height: 100vh;
   }
@@ -66,6 +79,70 @@
   /* Gradient text */
   .gradient-text {
     @apply bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent;
+  }
+
+  /* Typography */
+  .heading-xl {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 2.5rem;
+  }
+  .heading-lg {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.75rem;
+  }
+  .heading-md {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+  }
+  .metric {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 2rem;
+    color: var(--color-green-primary);
+  }
+  .body {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+  }
+
+  /* Reusable component classes */
+  .card {
+    background-color: var(--color-bg-card);
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 1px solid rgba(46, 204, 113, 0.1);
+    transition: all 200ms ease;
+  }
+  .card:hover {
+    border-color: rgba(46, 204, 113, 0.3);
+    transform: translateY(-2px);
+  }
+  .btn-primary {
+    background-color: var(--color-green-primary);
+    color: var(--color-bg-primary);
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 12px 24px;
+    transition: all 200ms ease;
+  }
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+  .btn-outline {
+    background-color: transparent;
+    color: var(--color-green-primary);
+    border: 1px solid var(--color-green-primary);
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 12px 24px;
+    transition: all 200ms ease;
+  }
+  .btn-outline:hover {
+    background-color: rgba(46, 204, 113, 0.1);
   }
 }
 
