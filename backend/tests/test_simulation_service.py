@@ -331,18 +331,33 @@ class TestReductionPercentageAccuracy:
     """
 
     def test_car_to_bus_reduction_pct_within_1pct(self, db: Session):
-        """Reduction percentage for car→bus over 500 km must be ≈ 55.56 %, ±1 %."""
+        """
+        Reduction percentage for car→bus over 500 km.
+
+        Baseline (diet_type=mixed, household=1 as defaults):
+          current transport  = 500 × 0.18 = 90.0 kg
+          current food       = 2.5 × 30   = 75.0 kg  (always present)
+          current total      = 165.0 kg
+
+          projected transport = 500 × 0.08 = 40.0 kg
+          projected food      = 75.0 kg
+          projected total     = 115.0 kg
+
+          carbon_saved        = 50.0 kg
+          expected_pct        = 50 / 165 × 100 ≈ 30.30 %, ±1 %
+        """
         req = _make_run_request(
             transport_mode=TransportMode.car,
             distance_km=500.0,
-            electricity_kwh=0.0,    # isolate transport
+            electricity_kwh=0.0,
             changes=ScenarioChanges(
                 transport=TransportChanges(new_mode=TransportMode.bus)
             ),
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
-        expected_pct = (50.0 / 90.0) * 100  # ≈ 55.56
+        # current = 90 (transport) + 75 (food) = 165; saved = 50
+        expected_pct = (50.0 / 165.0) * 100  # ≈ 30.30
         assert result.reduction_percentage == pytest.approx(expected_pct, abs=1.0), (
             f"Expected ≈{expected_pct:.2f} %, got {result.reduction_percentage:.2f} %"
         )
@@ -397,7 +412,16 @@ class TestReductionPercentageAccuracy:
         assert result.reduction_percentage == pytest.approx(0.0, abs=0.01)
 
     def test_bicycle_reduces_transport_to_zero_gives_max_transport_reduction(self, db: Session):
-        """Car→bicycle: transport projected = 0, max transport reduction."""
+        """
+        Car→bicycle: projected transport = 0 kg.
+
+        Food (mixed) is present in BOTH current and projected, so reduction %
+        is computed against total (not transport alone):
+          current  = 90.0 (transport) + 75.0 (food) = 165.0
+          projected = 0.0 (bicycle)  + 75.0 (food) =  75.0
+          saved    = 90.0
+          expected_pct = 90 / 165 × 100 ≈ 54.55 %, ±1 %
+        """
         req = _make_run_request(
             transport_mode=TransportMode.car,
             distance_km=500.0,
@@ -409,7 +433,9 @@ class TestReductionPercentageAccuracy:
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
         assert result.simulation_data["projected"]["transport"] == pytest.approx(0.0, abs=0.01)
-        assert result.reduction_percentage == pytest.approx(100.0, abs=1.0)
+        # reduction_pct = 90 / 165 × 100 ≈ 54.55 %
+        expected_pct = (90.0 / 165.0) * 100
+        assert result.reduction_percentage == pytest.approx(expected_pct, abs=1.0)
 
 
 # ---------------------------------------------------------------------------
@@ -553,9 +579,12 @@ class TestSimulatorRunEndpoint:
         assert body["success"] is True
         data = body["data"]
 
-        assert data["current_emission"]     == pytest.approx(90.0, rel=0.01)
-        assert data["projected_emission"]   == pytest.approx(40.0, rel=0.01)
-        assert data["carbon_saved"]         == pytest.approx(50.0, rel=0.01)
+        # current  = 90.0 (car/500km × 0.18) + 75.0 (food/mixed) = 165.0
+        # projected = 40.0 (bus/500km × 0.08) + 75.0 (food/mixed) = 115.0
+        # carbon_saved = 50.0
+        assert data["current_emission"]     == pytest.approx(165.0, rel=0.01)
+        assert data["projected_emission"]   == pytest.approx(115.0, rel=0.01)
+        assert data["carbon_saved"]         == pytest.approx(50.0,  rel=0.01)
         assert data["reduction_percentage"] > 0
 
     def test_run_endpoint_unauthorized(self, client: TestClient):
