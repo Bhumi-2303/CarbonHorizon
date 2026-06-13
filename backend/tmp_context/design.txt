@@ -1,0 +1,890 @@
+UI/UX DESIGN BRIEF
+
+Carbon Horizon
+Learn Your Impact. Shape the Future.
+
+Version 1.0
+
+
+
+
+1. Design Vision
+Carbon Horizon should feel like:
+
+
+"Google Earth + Tesla Dashboard + Sustainability Intelligence Platform"
+
+
+The experience should communicate:
+
+
+     • Environmental awareness
+     • Data intelligence
+     • Future forecasting
+     • Actionable sustainability
+     • Trust and credibility
+
+The platform should not look like a school project.
+
+
+It should feel like a modern climate-tech startup product.
+
+
+
+
+2. Design Personality
+Brand Attributes
+
+
+     • Intelligent
+     • Sustainable
+     • Futuristic
+     • Trustworthy
+     • Human-Centered
+     • Data-Driven
+
+Emotional Response
+
+
+
+
+                                                      1
+Users should feel:
+
+
+       • Curious
+       • Empowered
+       • In Control
+       • Hopeful
+       • Responsible
+
+
+
+
+3. Visual Theme
+Primary Theme
+
+
+EARTH INTELLIGENCE
+
+
+Instead of:
+
+
+🌿 Generic nature
+
+
+Use:
+
+
+🌎 Living Earth + Data + Future
+
+
+Combine:
+
+
+       • Planet imagery
+       • Organic shapes
+       • Sustainability visuals
+       • Data visualizations
+       • AI elements
+
+
+
+
+4. Color System
+Primary Color
+
+
+Earth Green
+
+
+
+2ECC71
+
+Secondary Color
+
+
+
+
+                                  2
+Forest Green
+
+
+
+1B5E20
+
+Accent Color
+
+
+Eco Lime
+
+
+
+A3E635
+
+Dark Background
+
+
+Space Black
+
+
+
+08121E
+
+Card Background
+
+
+Deep Ocean Blue
+
+
+
+0F172A
+
+Success Color
+
+
+
+22C55E
+
+Warning Color
+
+
+
+F59E0B
+
+Danger Color
+
+
+
+
+                  3
+EF4444
+
+
+5. Typography
+Headings
+
+
+Poppins
+
+
+Bold
+
+
+Modern
+
+
+Clean
+
+
+
+Body Text
+
+
+Inter
+
+
+Readable
+
+
+Professional
+
+
+
+Dashboard Numbers
+
+
+Montserrat
+
+
+SemiBold
+
+
+
+
+6. Design Language
+Use:
+
+
+Rounded Corners
+
+
+20px Radius
+
+
+Glassmorphism
+
+
+
+
+                     4
+Soft Shadows
+
+
+Gradient Backgrounds
+
+
+Floating Cards
+
+
+Large Visual Hierarchy
+
+
+Generous White Space
+
+
+Micro Animations
+
+
+
+Avoid:
+
+
+Heavy Borders
+
+
+Table-heavy Layouts
+
+
+Too Much Text
+
+
+Bright White Backgrounds
+
+
+Traditional Corporate Styling
+
+
+
+
+7. Landing Page Design
+Hero Section
+
+
+Left Side:
+
+
+Headline
+
+
+"Understand Your Impact. Shape a Better Future."
+
+
+Subheading:
+
+
+Track, simulate and reduce your carbon footprint using AI-powered sustainability intelligence.
+
+
+CTA Buttons:
+
+
+Start Assessment
+
+
+
+
+                                                     5
+Explore Demo
+
+
+
+Right Side
+
+
+Animated Earth Visualization
+
+
+Earth surrounded by:
+
+
+       • Trees
+       • Data Points
+       • Carbon Indicators
+       • Sustainability Icons
+
+
+
+Background
+
+
+Dark gradient
+
+
+Space → Earth green
+
+
+
+
+8. Navigation
+Top Navigation
+
+
+Logo
+
+
+Carbon Horizon
+
+
+Menu:
+
+
+Home
+
+
+Features
+
+
+Impact
+
+
+About
+
+
+Contact
+
+
+Sign In
+
+
+
+
+                                6
+Get Started
+
+
+Sticky Navigation
+
+
+Transparent → Solid on Scroll
+
+
+
+
+9. Dashboard Design
+Purpose
+
+
+Show environmental impact instantly.
+
+
+
+Top Metrics
+
+
+Carbon Footprint
+
+
+Annual Emissions
+
+
+Reduction Potential
+
+
+Carbon Score
+
+
+Displayed as large cards.
+
+
+
+Card Example
+
+
+🌍
+
+
+2.8 Tons CO₂e
+
+
+Your Annual Impact
+
+
+
+
+10. Carbon Breakdown Section
+Visualization
+
+
+Interactive Donut Chart
+
+
+Categories
+
+
+
+
+                                       7
+Transportation
+
+
+Food
+
+
+Energy
+
+
+Waste
+
+
+Hover Effects
+
+
+Percentage
+
+
+Emission Value
+
+
+Recommendations
+
+
+
+
+11. Carbon Reduction Simulator
+Most Important Screen
+
+
+Visual Layout
+
+
+Current Lifestyle
+
+
+↓
+
+
+AI Analysis
+
+
+↓
+
+
+Projected Future
+
+
+
+Example
+
+
+Current
+
+
+3.2 Tons
+
+
+↓
+
+
+Changes Applied
+
+
+
+
+                        8
+↓
+
+
+Projected
+
+
+2.4 Tons
+
+
+
+Display
+
+
+Carbon Saved
+
+
+Money Saved
+
+
+Reduction Percentage
+
+
+Future Impact
+
+
+
+
+12. Carbon Horizon Forecast
+Signature Feature
+
+
+Visual Style
+
+
+Futuristic
+
+
+Predictive
+
+
+Premium
+
+
+
+Visualization
+
+
+Interactive Timeline
+
+
+Today
+
+
+↓
+
+
+3 Months
+
+
+↓
+
+
+6 Months
+
+
+
+
+                        9
+↓
+
+
+12 Months
+
+
+
+Graph
+
+
+Current Path
+
+
+Recommended Path
+
+
+Comparison View
+
+
+
+
+13. AI Sustainability Coach
+Layout
+
+
+Floating AI Assistant
+
+
+Bottom Right
+
+
+Similar to:
+
+
+ChatGPT
+
+
+Gemini
+
+
+Copilot
+
+
+
+Visual Style
+
+
+Earth-themed AI Avatar
+
+
+Glowing Green Accent
+
+
+
+Chat Colors
+
+
+User:
+
+
+Dark Green Bubble
+
+
+
+
+                         10
+AI:
+
+
+Dark Blue Bubble
+
+
+
+
+14. Habit Tracker
+Visual Style
+
+
+Not a checklist.
+
+
+Use:
+
+
+Progress Rings
+
+
+Habit Streak Cards
+
+
+Weekly Activity Grid
+
+
+Achievement Milestones
+
+
+
+Example
+
+
+Public Transport
+
+
+🔥 7 Day Streak
+
+
+
+
+15. Animation Strategy
+Landing Page
+
+
+Earth Slowly Rotates
+
+
+
+Cards
+
+
+Hover Elevation
+
+
+
+Charts
+
+
+
+
+                         11
+Smooth Loading
+
+
+
+Buttons
+
+
+Subtle Glow
+
+
+
+Forecast Graph
+
+
+Animated Line Drawing
+
+
+
+
+16. Mobile Design
+Mobile First
+
+
+Breakpoints
+
+
+320px
+
+
+768px
+
+
+1024px
+
+
+1440px
+
+
+
+Bottom Navigation
+
+
+Dashboard
+
+
+Assessment
+
+
+Simulator
+
+
+Forecast
+
+
+Profile
+
+
+
+
+                        12
+17. Accessibility
+WCAG AA Compliance
+
+
+Features
+
+
+Keyboard Navigation
+
+
+Screen Reader Support
+
+
+High Contrast Mode
+
+
+Scalable Text
+
+
+Color Blind Friendly Charts
+
+
+
+
+18. Illustration Style
+Use:
+
+
+Earth
+
+
+Leaves
+
+
+Clouds
+
+
+Renewable Energy
+
+
+Wind Turbines
+
+
+Solar Panels
+
+
+Data Networks
+
+
+AI Elements
+
+
+Global Sustainability
+
+
+
+Avoid:
+
+
+Clipart
+
+
+
+
+                              13
+Cartoons
+
+
+Generic Stock Icons
+
+
+
+
+19. Recommended UI Inspiration
+Tesla Dashboard
+
+
+Google Earth
+
+
+Stripe Dashboard
+
+
+Vercel
+
+
+Linear
+
+
+Notion
+
+
+Arc Browser
+
+
+Apple Environmental Pages
+
+
+
+
+20. Desired User Experience
+The user journey should feel like:
+
+
+"I discovered my environmental impact."
+
+
+↓
+
+
+"I understand what causes it."
+
+
+↓
+
+
+"I can see how to improve it."
+
+
+↓
+
+
+"I know exactly what actions matter."
+
+
+↓
+
+
+
+
+                                          14
+"I can track my progress."
+
+
+↓
+
+
+"I can visualize a greener future."
+
+
+Carbon Horizon should feel less like a calculator and more like a personal sustainability intelligence
+platform.
+
+
+
+
+                                                      15
+

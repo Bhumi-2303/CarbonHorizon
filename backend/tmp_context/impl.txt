@@ -1,0 +1,1096 @@
+IMPLEMENTATION PLAN
+
+Carbon Horizon
+Learn Your Impact. Shape the Future.
+
+Version 1.0
+
+
+
+
+Project Goal
+Build and deploy a production-ready MVP of Carbon Horizon that demonstrates:
+
+
+     • Carbon Footprint Assessment
+     • AI Sustainability Coach
+     • Carbon Reduction Simulator
+     • Carbon Horizon Forecast
+     • Habit Tracking
+     • Cloud Deployment
+
+Target Platform:
+
+
+Google Cloud
+
+
+Repository:
+
+
+GitHub
+
+
+Development Methodology:
+
+
+Agile + Incremental Delivery
+
+
+
+
+Development Roadmap
+Phase 0
+
+
+Project Setup
+
+
+↓
+
+
+Phase 1
+
+
+
+
+                                                  1
+Authentication
+
+
+↓
+
+
+Phase 2
+
+
+Carbon Assessment
+
+
+↓
+
+
+Phase 3
+
+
+Dashboard
+
+
+↓
+
+
+Phase 4
+
+
+AI Sustainability Coach
+
+
+↓
+
+
+Phase 5
+
+
+Carbon Reduction Simulator
+
+
+↓
+
+
+Phase 6
+
+
+Carbon Horizon Forecast
+
+
+↓
+
+
+Phase 7
+
+
+Habit Tracker
+
+
+↓
+
+
+Phase 8
+
+
+Testing
+
+
+↓
+
+
+
+
+                             2
+Phase 9
+
+
+Cloud Deployment
+
+
+↓
+
+
+Phase 10
+
+
+Competition Demo Preparation
+
+
+
+
+Phase 0
+Project Initialization
+
+
+Duration:
+
+
+1 Day
+
+
+Objectives:
+
+
+Create project foundation.
+
+
+Tasks:
+
+
+Create GitHub Repository
+
+
+Setup FastAPI Project
+
+
+Setup Frontend Structure
+
+
+Configure Git Workflow
+
+
+Create README
+
+
+Create Project Board
+
+
+Setup Environment Variables
+
+
+Deliverables:
+
+
+Repository Ready
+
+
+Development Environment Ready
+
+
+
+
+                                3
+Recommended Git Structure
+main
+
+
+Production
+
+
+develop
+
+
+Development
+
+
+feature/authentication
+
+
+feature/carbon-calculator
+
+
+feature/dashboard
+
+
+feature/ai-coach
+
+
+feature/simulator
+
+
+feature/forecast
+
+
+feature/habits
+
+
+feature/deployment
+
+
+
+
+Phase 1
+Authentication Module
+
+
+Duration:
+
+
+2 Days
+
+
+Objectives:
+
+
+Enable user registration and login.
+
+
+Tasks:
+
+
+Create User Model
+
+
+
+
+                                      4
+Password Hashing
+
+
+JWT Authentication
+
+
+Login API
+
+
+Registration API
+
+
+Protected Routes
+
+
+Testing
+
+
+Deliverables:
+
+
+Working Authentication System
+
+
+
+
+Phase 2
+Carbon Footprint Assessment
+
+
+Duration:
+
+
+3 Days
+
+
+Objectives:
+
+
+Calculate user emissions.
+
+
+Tasks:
+
+
+Create Carbon Assessment Model
+
+
+Create Emission Input Model
+
+
+Create Carbon Factors Dataset
+
+
+Implement Calculation Engine
+
+
+Build Assessment Form
+
+
+Generate Results
+
+
+Deliverables:
+
+
+
+
+                                 5
+Accurate Carbon Calculator
+
+
+
+
+Carbon Formula Module
+Transportation
+
+
+Distance × Emission Factor
+
+
+Energy
+
+
+kWh × Emission Factor
+
+
+Food
+
+
+Diet Factor × Frequency
+
+
+Waste
+
+
+Waste Score × Factor
+
+
+Output:
+
+
+kg CO₂e
+
+
+
+
+Phase 3
+Dashboard Development
+
+
+Duration:
+
+
+2 Days
+
+
+Objectives:
+
+
+Visualize carbon footprint.
+
+
+Tasks:
+
+
+Create Dashboard APIs
+
+
+Build Chart.js Visualizations
+
+
+
+
+                                6
+Emission Breakdown
+
+
+Carbon Score
+
+
+Trend Graphs
+
+
+Deliverables:
+
+
+Interactive Dashboard
+
+
+
+
+Phase 4
+AI Sustainability Coach
+
+
+Duration:
+
+
+3 Days
+
+
+Objectives:
+
+
+Integrate Gemini.
+
+
+Tasks:
+
+
+Gemini API Setup
+
+
+Prompt Engineering
+
+
+Context Builder
+
+
+Conversation Storage
+
+
+Recommendation Engine
+
+
+Deliverables:
+
+
+AI Coach Functional
+
+
+
+
+AI Prompt Structure
+Inputs:
+
+
+
+
+                          7
+User Footprint
+
+
+Lifestyle
+
+
+Goals
+
+
+Simulation Results
+
+
+Output:
+
+
+Reduction Recommendations
+
+
+Educational Insights
+
+
+Action Plan
+
+
+
+
+Phase 5
+Carbon Reduction Simulator
+
+
+Duration:
+
+
+3 Days
+
+
+Objectives:
+
+
+Enable scenario simulation.
+
+
+Tasks:
+
+
+Create Simulation Model
+
+
+Simulation Engine
+
+
+Comparison Logic
+
+
+Reduction Calculations
+
+
+Visualization
+
+
+Deliverables:
+
+
+Working Simulator
+
+
+
+
+                              8
+Example:
+
+
+Current
+
+
+3.2 Tons
+
+
+↓
+
+
+Switch To Bus
+
+
+↓
+
+
+2.4 Tons
+
+
+↓
+
+
+25% Reduction
+
+
+
+
+Phase 6
+Carbon Horizon Forecast
+
+
+Duration:
+
+
+3 Days
+
+
+Objectives:
+
+
+Predict future emissions.
+
+
+Tasks:
+
+
+Forecast Engine
+
+
+Scenario Builder
+
+
+Trend Generation
+
+
+Forecast Charts
+
+
+Comparison Dashboard
+
+
+Deliverables:
+
+
+
+
+                            9
+Forecast System
+
+
+
+
+MVP Forecast Logic
+Current Emissions
+
+
++
+
+
+Habit Trend
+
+
++
+
+
+Simulation Data
+
+
+=
+
+
+Future Projection
+
+
+
+
+Phase 7
+Habit Tracker
+
+
+Duration:
+
+
+2 Days
+
+
+Objectives:
+
+
+Track sustainable behavior.
+
+
+Tasks:
+
+
+Habit Model
+
+
+Habit APIs
+
+
+Streak Calculation
+
+
+Progress Tracking
+
+
+Dashboard Integration
+
+
+
+
+                              10
+Deliverables:
+
+
+Habit Tracking Module
+
+
+
+
+Phase 8
+Testing
+
+
+Duration:
+
+
+2 Days
+
+
+Objectives:
+
+
+Validate application.
+
+
+Tasks:
+
+
+Unit Testing
+
+
+API Testing
+
+
+Authentication Testing
+
+
+Calculation Validation
+
+
+Simulator Testing
+
+
+Forecast Testing
+
+
+UI Testing
+
+
+Deliverables:
+
+
+Stable Application
+
+
+
+
+Testing Coverage
+Authentication
+
+
+100%
+
+
+
+
+                         11
+Carbon Calculator
+
+
+100%
+
+
+Simulator
+
+
+100%
+
+
+Forecast
+
+
+90%
+
+
+Dashboard
+
+
+90%
+
+
+AI Coach
+
+
+80%
+
+
+
+
+Phase 9
+Deployment
+
+
+Duration:
+
+
+2 Days
+
+
+Objectives:
+
+
+Deploy on Google Cloud.
+
+
+Tasks:
+
+
+Dockerize Application
+
+
+Create Dockerfile
+
+
+Create Cloud Run Service
+
+
+Configure Secrets
+
+
+Deploy Backend
+
+
+
+
+                           12
+Deploy Frontend
+
+
+Configure Domain
+
+
+Deliverables:
+
+
+Live Application
+
+
+
+
+Google Cloud Architecture
+Frontend
+
+
+Static Website
+
+
+↓
+
+
+Cloud Storage
+
+
+or
+
+
+Cloud Run
+
+
+↓
+
+
+FastAPI Backend
+
+
+↓
+
+
+SQLite/PostgreSQL
+
+
+↓
+
+
+Gemini API
+
+
+
+
+Phase 10
+Competition Preparation
+
+
+Duration:
+
+
+2 Days
+
+
+
+
+                          13
+Objectives:
+
+
+Prepare final presentation.
+
+
+Tasks:
+
+
+Create Demo Script
+
+
+Create Architecture Diagram
+
+
+Create Workflow Diagram
+
+
+Create Pitch Deck
+
+
+Record Demo Video
+
+
+Prepare Backup Dataset
+
+
+Deliverables:
+
+
+Competition-Ready Project
+
+
+
+
+GitHub Project Management
+Columns
+
+
+Backlog
+
+
+To Do
+
+
+In Progress
+
+
+Testing
+
+
+Done
+
+
+
+
+                              14
+GitHub Issues
+
+1 Setup Project
+
+2 Authentication
+
+3 Database Schema
+
+4 Carbon Calculator
+
+5 Dashboard
+
+6 Gemini Integration
+
+7 Simulator
+
+8 Forecast Module
+
+9 Habit Tracker
+
+10 Deployment
+
+11 Documentation
+
+12 Presentation
+
+
+Definition of Done
+A feature is complete when:
+
+
+Code Implemented
+
+
+Tests Passing
+
+
+
+
+                              15
+API Documented
+
+
+UI Integrated
+
+
+Reviewed
+
+
+Merged into Develop Branch
+
+
+
+
+Final MVP Scope
+Included
+
+
+✅ Authentication
+
+
+✅ Carbon Assessment
+
+
+✅ Dashboard
+
+
+✅ AI Coach
+
+
+✅ Simulator
+
+
+✅ Forecast
+
+
+✅ Habit Tracker
+
+
+✅ Deployment
+
+
+Not Included
+
+
+❌ OCR Bill Scanner
+
+
+❌ Mobile App
+
+
+❌ Community Features
+
+
+❌ IoT Integration
+
+
+❌ Leaderboards
+
+
+❌ Carbon Marketplace
+
+
+These features belong to Version 2.
+
+
+
+
+                                      16
+Estimated Timeline
+Phase 0 → 1 Day
+
+
+Phase 1 → 2 Days
+
+
+Phase 2 → 3 Days
+
+
+Phase 3 → 2 Days
+
+
+Phase 4 → 3 Days
+
+
+Phase 5 → 3 Days
+
+
+Phase 6 → 3 Days
+
+
+Phase 7 → 2 Days
+
+
+Phase 8 → 2 Days
+
+
+Phase 9 → 2 Days
+
+
+Phase 10 → 2 Days
+
+
+Total:
+
+
+Approximately 23 Working Days
+
+
+(3–4 Weeks for a Student Team)
+
+
+
+
+Success Criteria
+The project will be considered successful if:
+
+
+         • Users can calculate their carbon footprint.
+         • AI generates personalized sustainability guidance.
+         • Simulations demonstrate measurable reduction opportunities.
+         • Forecasts visualize future environmental impact.
+         • Users track eco-friendly habits.
+         • The application is deployed successfully on Google Cloud.
+         • The complete workflow can be demonstrated in under 5 minutes during evaluation.
+
+
+
+
+                                                     17
+

@@ -1,79 +1,75 @@
-"""
-Habits router  —  /api/habits
+from typing import List, Optional, Dict, Any
+import uuid
+from datetime import date
 
-Endpoints
----------
-POST /api/habits/                  Log a habit completion for today
-GET  /api/habits/                  List habit completions (filterable by date range)
-GET  /api/habits/streak            Get the current habit streak for the user
-GET  /api/habits/definitions       List all habit definitions (carbon saving factors)
-GET  /api/habits/{habit_id}        Fetch a specific habit completion by ID
-PATCH /api/habits/{habit_id}       Update a habit completion entry
-DELETE /api/habits/{habit_id}      Delete a habit completion entry
+from fastapi import APIRouter, Depends, status, Query
+from sqlalchemy.orm import Session
 
-All endpoints return {"detail": "not implemented"} until services are wired.
-"""
-from fastapi import APIRouter, status
-from uuid import UUID
+from app.core.security import get_db, get_current_user
+from app.models.user import User
+from app.schemas.auth import APIResponse
+from app.schemas.habit import HabitCreate, HabitUpdate, HabitResponse
+from app.services.habit_service import HabitService
 
 router = APIRouter()
 
-_NOT_IMPLEMENTED = {"detail": "not implemented"}
+@router.post("/log", response_model=APIResponse[HabitResponse], status_code=status.HTTP_201_CREATED, summary="Log a new habit or update an existing one for the date")
+def log_habit(
+    habit_in: HabitCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    habit = HabitService.log_habit(db, current_user.id, habit_in)
+    return APIResponse(success=True, data=habit)
 
+@router.get("/", response_model=APIResponse[List[HabitResponse]], summary="Get all logged habits within an optional date range")
+def get_habits(
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    habits = HabitService.get_habits(db, current_user.id, start_date=start_date, end_date=end_date)
+    return APIResponse(success=True, data=habits)
 
-@router.post(
-    "/",
-    status_code=status.HTTP_201_CREATED,
-    summary="Log a sustainability habit completion",
-)
-async def log_habit():
-    return _NOT_IMPLEMENTED
+@router.get("/streak", response_model=APIResponse[Dict[str, int]], summary="Get current habit streak in days")
+def get_streak(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    streak = HabitService.calculate_streak(db, current_user.id)
+    return APIResponse(success=True, data={"streak": streak})
 
+@router.get("/summary/weekly", response_model=APIResponse[Dict[str, Any]], summary="Get summary of habits logged in the last 7 days")
+def get_weekly_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    summary = HabitService.get_weekly_summary(db, current_user.id)
+    return APIResponse(success=True, data=summary)
 
-@router.get(
-    "/",
-    summary="List habit completions for the current user (supports date range filter)",
-)
-async def list_habits():
-    return _NOT_IMPLEMENTED
+@router.get("/summary/monthly", response_model=APIResponse[Dict[str, Any]], summary="Get summary of habits logged in the last 30 days")
+def get_monthly_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    summary = HabitService.get_monthly_summary(db, current_user.id)
+    return APIResponse(success=True, data=summary)
 
+@router.patch("/{habit_id}", response_model=APIResponse[HabitResponse], summary="Update a logged habit")
+def update_habit(
+    habit_id: uuid.UUID,
+    habit_in: HabitUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    habit = HabitService.update_habit(db, current_user.id, habit_id, habit_in)
+    return APIResponse(success=True, data=habit)
 
-@router.get(
-    "/streak",
-    summary="Get the current consecutive-day habit streak for the user",
-)
-async def get_habit_streak():
-    return _NOT_IMPLEMENTED
-
-
-@router.get(
-    "/definitions",
-    summary="List all habit definitions with their carbon saving factors",
-)
-async def list_habit_definitions():
-    return _NOT_IMPLEMENTED
-
-
-@router.get(
-    "/{habit_id}",
-    summary="Fetch a specific habit completion entry by ID",
-)
-async def get_habit(habit_id: UUID):
-    return _NOT_IMPLEMENTED
-
-
-@router.patch(
-    "/{habit_id}",
-    summary="Update a habit completion entry (notes, carbon_saved)",
-)
-async def update_habit(habit_id: UUID):
-    return _NOT_IMPLEMENTED
-
-
-@router.delete(
-    "/{habit_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete a habit completion entry by ID",
-)
-async def delete_habit(habit_id: UUID):
-    return _NOT_IMPLEMENTED
+@router.delete("/{habit_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a logged habit")
+def delete_habit(
+    habit_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    HabitService.delete_habit(db, current_user.id, habit_id)

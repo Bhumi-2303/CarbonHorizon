@@ -1,0 +1,847 @@
+PRODUCT REQUIREMENTS DOCUMENT (PRD)
+
+Carbon Horizon
+Learn Your Impact. Shape the Future.
+
+Version: 2.0
+
+
+
+
+1. Executive Summary
+Carbon Horizon is an AI-powered Personal Sustainability Intelligence Platform that helps individuals
+measure, simulate, forecast, and reduce their carbon footprint through actionable recommendations,
+behavioral tracking, and future impact forecasting.
+
+
+Unlike traditional carbon footprint calculators that only provide emission estimates, Carbon Horizon focuses
+on helping users understand which actions matter most and guides them toward measurable
+environmental improvement.
+
+
+The platform combines:
+
+
+     • Carbon Accounting
+     • Sustainability Intelligence
+     • AI-Powered Guidance
+     • Carbon Reduction Simulation
+     • Lifestyle Impact Forecasting
+     • Sustainability Goal Tracking
+
+into a single unified experience.
+
+
+
+
+2. Problem Statement
+Millions of people want to live sustainably but struggle to answer critical questions:
+
+
+     • What is causing most of my carbon emissions?
+     • Which changes will have the biggest impact?
+     • How much carbon can I realistically reduce?
+     • How can I maintain sustainable habits over time?
+     • How can I measure progress?
+
+Existing carbon calculators provide static reports but rarely help users take action.
+
+
+
+
+                                                       1
+Carbon Horizon transforms awareness into measurable carbon reduction.
+
+
+
+
+3. Product Vision
+To become the personal sustainability intelligence platform that empowers people to make informed
+environmental decisions and continuously improve their carbon footprint through data-driven insights.
+
+
+
+
+4. Product Objectives
+Business Objectives
+     • Build a competition-ready MVP
+     • Demonstrate measurable sustainability impact
+     • Showcase AI-assisted environmental decision making
+     • Provide a scalable foundation for future growth
+
+
+User Objectives
+     • Understand environmental impact
+     • Discover major emission sources
+     • Simulate alternative choices
+     • Receive personalized recommendations
+     • Set reduction goals
+     • Track sustainability progress
+
+
+
+
+5. Success Metrics (KPIs)
+Primary KPIs
+     • Assessment Completion Rate > 80%
+     • Dashboard Engagement Rate > 60%
+     • Simulation Usage Rate > 50%
+     • Goal Creation Rate > 40%
+     • Habit Tracking Retention (7 Days) > 30%
+     • AI Coach Usage Rate > 50%
+
+
+Environmental KPIs
+     • Estimated Carbon Reduction Generated
+     • Total Carbon Saved by Users
+
+
+
+
+                                                    2
+     • Reduction Goal Achievement Rate
+     • Habit Completion Rate
+
+
+
+
+6. Target Users
+Students
+Needs:
+
+
+     • Environmental awareness
+     • Low-cost sustainability actions
+     • Transportation optimization
+
+Pain Points:
+
+
+     • Limited budget
+     • Lack of environmental knowledge
+
+
+
+
+Working Professionals
+Needs:
+
+
+     • Commute optimization
+     • Energy reduction
+     • Lifestyle improvements
+
+Pain Points:
+
+
+     • Limited time
+     • Difficulty identifying impactful actions
+
+
+
+
+Families
+Needs:
+
+
+     • Household sustainability planning
+     • Energy management
+     • Waste reduction
+
+Pain Points:
+
+
+     • Multiple contributors to emissions
+
+
+
+
+                                                  3
+      • Tracking household habits
+
+
+
+
+7. User Personas
+Persona 1 – Environmentally Conscious Student
+Age: 20
+
+
+Goals:
+
+
+      • Reduce carbon footprint
+      • Learn sustainable practices
+
+Challenges:
+
+
+      • Limited budget
+      • Limited environmental knowledge
+
+
+
+
+Persona 2 – Working Professional
+Age: 30
+
+
+Goals:
+
+
+      • Reduce commuting emissions
+      • Improve energy efficiency
+
+Challenges:
+
+
+      • Busy schedule
+      • Complex sustainability information
+
+
+
+
+8. User Stories
+Assessment
+As a user,
+
+
+I want to calculate my carbon footprint,
+
+
+So that I understand my environmental impact.
+
+
+
+
+                                                4
+As a user,
+
+
+I want to see my largest emission source,
+
+
+So that I know where to focus improvement efforts.
+
+
+
+
+AI Coach
+As a user,
+
+
+I want personalized recommendations,
+
+
+So that I know which actions are most effective.
+
+
+
+
+Simulator
+As a user,
+
+
+I want to test lifestyle changes,
+
+
+So that I can understand their impact before implementing them.
+
+
+
+
+Forecast
+As a user,
+
+
+I want to visualize future emissions,
+
+
+So that I can plan long-term improvements.
+
+
+
+
+Goals
+As a user,
+
+
+I want to set carbon reduction goals,
+
+
+So that I can track progress toward sustainability targets.
+
+
+
+
+                                                       5
+Habit Tracking
+As a user,
+
+
+I want to track daily eco-friendly activities,
+
+
+So that I can build sustainable habits.
+
+
+
+
+9. Core Product Features
+
+Feature 1: Carbon Footprint Assessment
+
+Purpose
+
+Calculate user carbon emissions.
+
+
+Inputs
+
+Transportation
+
+
+       • Car
+       • Motorcycle
+       • Bus
+       • Train
+       • Flight
+       • Bicycle
+
+Energy
+
+
+       • Monthly Electricity Usage
+       • AC Usage
+       • LPG/Gas Usage
+       • Solar Usage
+
+Food
+
+
+       • Vegetarian
+       • Mixed
+       • Non-Vegetarian
+
+Waste
+
+
+       • Recycling Frequency
+       • Plastic Usage
+
+
+
+                                                 6
+Household
+
+
+      • Household Members
+
+Outputs
+
+      • Daily Emissions
+      • Monthly Emissions
+      • Annual Emissions
+      • Emission Breakdown
+      • Carbon Score
+
+
+
+
+Feature 2: Carbon Intelligence Dashboard
+Displays:
+
+
+      • Annual Carbon Footprint
+      • Carbon Score
+      • Reduction Potential
+      • Top Emission Source
+      • Trend Analysis
+      • Goal Progress
+
+Visualizations:
+
+
+      • Donut Charts
+      • Line Charts
+      • Progress Indicators
+      • Goal Completion Graphs
+
+
+
+
+Feature 3: AI Sustainability Coach
+Purpose:
+
+
+Provide personalized sustainability guidance.
+
+
+Important Rule:
+
+
+AI never performs carbon calculations.
+
+
+All calculations are generated by the backend calculation engine.
+
+
+
+
+                                                     7
+AI only:
+
+
+       • Explains results
+       • Provides recommendations
+       • Generates action plans
+       • Answers sustainability questions
+
+
+
+
+Feature 4: Carbon Reduction Simulator
+Purpose:
+
+
+Allow users to test future lifestyle changes.
+
+
+Supported Simulations:
+
+
+Transportation
+
+
+       • Car → Bus
+       • Motorcycle → Train
+       • Car → Bicycle
+
+Energy
+
+
+       • Electricity Reduction
+       • Reduced AC Usage
+       • Solar Adoption
+
+Food
+
+
+       • Non-Veg → Mixed
+       • Mixed → Vegetarian
+
+Waste
+
+
+       • Improved Recycling
+
+Outputs:
+
+
+       • Carbon Saved
+       • Reduction Percentage
+       • Future Impact
+       • Estimated Annual Savings
+
+
+
+
+                                                8
+Feature 5: Lifestyle Impact Forecast
+Purpose:
+
+
+Project future emissions based on:
+
+
+     • Current Emissions
+     • User Habits
+     • Goal Progress
+     • Simulated Changes
+
+Scenarios:
+
+
+Scenario A
+
+Current Lifestyle Continues
+
+
+Scenario B
+
+Partial Improvements
+
+
+Scenario C
+
+Recommended Improvements
+
+
+Outputs:
+
+
+     • 3-Month Projection
+     • 6-Month Projection
+     • 12-Month Projection
+
+
+
+
+Feature 6: Sustainability Goal Management
+Users can:
+
+
+     • Create Goals
+     • Track Progress
+     • Receive Goal-Based Recommendations
+     • Monitor Completion
+
+Example:
+
+
+Goal: Reduce annual emissions by 20%
+
+
+Target Date: 31 Dec 2026
+
+
+
+
+                                            9
+Feature 7: Eco Habit Tracker
+Track:
+
+
+     • Public Transport Usage
+     • Electricity Savings
+     • Recycling
+     • Water Conservation
+     • Plastic Reduction
+
+Outputs:
+
+
+     • Streaks
+     • Weekly Reports
+     • Monthly Reports
+     • Carbon Saved
+
+
+
+
+Feature 8: Assessment History
+Users can:
+
+
+     • View previous assessments
+     • Compare progress over time
+     • Recalculate footprint
+
+
+
+
+Feature 9: Simulation History
+Users can:
+
+
+     • Save simulations
+     • Compare scenarios
+     • Reuse previous simulations
+
+
+
+
+10. Carbon Methodology Requirements
+The platform shall use scientifically recognized emission factors.
+
+
+Sources may include:
+
+
+     • IPCC
+
+
+
+
+                                                      10
+      • EPA
+      • IEA
+      • Government Energy Statistics
+
+Method:
+
+
+Carbon Emission = Activity Data × Emission Factor
+
+
+All emission factors must be versioned and traceable.
+
+
+
+
+11. Carbon Score System
+Purpose:
+
+
+Provide a simple sustainability indicator.
+
+
+Formula (MVP):
+
+
+Carbon Score = 100 − Normalized Emission Impact
+
+
+Score Range:
+
+
+      • 80–100 → Excellent
+      • 60–79 → Good
+      • 40–59 → Moderate
+      • Below 40 → Needs Improvement
+
+
+
+
+12. Functional Requirements
+FR-1 User Authentication
+
+
+FR-2 Carbon Assessment
+
+
+FR-3 Carbon Score Generation
+
+
+FR-4 Dashboard Generation
+
+
+FR-5 AI Recommendation Generation
+
+
+FR-6 Simulation Engine
+
+
+FR-7 Forecast Generation
+
+
+
+
+                                                    11
+FR-8 Habit Tracking
+
+
+FR-9 Goal Management
+
+
+FR-10 Assessment History
+
+
+FR-11 Simulation History
+
+
+FR-12 Data Persistence
+
+
+
+
+13. Acceptance Criteria
+Carbon Assessment
+Given valid user inputs
+
+
+When user submits assessment
+
+
+Then annual emissions shall be generated within 2 seconds.
+
+
+
+
+Dashboard
+Given completed assessment
+
+
+When dashboard loads
+
+
+Then breakdown charts shall display correctly.
+
+
+
+
+Simulator
+Given selected lifestyle changes
+
+
+When simulation runs
+
+
+Then projected emissions shall be calculated accurately.
+
+
+
+
+Forecast
+Given historical habits and emissions
+
+
+
+
+                                                    12
+When forecast is generated
+
+
+Then system shall display 3, 6, and 12 month projections.
+
+
+
+
+AI Coach
+Given assessment results
+
+
+When user asks a question
+
+
+Then AI shall generate a personalized response within 5 seconds.
+
+
+
+
+14. Non-Functional Requirements
+Performance
+
+
+      • API Response < 2 Seconds
+      • Dashboard Load < 3 Seconds
+
+Scalability
+
+
+      • 1,000+ Users
+
+Availability
+
+
+      • 99% Uptime
+
+Accessibility
+
+
+      • WCAG AA Compliance
+
+Security
+
+
+      • JWT Authentication
+      • bcrypt Password Hashing
+      • Input Validation
+      • Rate Limiting
+      • Secure Secret Storage
+
+
+
+
+                                                    13
+15. User Retention Strategy
+MVP Retention Features
+
+
+     • Goal Tracking
+     • Weekly Sustainability Reports
+     • Progress Milestones
+     • Habit Streaks
+     • Monthly Carbon Summary
+
+Future Versions
+
+
+     • Badges
+     • Leaderboards
+     • Community Challenges
+
+
+
+
+16. Future Scope (Version 2.0+)
+     • OCR Bill Scanner
+     • Mobile Application
+     • Community Challenges
+     • Smart Device Integration
+     • Gamification
+     • Carbon Budget Planner
+     • Carbon Marketplace
+     • Machine Learning Forecasting
+
+
+
+
+17. Technology Stack
+Frontend
+
+
+     • React + TypeScript
+     • Tailwind CSS
+     • Chart.js
+
+Backend
+
+
+     • FastAPI
+
+Database
+
+
+     • PostgreSQL
+
+
+
+
+                                       14
+AI
+
+
+     • Gemini API
+
+Authentication
+
+
+     • JWT
+
+Deployment
+
+
+     • Docker
+     • Google Cloud Run
+
+CI/CD
+
+
+     • GitHub Actions
+
+Monitoring
+
+
+     • Google Cloud Logging
+
+
+
+
+18. Product Success Criteria
+The product shall be considered successful when:
+
+
+     • Users can accurately calculate emissions
+     • Users understand major emission contributors
+     • AI provides actionable recommendations
+     • Simulations demonstrate measurable reductions
+     • Forecasts visualize future impact
+     • Users actively track sustainability goals
+     • The application is successfully deployed and demonstrated during evaluation
+
+
+
+
+                                                   15
+

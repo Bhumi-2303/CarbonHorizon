@@ -1,0 +1,838 @@
+BACKEND SCHEMA DOCUMENTATION
+
+Carbon Horizon
+Learn Your Impact. Shape the Future.
+
+Version: 2.0
+
+
+
+
+1. Database Overview
+Purpose
+The Carbon Horizon database stores:
+
+
+     • User accounts
+     • Carbon assessments
+     • Emission inputs
+     • Simulations
+     • Forecasts
+     • Goals
+     • Habit tracking
+     • AI conversations
+     • Carbon factor references
+
+The schema is designed to:
+
+
+     • Support MVP requirements
+     • Maintain scientific traceability
+     • Enable future scalability
+     • Preserve historical assessment data
+     • Support AI-powered recommendations
+
+
+
+
+2. Database Technology
+Development Database: SQLite
+
+
+Production Database: PostgreSQL 16+
+
+
+ORM: SQLAlchemy
+
+
+
+
+                                             1
+Migration Tool: Alembic
+
+
+Primary Key Strategy: UUID
+
+
+Timestamp Strategy: UTC Timestamps
+
+
+Soft Delete Strategy: deleted_at field
+
+
+
+
+3. Entity Relationship Overview
+User ├── Carbon Assessments │ └── Emission Inputs ├── Simulations ├── Forecasts │ └──
+Forecast Points ├── Goals ├── Habits ├── AI Conversations └── User Preferences
+
+
+Carbon Factors └── Assessment Calculations
+
+
+
+
+4. Users Table
+Table Name
+users
+
+
+Purpose
+Stores authentication and profile information.
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+full_name VARCHAR(100) NOT NULL
+
+
+email VARCHAR(255) UNIQUE NOT NULL
+
+
+password_hash VARCHAR(255) NOT NULL
+
+
+age_group ENUM (child, student, adult, senior)
+
+
+lifestyle_type ENUM (student, professional, homemaker, retired)
+
+
+city VARCHAR(100)
+
+
+
+
+                                                    2
+country VARCHAR(100)
+
+
+email_verified BOOLEAN DEFAULT FALSE
+
+
+last_login TIMESTAMP
+
+
+created_at TIMESTAMP
+
+
+updated_at TIMESTAMP
+
+
+deleted_at TIMESTAMP
+
+
+
+
+5. User Preferences Table
+Table Name
+user_preferences
+
+
+Purpose
+Stores user-specific settings.
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+user_id UUID FOREIGN KEY → users.id
+
+
+theme ENUM (light, dark, system)
+
+
+language VARCHAR(20)
+
+
+notifications_enabled BOOLEAN
+
+
+measurement_unit ENUM (metric, imperial)
+
+
+created_at TIMESTAMP
+
+
+updated_at TIMESTAMP
+
+
+
+
+                                           3
+6. Carbon Assessments Table
+Table Name
+carbon_assessments
+
+
+Purpose
+Stores carbon footprint calculations.
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+user_id UUID FOREIGN KEY → users.id
+
+
+transport_emission FLOAT
+
+
+energy_emission FLOAT
+
+
+food_emission FLOAT
+
+
+waste_emission FLOAT
+
+
+total_emission FLOAT
+
+
+carbon_score INTEGER
+
+
+calculation_version VARCHAR(20)
+
+
+factor_version VARCHAR(20)
+
+
+assessment_period ENUM (daily, monthly, annual)
+
+
+created_at TIMESTAMP
+
+
+updated_at TIMESTAMP
+
+
+
+
+                                                  4
+7. Emission Inputs Table
+Table Name
+emission_inputs
+
+
+Purpose
+Stores raw assessment data.
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+assessment_id UUID FOREIGN KEY → carbon_assessments.id
+
+
+transport_mode ENUM (car, motorcycle, bus, train, flight, bicycle)
+
+
+distance_km FLOAT
+
+
+electricity_kwh FLOAT
+
+
+ac_hours FLOAT
+
+
+lpg_usage FLOAT
+
+
+solar_usage BOOLEAN
+
+
+diet_type ENUM (vegetarian, mixed, non_vegetarian)
+
+
+recycling_score INTEGER
+
+
+plastic_usage_score INTEGER
+
+
+household_size INTEGER
+
+
+created_at TIMESTAMP
+
+
+
+
+                                                      5
+8. Sustainability Goals Table
+Table Name
+goals
+
+
+Purpose
+Tracks user sustainability objectives.
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+user_id UUID FOREIGN KEY → users.id
+
+
+goal_name VARCHAR(255)
+
+
+goal_description TEXT
+
+
+target_reduction_percentage FLOAT
+
+
+target_emission_value FLOAT
+
+
+current_progress FLOAT
+
+
+target_date DATE
+
+
+status ENUM (active, completed, expired)
+
+
+created_at TIMESTAMP
+
+
+updated_at TIMESTAMP
+
+
+
+
+9. Simulations Table
+Table Name
+simulations
+
+
+
+
+                                           6
+Purpose
+Stores simulation scenarios.
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+user_id UUID FOREIGN KEY → users.id
+
+
+scenario_name VARCHAR(255)
+
+
+scenario_description TEXT
+
+
+current_emission FLOAT
+
+
+projected_emission FLOAT
+
+
+reduction_percentage FLOAT
+
+
+estimated_carbon_saved FLOAT
+
+
+simulation_data JSONB
+
+
+created_at TIMESTAMP
+
+
+updated_at TIMESTAMP
+
+
+
+
+10. Forecasts Table
+Table Name
+forecasts
+
+
+Purpose
+Stores forecast sessions.
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+user_id UUID FOREIGN KEY → users.id
+
+
+
+
+                                      7
+forecast_type ENUM (current_path, recommended_path, custom_path)
+
+
+created_at TIMESTAMP
+
+
+updated_at TIMESTAMP
+
+
+
+
+11. Forecast Points Table
+Table Name
+forecast_points
+
+
+Purpose
+Stores forecast values dynamically.
+
+
+Why This Table Exists
+
+Instead of storing:
+
+
+predicted_3_month predicted_6_month predicted_12_month
+
+
+we store unlimited forecast points.
+
+
+This supports:
+
+
+     • 3 Months
+     • 6 Months
+     • 12 Months
+     • 24 Months
+     • Future Expansion
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+forecast_id UUID FOREIGN KEY → forecasts.id
+
+
+month_offset INTEGER
+
+
+predicted_emission FLOAT
+
+
+created_at TIMESTAMP
+
+
+
+
+                                                8
+12. Habit Tracking Table
+Table Name
+habits
+
+
+Purpose
+Tracks sustainability habits.
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+user_id UUID FOREIGN KEY → users.id
+
+
+habit_type ENUM ( public_transport, recycling, save_electricity, water_conservation, plastic_reduction )
+
+
+completed BOOLEAN
+
+
+carbon_saved FLOAT
+
+
+activity_date DATE
+
+
+notes TEXT
+
+
+created_at TIMESTAMP
+
+
+
+
+13. Habit Definitions Table
+Table Name
+habit_definitions
+
+
+Purpose
+Stores standardized habit-to-carbon conversion factors.
+
+
+Example
+
+Public Transport Used
+
+
+
+
+                                                      9
+= 1.2 kg CO₂e saved
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+habit_type VARCHAR(100)
+
+
+carbon_saving_factor FLOAT
+
+
+unit VARCHAR(50)
+
+
+description TEXT
+
+
+created_at TIMESTAMP
+
+
+updated_at TIMESTAMP
+
+
+
+
+14. AI Conversations Table
+Table Name
+ai_conversations
+
+
+Purpose
+Stores AI chat history.
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+conversation_id UUID
+
+
+user_id UUID FOREIGN KEY → users.id
+
+
+role ENUM (user, assistant)
+
+
+message TEXT
+
+
+created_at TIMESTAMP
+
+
+
+
+                                      10
+15. Carbon Factors Table
+Table Name
+carbon_factors
+
+
+Purpose
+Stores official emission factors.
+
+
+Fields
+
+id UUID PRIMARY KEY
+
+
+category VARCHAR(100)
+
+
+sub_category VARCHAR(100)
+
+
+factor_value FLOAT
+
+
+unit VARCHAR(50)
+
+
+source_reference TEXT
+
+
+source_name VARCHAR(255)
+
+
+version VARCHAR(20)
+
+
+effective_date DATE
+
+
+updated_at TIMESTAMP
+
+
+
+
+16. Assessment History View
+View Name
+assessment_history_view
+
+
+Purpose:
+
+
+Provide dashboard-ready assessment history.
+
+
+
+
+                                              11
+Contains:
+
+
+      • Assessment Date
+      • Total Emission
+      • Carbon Score
+      • Trend Delta
+
+
+
+
+17. Dashboard Summary View
+View Name
+dashboard_summary_view
+
+
+Purpose:
+
+
+Fast dashboard rendering.
+
+
+Contains:
+
+
+      • Latest Assessment
+      • Active Goals
+      • Current Streak
+      • Forecast Summary
+      • Total Carbon Saved
+
+
+
+
+18. API Response Models
+Carbon Assessment Response
+{ "assessment_id": "uuid", "total_emission": 2.8, "transport": 1.3, "energy": 0.8, "food": 0.5, "waste": 0.2,
+"carbon_score": 78 }
+
+
+
+
+Simulation Response
+{ "scenario_name": "Switch To Public Transport", "current": 3.2, "projected": 2.4, "saved": 0.8,
+"reduction_percentage": 25 }
+
+
+
+
+                                                        12
+Forecast Response
+{ "forecast_type": "recommended_path", "forecast_points": [ { "month": 3, "emission": 3.0 }, { "month": 6,
+"emission": 2.7 }, { "month": 12, "emission": 2.3 } ] }
+
+
+
+
+19. Relationships
+users 1 → N carbon_assessments
+
+
+users 1 → N goals
+
+
+users 1 → N habits
+
+
+users 1 → N simulations
+
+
+users 1 → N forecasts
+
+
+users 1 → N ai_conversations
+
+
+users 1 → 1 user_preferences
+
+
+carbon_assessments 1 → 1 emission_inputs
+
+
+forecasts 1 → N forecast_points
+
+
+habit_definitions 1 → N habits
+
+
+
+
+20. Indexing Strategy
+Indexes:
+
+
+users.email
+
+
+carbon_assessments.user_id
+
+
+goals.user_id
+
+
+habits.user_id
+
+
+habits.activity_date
+
+
+
+
+                                                      13
+simulations.user_id
+
+
+forecasts.user_id
+
+
+forecast_points.forecast_id
+
+
+ai_conversations.conversation_id
+
+
+carbon_factors.category
+
+
+carbon_factors.sub_category
+
+
+Purpose:
+
+
+     • Faster dashboard loading
+     • Faster historical lookups
+     • Improved forecast retrieval
+     • Faster AI conversation history access
+
+
+
+
+21. Data Retention Policy
+Assessment Data: Retained indefinitely
+
+
+Simulation Data: Retained indefinitely
+
+
+Habit Data: Retained indefinitely
+
+
+AI Conversations: Retained for 24 months
+
+
+Soft Deleted Accounts: Retained for 90 days
+
+
+Audit Logs: Retained for 12 months
+
+
+
+
+22. Future Tables (Version 2+)
+bill_uploads
+
+
+ocr_results
+
+
+community_challenges
+
+
+
+
+                                               14
+leaderboards
+
+
+carbon_rewards
+
+
+carbon_budgets
+
+
+organization_accounts
+
+
+school_programs
+
+
+iot_devices
+
+
+energy_meter_readings
+
+
+These tables are intentionally excluded from MVP to maintain development focus and competition
+readiness.
+
+
+
+
+23. Schema Success Criteria
+The database schema shall be considered successful if:
+
+
+     • All MVP features are supported
+     • Historical assessments remain traceable
+     • Carbon factors are version-controlled
+     • Forecasts support unlimited time horizons
+     • Goal tracking operates correctly
+     • Dashboard queries execute efficiently
+     • Future feature expansion requires minimal schema changes
+
+
+
+
+                                                   15
+

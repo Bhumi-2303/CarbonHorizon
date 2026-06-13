@@ -1,0 +1,962 @@
+APPLICATION FLOW DOCUMENT (AFD)
+
+Carbon Horizon
+Learn Your Impact. Shape the Future.
+
+Version: 1.0
+
+
+
+
+1. Application Overview
+Carbon Horizon helps users understand, simulate, and reduce their carbon footprint through AI-powered
+insights, forecasting, and sustainability planning.
+
+
+The application flow is designed to guide users from awareness to measurable carbon reduction.
+
+
+
+
+2. High-Level User Flow
+Landing Page
+
+
+↓
+
+
+User Registration/Login
+
+
+↓
+
+
+Onboarding
+
+
+↓
+
+
+Carbon Assessment
+
+
+↓
+
+
+Dashboard
+
+
+↓
+
+
+AI Sustainability Coach
+
+
+
+
+                                                   1
+↓
+
+
+Carbon Reduction Simulator
+
+
+↓
+
+
+Carbon Horizon Forecast
+
+
+↓
+
+
+Habit Tracker
+
+
+↓
+
+
+Progress Monitoring
+
+
+
+
+3. Detailed Application Flow
+Phase 1: User Entry
+
+Screen 1: Landing Page
+
+Purpose:
+
+
+Introduce Carbon Horizon.
+
+
+Content:
+
+
+        • Project Vision
+        • Key Features
+        • Benefits
+        • Call-To-Action
+
+Actions:
+
+
+        • Sign Up
+        • Login
+        • Learn More
+
+Next:
+
+
+User Registration
+
+
+
+
+                             2
+Phase 2: Authentication
+
+Screen 2: Registration
+
+Inputs:
+
+
+        • Name
+        • Email
+        • Password
+
+System Actions:
+
+
+        • Validate inputs
+        • Hash password
+        • Create account
+
+Output:
+
+
+Account created successfully.
+
+
+Next:
+
+
+User Onboarding
+
+
+
+
+Screen 3: Login
+
+Inputs:
+
+
+        • Email
+        • Password
+
+System Actions:
+
+
+        • Verify credentials
+        • Generate JWT Token
+
+Output:
+
+
+Authenticated session
+
+
+Next:
+
+
+Onboarding
+
+
+
+
+                                3
+Phase 3: User Onboarding
+Screen 4: Profile Setup
+
+Purpose:
+
+
+Understand user lifestyle.
+
+
+Inputs:
+
+
+Age Group
+
+
+        • Student
+        • Professional
+        • Homemaker
+        • Retired
+
+Transportation Preference
+
+
+Diet Preference
+
+
+Household Information
+
+
+Sustainability Goals
+
+
+Examples:
+
+
+        • Reduce carbon footprint
+        • Save electricity
+        • Reduce plastic usage
+
+Output:
+
+
+User Profile Created
+
+
+Next:
+
+
+Carbon Assessment
+
+
+
+
+Phase 4: Carbon Footprint Assessment
+Screen 5: Carbon Assessment Form
+
+Purpose:
+
+
+
+
+                                    4
+Collect lifestyle data.
+
+
+Sections:
+
+
+Transportation
+
+
+      • Car
+      • Motorcycle
+      • Bus
+      • Train
+      • Flight
+
+Energy Usage
+
+
+      • Monthly electricity consumption
+      • AC usage
+
+Food Habits
+
+
+      • Vegetarian
+      • Mixed
+      • Non-Vegetarian
+
+Waste Management
+
+
+      • Recycling frequency
+      • Plastic usage
+
+Action:
+
+
+Calculate Footprint
+
+
+System Process:
+
+
+Input Data
+
+
+↓
+
+
+Carbon Calculation Engine
+
+
+↓
+
+
+Emission Factor Database
+
+
+↓
+
+
+Emission Calculation
+
+
+
+
+                                          5
+Output:
+
+
+Carbon Footprint Result
+
+
+Next:
+
+
+Dashboard
+
+
+
+
+Phase 5: Carbon Dashboard
+Screen 6: Carbon Impact Dashboard
+
+Purpose:
+
+
+Visualize emissions.
+
+
+Displays:
+
+
+Total Annual Emissions
+
+
+Example:
+
+
+2.8 Tons CO₂e
+
+
+Breakdown:
+
+
+        • Transportation
+        • Energy
+        • Food
+        • Waste
+
+Charts:
+
+
+        • Pie Chart
+        • Bar Chart
+        • Trend Chart
+
+Additional Insights:
+
+
+Largest emission source identified.
+
+
+Example:
+
+
+"Transportation contributes 48% of your emissions."
+
+
+
+
+                                                      6
+Actions:
+
+
+        • View AI Suggestions
+        • Run Simulation
+        • Track Habits
+
+Next:
+
+
+AI Sustainability Coach
+
+
+
+
+Phase 6: AI Sustainability Coach
+Screen 7: AI Coach
+
+Purpose:
+
+
+Provide personalized guidance.
+
+
+User Interaction:
+
+
+Chat Interface
+
+
+Example:
+
+
+User:
+
+
+"I travel 20 km daily by motorcycle."
+
+
+AI:
+
+
+"Switching to public transport twice a week could reduce your emissions by approximately 15%."
+
+
+Capabilities:
+
+
+        • Sustainability Questions
+        • Carbon Reduction Tips
+        • Climate Education
+        • Personalized Recommendations
+
+Actions:
+
+
+Apply Recommendation
+
+
+Next:
+
+
+
+
+                                                    7
+Carbon Reduction Simulator
+
+
+
+
+Phase 7: Carbon Reduction Simulator
+Screen 8: Simulator
+
+Purpose:
+
+
+Test future lifestyle changes.
+
+
+Available Simulations:
+
+
+Transportation
+
+
+       • Car → Bus
+       • Motorcycle → Train
+
+Energy
+
+
+       • Reduce AC Usage
+       • Reduce Electricity Consumption
+
+Food
+
+
+       • Non-Veg → Mixed
+       • Mixed → Vegetarian
+
+Waste
+
+
+       • Improve Recycling
+
+System Process:
+
+
+Current Footprint
+
+
+↓
+
+
+Apply Changes
+
+
+↓
+
+
+Recalculate Emissions
+
+
+↓
+
+
+
+
+                                          8
+Generate Comparison
+
+
+Output:
+
+
+Current Emissions
+
+
+vs
+
+
+Projected Emissions
+
+
+Example:
+
+
+Current:
+
+
+3.2 Tons CO₂e
+
+
+Projected:
+
+
+2.4 Tons CO₂e
+
+
+Reduction:
+
+
+25%
+
+
+Actions:
+
+
+Save Scenario
+
+
+Generate Forecast
+
+
+Next:
+
+
+Carbon Horizon Forecast
+
+
+
+
+Phase 8: Carbon Horizon Forecast
+Screen 9: Forecast Dashboard
+
+Purpose:
+
+
+Visualize future impact.
+
+
+Scenarios:
+
+
+
+
+                               9
+Scenario A
+
+
+Current Habits Continue
+
+
+Scenario B
+
+
+Partial Changes
+
+
+Scenario C
+
+
+Recommended Changes
+
+
+Visualization:
+
+
+Line Chart
+
+
+Time Periods:
+
+
+        • 3 Months
+        • 6 Months
+        • 12 Months
+
+Output Example:
+
+
+Current Trend:
+
+
+3.5 Tons CO₂e
+
+
+Future Trend:
+
+
+2.3 Tons CO₂e
+
+
+Projected Reduction:
+
+
+34%
+
+
+Actions:
+
+
+Create Action Plan
+
+
+Next:
+
+
+Habit Tracker
+
+
+
+
+                          10
+Phase 9: Habit Tracker
+Screen 10: Sustainability Tracker
+
+Purpose:
+
+
+Track behavioral change.
+
+
+Habits:
+
+
+        • Public Transport Used
+        • Recycled Waste
+        • Saved Electricity
+        • Conserved Water
+        • Reduced Plastic Usage
+
+User Action:
+
+
+Mark Daily Completion
+
+
+System Actions:
+
+
+Update Progress
+
+
+Calculate Streaks
+
+
+Estimate Carbon Savings
+
+
+Outputs:
+
+
+Weekly Report
+
+
+Monthly Progress
+
+
+Current Streak
+
+
+Next:
+
+
+Progress Monitoring
+
+
+
+
+                                    11
+Phase 10: Progress Monitoring
+Screen 11: Sustainability Progress Dashboard
+
+Purpose:
+
+
+Measure long-term impact.
+
+
+Displays:
+
+
+Initial Carbon Footprint
+
+
+Current Carbon Footprint
+
+
+Reduction Achieved
+
+
+Forecast Improvements
+
+
+Habit Completion Rate
+
+
+Example:
+
+
+Initial:
+
+
+3.1 Tons CO₂e
+
+
+Current:
+
+
+2.5 Tons CO₂e
+
+
+Reduction:
+
+
+19.3%
+
+
+Actions:
+
+
+Run New Simulation
+
+
+Update Assessment
+
+
+Chat with AI Coach
+
+
+
+
+                                         12
+4. System Data Flow
+User Inputs
+
+
+↓
+
+
+Frontend Forms
+
+
+↓
+
+
+FastAPI Backend
+
+
+↓
+
+
+Carbon Calculation Engine
+
+
+↓
+
+
+Database Storage
+
+
+↓
+
+
+Gemini AI Processing
+
+
+↓
+
+
+Dashboard Generation
+
+
+↓
+
+
+Visualization Layer
+
+
+↓
+
+
+User Feedback
+
+
+
+
+5. Error Handling Flow
+Invalid Input
+
+
+↓
+
+
+
+
+                            13
+Validation Error
+
+
+↓
+
+
+Display User-Friendly Message
+
+
+↓
+
+
+Allow Correction
+
+
+
+Gemini API Failure
+
+
+↓
+
+
+Fallback Response
+
+
+↓
+
+
+Display Basic Recommendations
+
+
+↓
+
+
+Retry Option
+
+
+
+Database Failure
+
+
+↓
+
+
+Log Error
+
+
+↓
+
+
+Notify User
+
+
+↓
+
+
+Retry Request
+
+
+
+
+                                14
+6. Future Flow Enhancements
+Version 2.0
+
+
+     • AI Bill Scanner
+     • OCR-based Electricity Bill Analysis
+     • Mobile Application
+     • Community Carbon Challenges
+     • Smart Device Integration
+     • Personalized Carbon Budget
+     • Gamification System
+
+
+
+
+7. Core User Journey Summary
+Register
+
+
+↓
+
+
+Complete Assessment
+
+
+↓
+
+
+View Carbon Dashboard
+
+
+↓
+
+
+Receive AI Recommendations
+
+
+↓
+
+
+Run Carbon Simulations
+
+
+↓
+
+
+Generate Future Forecast
+
+
+↓
+
+
+Track Eco Habits
+
+
+↓
+
+
+Reduce Carbon Footprint
+
+
+
+                                             15
+↓
+
+
+Monitor Progress
+
+
+↓
+
+
+Become More Sustainable
+
+
+
+
+                          16
+
