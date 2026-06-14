@@ -1,0 +1,84 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: your-gcp-project-id
+  REGION: us-central1
+  AR_REPO: carbon-horizon-repo
+  BACKEND_IMAGE: us-central1-docker.pkg.dev/your-gcp-project-id/carbon-horizon-repo/backend:latest
+  FRONTEND_IMAGE: us-central1-docker.pkg.dev/your-gcp-project-id/carbon-horizon-repo/frontend:latest
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run pytest with coverage
+        run: |
+          cd backend
+          pytest --cov=app --cov-fail-under=90
+
+  build-and-deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Build and Push Backend Image
+        run: |
+          docker build -f Dockerfile.backend -t ${{ env.BACKEND_IMAGE }} .
+          docker push ${{ env.BACKEND_IMAGE }}
+
+      - name: Deploy Backend to Cloud Run
+        run: |
+          gcloud run deploy carbon-horizon-backend \
+            --image ${{ env.BACKEND_IMAGE }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars="GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},DATABASE_URL=${{ secrets.DATABASE_URL }},JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}"
+
+      - name: Build and Push Frontend Image
+        run: |
+          docker build -f Dockerfile.frontend -t ${{ env.FRONTEND_IMAGE }} .
+          docker push ${{ env.FRONTEND_IMAGE }}
+
+      - name: Deploy Frontend to Cloud Run
+        run: |
+          gcloud run deploy carbon-horizon-frontend \
+            --image ${{ env.FRONTEND_IMAGE }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated
