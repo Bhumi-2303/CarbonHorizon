@@ -20,10 +20,11 @@ import OrganizationPage from '@/pages/OrganizationPage'
 import SettingsPage from '@/pages/SettingsPage'
 import AssessmentForm from '@/pages/AssessmentForm'
 import AssessmentHistory from '@/pages/AssessmentHistory'
-import AssessmentDetail from '@/pages/AssessmentDetail'
+import AssessmentResult from '@/pages/AssessmentResult'
 import Simulator from '@/pages/Simulator'
 import SimulatorHistory from '@/pages/SimulatorHistory'
 import { Forecast } from '@/pages/Forecast'
+import Profile from '@/pages/Profile'
 
 function App() {
   return (
@@ -38,17 +39,19 @@ function App() {
           <Route path="/dashboard"           element={<DashboardPage />} />
           <Route path="/assessment"           element={<AssessmentForm />} />
           <Route path="/assessment/history"   element={<AssessmentHistory />} />
-          <Route path="/assessment/history/:id" element={<AssessmentDetail />} />
+          <Route path="/assessment/history/:id" element={<AssessmentResult />} />
+          <Route path="/assessment/result" element={<AssessmentResult />} />
           <Route path="/simulator"              element={<Simulator />} />
           <Route path="/simulator/history"      element={<SimulatorHistory />} />
           <Route path="/forecast"               element={<Forecast />} />
+          <Route path="/profile"                element={<Profile />} />
+          <Route path="/settings"               element={<SettingsPage />} />
           <Route path="/coach"                  element={<AICoach />} />
           <Route path="/goals"                  element={<Goals />} />
           <Route path="/habits"                 element={<HabitTracker />} />
           <Route path="/emissions"    element={<EmissionsPage />} />
           <Route path="/reports"      element={<ReportsPage />} />
           <Route path="/organization" element={<OrganizationPage />} />
-          <Route path="/settings"     element={<SettingsPage />} />
         </Route>
       </Route>
 
