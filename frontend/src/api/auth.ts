@@ -111,6 +111,17 @@ export const authApi = {
     const res = await apiClient.get<ApiEnvelope<UserProfile>>('/auth/profile')
     return unwrap(res.data)
   },
+
+  /** PUT /api/v1/auth/profile → UserProfile */
+  updateProfile: async (payload: Partial<UserProfile>): Promise<UserProfile> => {
+    const res = await apiClient.put<ApiEnvelope<UserProfile>>('/auth/profile', payload)
+    return unwrap(res.data)
+  },
+
+  /** DELETE /api/v1/auth/account */
+  deleteAccount: async (): Promise<void> => {
+    await apiClient.delete('/auth/account')
+  },
 }
 
 export default authApi

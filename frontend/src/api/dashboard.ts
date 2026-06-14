@@ -12,6 +12,7 @@ export interface DashboardAssessment {
 export interface DashboardData {
   latest_assessment: DashboardAssessment | null
   trend_delta: number
+  total_assessments?: number
   active_goals_count: number
   current_habit_streak: number
   forecast_summary: {
