@@ -142,6 +142,11 @@ export const simulatorApi = {
     const res = await apiClient.get<ApiEnvelope<SimulationSaved[]>>('/simulator/history')
     return unwrap(res.data)
   },
+
+  /** DELETE /api/v1/simulator/:id */
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/simulator/${id}`)
+  },
 }
 
 export default simulatorApi

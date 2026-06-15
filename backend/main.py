@@ -21,7 +21,7 @@ from app.core.config import settings
 from app.core.rate_limit import limiter
 from app.routes import api_router
 
-logger = logging.getLogger("uvicorn.access")
+logger = logging.getLogger("app.access")
 
 # ---------------------------------------------------------------------------
 # Rate Limiter Setup

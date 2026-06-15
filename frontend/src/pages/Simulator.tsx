@@ -14,7 +14,7 @@
  *   5. "View History"   → navigate('/simulator/history').
  */
 import { useEffect, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, Legend,
@@ -27,6 +27,7 @@ import {
   type ScenarioChanges,
   type TransportMode,
   type DietType,
+  type SimulationSaved,
 } from '@/api/simulator'
 
 // ─── Colour helpers ───────────────────────────────────────────────────────────
@@ -263,19 +264,47 @@ const DIET_OPTIONS: { value: DietType; label: string; emoji: string }[] = [
 
 export default function Simulator() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   // Baseline
   const [baseline,       setBaseline]       = useState<AssessmentResult | null>(null)
   const [baselineStatus, setBaselineStatus] = useState<'loading' | 'ok' | 'error'>('loading')
 
   // Scenario builder state
-  const [sc, setSc] = useState<ScenarioState>(DEFAULT_STATE)
+  const [sc, setSc] = useState<ScenarioState>(() => {
+    const prefill = location.state?.prefill as SimulationSaved | undefined
+    if (prefill?.simulation_data?.changes_applied) {
+      const c = prefill.simulation_data.changes_applied
+      return {
+        ...DEFAULT_STATE,
+        transportActive: !!(c.new_mode || c.new_distance_km),
+        newMode: (c.new_mode as TransportMode) || DEFAULT_STATE.newMode,
+        newDistanceKm: Number(c.new_distance_km) || 0,
+        
+        energyActive: !!(c.electricity_reduction_pct || c.reduced_ac || c.solar_adoption),
+        electricityReductionPct: Number(c.electricity_reduction_pct) || 0,
+        reducedAc: c.reduced_ac === 'true',
+        solarAdoption: c.solar_adoption === 'true',
+        
+        foodActive: !!c.new_diet_type,
+        newDietType: (c.new_diet_type as DietType) || DEFAULT_STATE.newDietType,
+        
+        wasteActive: !!(c.recycling_improvement || c.plastic_reduction),
+        recyclingImprovement: Number(c.recycling_improvement) || 0,
+        plasticReduction: Number(c.plastic_reduction) || 0,
+      }
+    }
+    return DEFAULT_STATE
+  })
 
   // Run state
   const [running,    setRunning]    = useState(false)
   const [runError,   setRunError]   = useState('')
   const [result,     setResult]     = useState<SimulationResult | null>(null)
-  const [scenarioName, setScenarioName] = useState('My Scenario')
+  const [scenarioName, setScenarioName] = useState(() => {
+    const prefill = location.state?.prefill as SimulationSaved | undefined
+    return prefill?.scenario_name || 'My Scenario'
+  })
 
   // Save state
   const [saving,   setSaving]   = useState(false)

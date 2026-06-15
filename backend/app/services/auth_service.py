@@ -32,6 +32,7 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from jose import JWTError
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -68,16 +69,16 @@ def _token_response(user: User) -> TokenResponse:
 
 
 def _assert_email_free(db: Session, email: str) -> None:
-    """Raise HTTP 409 if *email* is already registered."""
+    """Raise HTTP 400 if email is already in use."""
     exists = (
         db.query(User)
-        .filter(User.email == email)
+        .filter(func.lower(User.email) == email.lower())
         .first()
     )
     if exists:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="An account with this email already exists",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered",
         )
 
 
@@ -85,7 +86,7 @@ def _get_active_user_by_email(db: Session, email: str) -> User:
     """Return an active User by email or raise HTTP 401."""
     user = (
         db.query(User)
-        .filter(User.email == email, User.deleted_at.is_(None))
+        .filter(func.lower(User.email) == email.lower(), User.deleted_at.is_(None))
         .first()
     )
     if not user:
@@ -130,24 +131,14 @@ def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
     """
     Create a new user account.
 
-    Steps
-    -----
-    1. Assert the email is not already taken.
-    2. Hash the plain-text password with bcrypt.
-    3. Persist the User row.
-    4. Return the public profile together with a fresh token pair so the
-       client is logged in immediately after registration.
-
-    Raises
-    ------
-    HTTP 409  if the email is already registered.
+    Registers a new user, hashes password, saves to DB, returns ProfileResponse format.
     """
     _assert_email_free(db, payload.email)
 
     user = User(
         id=uuid.uuid4(),
         full_name=payload.full_name,
-        email=payload.email,
+        email=payload.email.lower(),
         password_hash=hash_password(payload.password),
         age_group=payload.age_group,
         lifestyle_type=payload.lifestyle_type,
@@ -162,25 +153,25 @@ def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
     return RegisterResponse(user=ProfileResponse.model_validate(user))
 
 
+import logging
+auth_logger = logging.getLogger("auth_debug")
+auth_logger.setLevel(logging.DEBUG)
+
 def login_user(db: Session, email: str, password: str) -> TokenResponse:
-    """
-    Authenticate a user and return a token pair.
+    auth_logger.debug(f"LOGIN ATTEMPT: received email={email}")
+    try:
+        user = _get_active_user_by_email(db, email)
+        auth_logger.debug(f"LOGIN ATTEMPT: user found for email={email}")
+    except HTTPException:
+        auth_logger.debug(f"LOGIN ATTEMPT: user not found for email={email}")
+        raise
 
-    Steps
-    -----
-    1. Fetch the active user by email.
-    2. Verify the plain-text password against the stored bcrypt hash.
-    3. Stamp last_login with the current UTC time.
-    4. Return access + refresh tokens.
+    auth_logger.debug(f"LOGIN ATTEMPT: stored hash length={len(user.password_hash)}")
+    
+    is_valid = verify_password(password, user.password_hash)
+    auth_logger.debug(f"LOGIN ATTEMPT: bcrypt verification result={is_valid}")
 
-    Raises
-    ------
-    HTTP 401  if email not found or password is wrong.
-    HTTP 403  if the account is soft-deleted (handled by _get_active_user_by_email).
-    """
-    user = _get_active_user_by_email(db, email)
-
-    if not verify_password(password, user.password_hash):
+    if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, FormEvent } from 'react'
+import { useEffect, useState, FormEvent } from 'react'
 import { goalsApi, type Goal, type GoalCreate } from '@/api/goals'
 
 export default function Goals() {

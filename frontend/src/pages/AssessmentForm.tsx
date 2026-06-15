@@ -375,7 +375,7 @@ export default function AssessmentForm() {
         ...data,
         assessment_period: 'monthly',
       })
-      navigate('/dashboard', { state: { assessmentResult: result }, replace: false })
+      navigate('/assessment/result', { state: { assessmentResult: result }, replace: false })
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'Submission failed. Please try again.')
     } finally {

@@ -107,8 +107,9 @@ export const authApi = {
   },
 
   /** GET /api/v1/auth/profile → UserProfile */
-  getProfile: async (): Promise<UserProfile> => {
-    const res = await apiClient.get<ApiEnvelope<UserProfile>>('/auth/profile')
+  getProfile: async (token?: string): Promise<UserProfile> => {
+    const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+    const res = await apiClient.get<ApiEnvelope<UserProfile>>('/auth/profile', config)
     return unwrap(res.data)
   },
 

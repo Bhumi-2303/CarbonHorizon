@@ -73,7 +73,7 @@ export default function Login() {
     setApiError(null)
     try {
       const tokens = await authApi.login(data)
-      const profile = await authApi.getProfile()
+      const profile = await authApi.getProfile(tokens.access_token)
       login(tokens, profile)
       navigate(redirectTo, { replace: true })
     } catch (err) {

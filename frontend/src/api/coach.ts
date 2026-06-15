@@ -24,12 +24,12 @@ export interface ConversationHistoryResponse {
 
 export const coachApi = {
   chat: async (data: ChatRequest): Promise<ChatResponse> => {
-    const res = await apiClient.post<{ success: boolean; data: ChatResponse }>('/api/v1/coach/chat', data)
+    const res = await apiClient.post<{ success: boolean; data: ChatResponse }>('/coach/chat', data)
     return res.data.data
   },
   
   history: async (conversationId: string): Promise<ConversationHistoryResponse> => {
-    const res = await apiClient.get<{ success: boolean; data: ConversationHistoryResponse }>(`/api/v1/coach/history`, {
+    const res = await apiClient.get<{ success: boolean; data: ConversationHistoryResponse }>(`/coach/history`, {
       params: { conversation_id: conversationId }
     })
     return res.data.data
