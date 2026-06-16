@@ -59,6 +59,19 @@ app = FastAPI(
 
 app.state.limiter = limiter
 
+@app.on_event("startup")
+async def startup_event():
+    from urllib.parse import urlparse
+    logger.info(f"ENVIRONMENT: {settings.ENVIRONMENT}")
+    
+    parsed = urlparse(settings.DATABASE_URL)
+    engine = parsed.scheme
+    host = parsed.hostname or "local"
+    
+    logger.info(f"DB Engine: {engine}")
+    logger.info(f"DB Host: {host}")
+
+
 # ---------------------------------------------------------------------------
 # Middleware
 # ---------------------------------------------------------------------------

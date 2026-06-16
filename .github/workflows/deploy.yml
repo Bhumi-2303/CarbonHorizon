@@ -68,7 +68,7 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars="GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},DATABASE_URL=${{ secrets.DATABASE_URL }},JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}"
+            --set-env-vars="GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},DATABASE_URL=${{ secrets.DATABASE_URL }},SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}"
 
       - name: Build and Push Frontend Image
         run: |

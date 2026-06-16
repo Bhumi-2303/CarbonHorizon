@@ -77,8 +77,8 @@ def _assert_email_free(db: Session, email: str) -> None:
     )
     if exists:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email already exists",
         )
 
 
@@ -92,7 +92,7 @@ def _get_active_user_by_email(db: Session, email: str) -> User:
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            detail="We couldn't sign you in. Please check your email and password.",
         )
     return user
 
@@ -174,7 +174,7 @@ def login_user(db: Session, email: str, password: str) -> TokenResponse:
     if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            detail="We couldn't sign you in. Please check your email and password.",
         )
 
     # Stamp last login
@@ -203,7 +203,7 @@ def refresh_tokens(db: Session, payload: RefreshRequest) -> TokenResponse:
     """
     credentials_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or expired refresh token",
+        detail="Session expired, please log in again",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:

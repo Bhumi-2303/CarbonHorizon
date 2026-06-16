@@ -58,22 +58,20 @@ export default function AICoach() {
       }
 
       // 2. Initialize or load conversation
-      let storedId = localStorage.getItem('coach_conversation_id')
-      if (!storedId) {
-        storedId = uuidv4()
-        localStorage.setItem('coach_conversation_id', storedId)
-      }
-      setConversationId(storedId)
+      const storedId = localStorage.getItem('coach_conversation_id')
+      if (storedId) {
+        setConversationId(storedId)
 
-      try {
-        const chatHistory = await coachApi.history(storedId)
-        if (chatHistory && chatHistory.history) {
-          setMessages(chatHistory.history.sort(
-            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-          ))
+        try {
+          const chatHistory = await coachApi.history(storedId)
+          if (chatHistory && chatHistory.history) {
+            setMessages(chatHistory.history.sort(
+              (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            ))
+          }
+        } catch (err) {
+          console.error('Failed to load chat history', err)
         }
-      } catch (err) {
-        console.error('Failed to load chat history', err)
       }
     }
 
@@ -102,9 +100,14 @@ export default function AICoach() {
 
     try {
       const response = await coachApi.chat({
-        conversation_id: conversationId,
+        ...(conversationId ? { conversation_id: conversationId } : {}),
         message: userMsg
       })
+      
+      if (!conversationId && response.conversation_id) {
+        setConversationId(response.conversation_id)
+        localStorage.setItem('coach_conversation_id', response.conversation_id)
+      }
       
       // Update with assistant's response
       setMessages(prev => [
@@ -118,13 +121,22 @@ export default function AICoach() {
       ])
     } catch (err) {
       console.error('Failed to send message', err)
+      let errorMsg = 'AI Coach is temporarily busy. Please try again in a moment.'
+      if (err instanceof Error && err.message) {
+        // Prevent raw provider payloads from ever reaching the UI
+        if (err.message.includes('503 UNAVAILABLE') || err.message.includes('{') || err.message.includes('error:')) {
+          errorMsg = 'AI Coach is temporarily busy. Please try again in a moment.'
+        } else {
+          errorMsg = err.message
+        }
+      }
       // Add error message as system/assistant notification
       setMessages(prev => [
         ...prev,
         {
           id: uuidv4(),
           role: 'assistant',
-          message: 'Sorry, I encountered an error while trying to process your request. Please try again.',
+          message: errorMsg,
           created_at: new Date().toISOString()
         }
       ])

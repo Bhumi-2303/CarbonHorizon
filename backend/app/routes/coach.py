@@ -21,8 +21,10 @@ def chat_with_coach(
 ):
     """
     Send a message to the AI Sustainability Coach.
-    Returns the AI's response along with context injected automatically.
     """
+    import logging
+    logging.info("COACH_ROUTE_VERSION_2")
+    print("COACH_ROUTE_VERSION_2", flush=True)
     try:
         response_data = coach_service.chat(
             db=db,

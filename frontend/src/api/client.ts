@@ -16,15 +16,28 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Extract the backend error message if available
     const data = error.response?.data
-    if (data && !data.success && data.error?.message) {
-      return Promise.reject(new Error(data.error.message))
+    
+    // Server responded with an error payload
+    if (data) {
+      if (data.message) {
+        return Promise.reject(new Error(data.message))
+      }
+      if (data.error?.message) {
+        return Promise.reject(new Error(data.error.message))
+      }
+      if (data.detail) {
+        return Promise.reject(new Error(data.detail))
+      }
     }
-    if (data?.detail) {
-      return Promise.reject(new Error(data.detail))
+    
+    // Server did not respond (Network Error, CORS, etc.)
+    if (error.request && !error.response) {
+      return Promise.reject(new Error("Unable to connect. Please try again later."))
     }
-    return Promise.reject(error)
+    
+    // Generic fallback for anything else
+    return Promise.reject(new Error("An unexpected error occurred. Please try again."))
   },
 )
 
