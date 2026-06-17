@@ -217,6 +217,8 @@ CarbonHorizon/
 │   ├── package.json          
 │   ├── tailwind.config.js    
 │   └── vite.config.ts        
+├── docs/                     # Documentation and media
+│   └── screenshots/          # Application screenshots and visuals
 ├── docker-compose.yml        # Multi-container orchestration
 └── cloudbuild.yaml           # Google Cloud Build pipeline
 ```
@@ -241,21 +243,32 @@ CarbonHorizon/
 
 ---
 
-## 10. Screenshots
+## 10. Screenshots & Demos
 
-*(Replace these placeholders with actual screenshots of your application before submitting)*
+### Application Walkthrough
+
+The following sections demonstrate the user interface of the Carbon Horizon application. For an interactive video walkthrough of the onboarding, footprint assessment, and AI coaching experience, please refer to the demo guide.
 
 | Dashboard Overview | AI Coach Interaction |
 | :---: | :---: |
-| <img src="https://via.placeholder.com/600x400.png?text=Dashboard+Overview" alt="Dashboard" width="400"/> | <img src="https://via.placeholder.com/600x400.png?text=AI+Coach+Interaction" alt="AI Coach" width="400"/> |
-| *Interactive emission breakdowns and tracking.* | *Context-aware advice from the Gemini coach.* |
+| <img src="docs/screenshots/dashboard.png" alt="Dashboard Overview" width="400"/> | <img src="docs/screenshots/ai_coach.png" alt="AI Coach Chat" width="400"/> |
+| *Interactive emission breakdowns, metrics, and tracking.* | *Context-aware advice and actions from the Gemini coach.* |
 
-| Goal Setting | Automated Reports |
+| Footprint Assessment Flow | Sustainability Reports |
 | :---: | :---: |
-| <img src="https://via.placeholder.com/600x400.png?text=Goal+Setting" alt="Goals" width="400"/> | <img src="https://via.placeholder.com/600x400.png?text=Automated+Reports" alt="Reports" width="400"/> |
-| *Setting and forecasting targeted emission reductions.* | *Generated sustainability reports.* |
+| <img src="docs/screenshots/assessment.png" alt="Assessment Flow" width="400"/> | <img src="docs/screenshots/reports.png" alt="Reports Interface" width="400"/> |
+| *Step-by-step emission factor onboarding wizard.* | *Generated PDF/online sustainability report list.* |
+
+### Animated Walkthrough (Demo Recording Plan)
+
+To record a high-quality animated GIF/video walkthrough for judging:
+1. **Onboarding**: Start on the login/registration screen, demonstrating the smooth authentication layout.
+2. **Assessment**: Complete a 5-step carbon footprint wizard showing the dynamic range sliders and validation rules.
+3. **Dashboard Integration**: Show the updated carbon score, graphs, and breakdown sections updating in real time.
+4. **Coaching Chat**: Engage in a conversation with the AI coach, requesting an eco-friendly recipe or custom travel reduction target.
 
 ---
 <div align="center">
   <i>Built for the future. 🌿</i>
 </div>
+
