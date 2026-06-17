@@ -5,17 +5,19 @@ from unittest.mock import patch, MagicMock
 
 @pytest.fixture
 def mock_gemini():
-    with patch("app.services.coach_service.genai.GenerativeModel") as mock_model, \
+    with patch("app.services.coach_service.genai.Client") as mock_client_class, \
          patch("app.services.coach_service.settings.GEMINI_API_KEY", "dummy_key"):
-        mock_instance = MagicMock()
-        mock_session = MagicMock()
+        mock_client = MagicMock()
+        mock_chats = MagicMock()
+        mock_chat_session = MagicMock()
         mock_response = MagicMock()
-        mock_response.text = "This is a mocked AI response."
         
-        mock_session.send_message.return_value = mock_response
-        mock_instance.start_chat.return_value = mock_session
-        mock_model.return_value = mock_instance
-        yield mock_model
+        mock_response.text = "This is a mocked AI response."
+        mock_chat_session.send_message.return_value = mock_response
+        mock_chats.create.return_value = mock_chat_session
+        mock_client.chats = mock_chats
+        mock_client_class.return_value = mock_client
+        yield mock_client_class
 
 def test_full_user_journey(client, db, mock_gemini):
     email = f"journey_{uuid4().hex[:8]}@example.com"
@@ -133,10 +135,11 @@ def test_full_user_journey(client, db, mock_gemini):
     assert goal_res.status_code == 201
     assert (time.time() - start_time) < 2.0
 
+    import datetime
     start_time = time.time()
     habit_res = client.post("/api/v1/habits/log", json={
         "habit_type": "recycling",
-        "activity_date": "2026-06-13",
+        "activity_date": datetime.date.today().isoformat(),
         "notes": "Did recycling"
     }, headers=headers)
     assert habit_res.status_code == 201

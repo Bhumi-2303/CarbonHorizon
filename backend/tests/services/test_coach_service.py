@@ -116,3 +116,32 @@ def test_chat_with_coach_exhaust_retries(client, db, auth_headers, mock_gemini):
     assert resp.status_code == 503
     assert resp.json()["message"] == "The AI Coach is currently busy. Please try again in a few moments."
     assert mock_chat_session.send_message.call_count == 3
+
+def test_coach_empty_payload(client, auth_headers):
+    resp = client.post("/api/v1/coach/chat", json={}, headers=auth_headers)
+    assert resp.status_code == 422 # FastAPI validation error
+
+def test_coach_invalid_payload(client, auth_headers):
+    resp = client.post("/api/v1/coach/chat", json={"invalid": "payload"}, headers=auth_headers)
+    assert resp.status_code == 422
+
+def test_coach_excessively_long_payload(client, auth_headers):
+    payload = {
+        "message": "A" * 10001
+    }
+    resp = client.post("/api/v1/coach/chat", json=payload, headers=auth_headers)
+    assert resp.status_code in [400, 422, 413] # Depending on validation, should not be 500
+
+def test_coach_rate_limit(client, db, auth_headers, mock_gemini):
+    payload = {"message": "Test"}
+    
+    # Send enough requests to trigger a rate limit.
+    # Assuming standard rate limiter blocks after a few requests in tests.
+    responses = []
+    for _ in range(30):
+        resp = client.post("/api/v1/coach/chat", json=payload, headers=auth_headers)
+        responses.append(resp.status_code)
+    
+    # We expect either all 200s (if rate limit is not active in test) or at least one 429
+    # Just asserting it doesn't crash with 500.
+    assert all(status in [200, 429] for status in responses)

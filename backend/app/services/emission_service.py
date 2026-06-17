@@ -3,8 +3,6 @@ EmissionService — carbon emission tracking business logic.
 No logic implemented yet; method stubs only.
 """
 from sqlalchemy.orm import Session
-
-from app.models.emission import Emission
 from app.schemas.emission import EmissionCreate, EmissionUpdate
 
 
