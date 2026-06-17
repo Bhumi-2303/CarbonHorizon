@@ -1,12 +1,18 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 import uuid
 from datetime import datetime
 
 from typing import Optional
+from app.core.sanitizer import sanitize_text
 
 class ChatRequest(BaseModel):
     conversation_id: Optional[uuid.UUID] = None
-    message: str = Field(..., min_length=1)
+    message: str = Field(..., min_length=1, max_length=2000)
+
+    @field_validator('message')
+    @classmethod
+    def sanitize_message(cls, v: str) -> str:
+        return sanitize_text(v)
 
 class ChatMessage(BaseModel):
     id: uuid.UUID

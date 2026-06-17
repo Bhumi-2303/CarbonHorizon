@@ -14,10 +14,11 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.enums import DietType, TransportMode
 from app.schemas.auth import APIResponse
+from app.core.sanitizer import sanitize_text
 
 
 # ---------------------------------------------------------------------------
@@ -149,6 +150,13 @@ class SimulationRunRequest(BaseModel):
     plastic_usage_score: Optional[int]           = Field(None, ge=0, le=5)
     household_size:      Optional[int]           = Field(None, ge=1)
 
+    @field_validator('scenario_name', 'scenario_description', mode='before')
+    @classmethod
+    def sanitize_strings(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return sanitize_text(v)
+        return v
+
 
 class SimulationSaveRequest(BaseModel):
     """
@@ -163,6 +171,13 @@ class SimulationSaveRequest(BaseModel):
     carbon_saved:         float
     reduction_percentage: float
     simulation_data:      Optional[Dict[str, Any]] = None
+
+    @field_validator('scenario_name', 'scenario_description', mode='before')
+    @classmethod
+    def sanitize_strings(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return sanitize_text(v)
+        return v
 
 
 # ---------------------------------------------------------------------------
