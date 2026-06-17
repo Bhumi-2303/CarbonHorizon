@@ -4,11 +4,7 @@ Alembic environment configuration for Carbon Horizon.
 Supports:
   • Offline mode  — generates SQL scripts without a live DB connection
   • Online mode   — runs migrations against a live sync connection
-  • SQLite (dev)  — render_as_batch=True required for ALTER TABLE support
-  • PostgreSQL    — full DDL support, no batch mode needed
-
-DATABASE_URL is read from Settings (which reads .env) so switching between
-SQLite (dev) and PostgreSQL (prod) requires only a .env change.
+DATABASE_URL is read from Settings (which reads .env).
 
 Run migrations:
   alembic upgrade head          # apply all pending migrations
@@ -55,16 +51,9 @@ target_metadata = Base.metadata
 
 # ── Dialect helpers ────────────────────────────────────────────────────────
 
-def _is_sqlite(url: str) -> bool:
-    return url.startswith("sqlite")
-
-
-def _migration_context_kwargs(url: str) -> dict:
+def _migration_context_kwargs() -> dict:
     """
-    Return context.configure() kwargs appropriate for the target dialect.
-
-    SQLite requires render_as_batch=True because it does not support most
-    ALTER TABLE statements natively; Alembic emulates them via table rebuild.
+    Return context.configure() kwargs appropriate for PostgreSQL.
     """
     kwargs: dict = {
         "target_metadata": target_metadata,
@@ -72,8 +61,6 @@ def _migration_context_kwargs(url: str) -> dict:
         "compare_server_default": True, # detect server default changes
         "include_schemas": False,
     }
-    if _is_sqlite(url):
-        kwargs["render_as_batch"] = True
     return kwargs
 
 
@@ -94,7 +81,7 @@ def run_migrations_offline() -> None:
         url=url,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        **_migration_context_kwargs(url),
+        **_migration_context_kwargs(),
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -120,14 +107,12 @@ def run_migrations_online() -> None:
     connectable = create_engine(
         url,
         poolclass=pool.NullPool,
-        # SQLite: allow multi-threaded access during migration scripts
-        **({"connect_args": {"check_same_thread": False}} if _is_sqlite(url) else {}),
     )
 
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
-            **_migration_context_kwargs(url),
+            **_migration_context_kwargs(),
         )
         with context.begin_transaction():
             context.run_migrations()

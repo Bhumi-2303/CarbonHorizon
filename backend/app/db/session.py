@@ -23,20 +23,12 @@ from app.core.config import settings
 # Sync engine (Alembic + sync FastAPI Depends)
 # ---------------------------------------------------------------------------
 
-_engine_kwargs: dict = {}
-
-if settings.is_sqlite:
-    _engine_kwargs = {
-        "connect_args": {"check_same_thread": False},
-        "poolclass": NullPool,
-    }
-else:
-    _engine_kwargs = {
-        "pool_pre_ping": True,
-        "pool_size": 10,
-        "max_overflow": 20,
-        "poolclass": QueuePool,
-    }
+_engine_kwargs: dict = {
+    "pool_pre_ping": True,
+    "pool_size": 10,
+    "max_overflow": 20,
+    "poolclass": QueuePool,
+}
 
 engine = create_engine(settings.DATABASE_URL, **_engine_kwargs)
 
@@ -49,16 +41,16 @@ SessionLocal = sessionmaker(
 # ---------------------------------------------------------------------------
 # Async engine + session (wired when async routes are implemented)
 # ---------------------------------------------------------------------------
-# Imported lazily so SQLite installs without aiosqlite / asyncpg in dev.
 
 def get_async_engine():
-    """Return an async SQLAlchemy engine (lazy import)."""
+    """Return an async SQLAlchemy engine."""
     from sqlalchemy.ext.asyncio import create_async_engine as _async_engine
-    kwargs: dict = {"echo": settings.DEBUG}
-    if settings.is_sqlite:
-        kwargs["connect_args"] = {"check_same_thread": False}
-    else:
-        kwargs.update({"pool_pre_ping": True, "pool_size": 10, "max_overflow": 20})
+    kwargs: dict = {
+        "echo": settings.DEBUG,
+        "pool_pre_ping": True,
+        "pool_size": 10,
+        "max_overflow": 20
+    }
     return _async_engine(settings.async_database_url, **kwargs)
 
 

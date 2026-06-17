@@ -20,10 +20,7 @@ Notes:
   • UUID primary keys throughout.
   • All timestamps are timezone-aware UTC.
   • Soft delete on users via deleted_at.
-  • render_as_batch=True in env.py handles SQLite ALTER TABLE limitations.
-  • simulation_data uses sa.JSON (portable) — PostgreSQL stores it as JSONB
-    when the column is declared with postgresql.JSONB in the ORM model;
-    this migration uses the portable sa.JSON so SQLite also works.
+  • simulation_data uses postgresql.JSONB for indexing and query performance.
 
 Revision ID: 8e881f34c5ec
 Revises:
@@ -34,6 +31,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from sqlalchemy import Text
+from sqlalchemy.dialects import postgresql
 
 from alembic import op
 
@@ -287,9 +285,6 @@ def upgrade() -> None:
         batch_op.create_index("ix_habits_habit_type", ["habit_type"], unique=False)
 
     # ── 9. simulations ───────────────────────────────────────────────────────
-    # simulation_data: use portable sa.JSON — works on both SQLite and PostgreSQL.
-    # The ORM model declares it as JSONB (PostgreSQL-native) which is fine because
-    # JSONB is a superset of JSON; this migration uses JSON for cross-DB portability.
     op.create_table(
         "simulations",
         sa.Column("id", sa.UUID(), nullable=False),
@@ -300,7 +295,7 @@ def upgrade() -> None:
         sa.Column("projected_emission", sa.Float(), nullable=True),
         sa.Column("reduction_percentage", sa.Float(), nullable=True),
         sa.Column("estimated_carbon_saved", sa.Float(), nullable=True),
-        sa.Column("simulation_data", sa.JSON(), nullable=True),
+        sa.Column("simulation_data", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

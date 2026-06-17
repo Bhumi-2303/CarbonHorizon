@@ -64,6 +64,17 @@ async def startup_event():
     from urllib.parse import urlparse
     logger.info(f"ENVIRONMENT: {settings.ENVIRONMENT}")
     
+    # Validate SECRET_KEY for production
+    if settings.ENVIRONMENT == "production":
+        default_keys = [
+            "change-me-in-production-use-32-char-minimum",
+            "change-me-use-a-32-char-random-hex-string",
+            "d1f90b3f4b88b7de7810f836d56e1d6d996a916135ae927c2187f59cc1a091cd"
+        ]
+        if not settings.SECRET_KEY or settings.SECRET_KEY in default_keys:
+            logger.error("FATAL: Cannot start production server without a valid SECRET_KEY.")
+            raise ValueError("SECRET_KEY must be provided and cannot be a default value in production.")
+    
     parsed = urlparse(settings.DATABASE_URL)
     engine = parsed.scheme
     host = parsed.hostname or "local"
