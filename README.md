@@ -2,10 +2,18 @@
   <h1>🌍 Carbon Horizon</h1>
   <p><strong>Intelligent Carbon Footprint Tracking & AI-Powered Sustainability Coaching</strong></p>
   <p>
+    <a href="https://github.com/Bhumi-2303/CarbonHorizon/actions/workflows/deploy.yml">
+      <img src="https://github.com/Bhumi-2303/CarbonHorizon/actions/workflows/deploy.yml/badge.svg" alt="Build Status" />
+    </a>
+    <img src="https://img.shields.io/badge/Coverage-91%25-success?style=flat-square" alt="Test Coverage" />
+    <a href="LICENSE">
+      <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License" />
+    </a>
+  </p>
+  <p>
     <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
     <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
     <img src="https://img.shields.io/badge/Gemini_AI-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
-    <img src="https://img.shields.io/badge/Coverage-91%25-brightgreen?style=for-the-badge" alt="Coverage" />
   </p>
 </div>
 
