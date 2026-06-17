@@ -244,10 +244,10 @@ export default function AICoach() {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth" role="log" aria-live="polite">
             {messages.length === 0 && !isTyping && (
               <div className="h-full flex flex-col items-center justify-center text-center opacity-70">
-                <span className="text-4xl mb-4">💬</span>
+                <span className="text-4xl mb-4" role="img" aria-label="Speech bubble">💬</span>
                 <p className="text-slate-300 font-medium">No messages yet</p>
                 <p className="text-sm text-slate-500 mt-2 max-w-sm">
                   Try asking how you can reduce your top emission source or ask for an eco-friendly recipe!
@@ -265,7 +265,7 @@ export default function AICoach() {
                     msg.role === 'user' 
                       ? 'bg-emerald-600 text-white rounded-br-sm shadow-md shadow-emerald-900/20' 
                       : 'bg-slate-700/60 text-slate-200 border border-slate-600/50 rounded-bl-sm shadow-md shadow-slate-900/20'
-                  }`}>
+                  }`} aria-label={msg.role === 'user' ? 'You said' : 'Coach said'}>
                     {msg.role === 'assistant' ? (
                       <div className="text-sm leading-relaxed whitespace-pre-wrap 
                           prose prose-invert prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5
@@ -284,7 +284,7 @@ export default function AICoach() {
               {/* Typing indicator */}
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-bl-sm p-4 bg-slate-700/60 border border-slate-600/50 text-slate-200 flex items-center gap-1.5 h-[52px]">
+                  <div className="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-bl-sm p-4 bg-slate-700/60 border border-slate-600/50 text-slate-200 flex items-center gap-1.5 h-[52px]" aria-label="Coach is typing">
                     <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                     <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
                     <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
@@ -297,12 +297,13 @@ export default function AICoach() {
 
           {/* Input Area */}
           <div className="p-4 bg-slate-800/80 border-t border-slate-700/50 shrink-0">
-            <form onSubmit={handleSend} className="relative flex items-end gap-2 max-w-4xl mx-auto">
+            <form onSubmit={handleSend} className="relative flex items-end gap-2 max-w-4xl mx-auto" aria-label="Send message to Coach">
               <textarea
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask your coach..."
+                aria-label="Ask your coach"
                 className="w-full bg-slate-900/50 border border-slate-600 rounded-xl px-4 py-3
                   text-sm text-slate-100 placeholder-slate-500
                   focus:outline-none focus:ring-1 focus:ring-emerald-500/60 focus:border-emerald-500/60
@@ -318,11 +319,12 @@ export default function AICoach() {
               <button
                 type="submit"
                 disabled={!input.trim() || isTyping}
+                aria-label="Send message"
                 className="flex-shrink-0 w-[52px] h-[52px] rounded-xl flex items-center justify-center
                   bg-emerald-600 hover:bg-emerald-500 text-white transition-colors
                   disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
               </button>

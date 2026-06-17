@@ -38,12 +38,15 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] flex flex-col md:flex-row">
+      <a href="#main-content" className="skip-to-content">
+        Skip to main content
+      </a>
       
       {/* Sidebar Navigation (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen sticky top-0 flex-shrink-0">
+      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen sticky top-0 flex-shrink-0" aria-label="Sidebar Navigation">
         
         <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20" aria-hidden="true">
             <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
               <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-8 2 0 0-4 0-4 8" />
             </svg>
@@ -53,7 +56,7 @@ export default function AppLayout() {
           </span>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-4 space-y-1 overflow-y-auto" aria-label="Main Navigation">
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.path}
@@ -66,7 +69,7 @@ export default function AppLayout() {
                 }`
               }
             >
-              <i className={`ti ${item.icon} text-lg`}></i>
+              <i className={`ti ${item.icon} text-lg`} aria-hidden="true"></i>
               {item.label}
             </NavLink>
           ))}
@@ -85,8 +88,9 @@ export default function AppLayout() {
             <button
               onClick={handleLogout}
               className="text-xs text-left text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 flex items-center gap-2 transition-colors w-max"
+              aria-label="Logout from account"
             >
-              <i className="ti ti-logout"></i> Logout
+              <i className="ti ti-logout" aria-hidden="true"></i> Logout
             </button>
           </div>
         </div>
@@ -94,12 +98,12 @@ export default function AppLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 pb-20 md:pb-0 relative">
+      <main id="main-content" tabIndex={-1} className="flex-1 min-w-0 pb-20 md:pb-0 relative outline-none">
         <Outlet />
       </main>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-around z-50 px-2 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-around z-50 px-2 pb-safe" aria-label="Mobile Navigation">
         {NAV_ITEMS.slice(0, 5).map((item) => (
           <NavLink
             key={item.path}
@@ -112,7 +116,7 @@ export default function AppLayout() {
               }`
             }
           >
-            <i className={`ti ${item.icon} text-xl mb-1`}></i>
+            <i className={`ti ${item.icon} text-xl mb-1`} aria-hidden="true"></i>
             <span className="text-[10px] font-medium leading-none">{item.label}</span>
           </NavLink>
         ))}

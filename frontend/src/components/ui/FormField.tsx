@@ -49,6 +49,7 @@ export const FormField = React.forwardRef<
   if (props.as === 'select') {
     const { label, fieldId, error, options, placeholder, as: _as, ...rest } = props
     const cls = [inputCls, 'appearance-none cursor-pointer', error ? errorInputCls : ''].join(' ')
+    const errorId = error ? `${fieldId}-error` : undefined
     return (
       <div>
         <label htmlFor={fieldId} className={labelCls}>
@@ -58,6 +59,8 @@ export const FormField = React.forwardRef<
           id={fieldId}
           ref={ref as React.Ref<HTMLSelectElement>}
           className={cls}
+          aria-invalid={error ? 'true' : 'false'}
+          aria-describedby={errorId}
           {...rest}
         >
           {placeholder && (
@@ -71,13 +74,14 @@ export const FormField = React.forwardRef<
             </option>
           ))}
         </select>
-        {error && <p className={errorMsgCls}>{error}</p>}
+        {error && <p id={errorId} className={errorMsgCls} role="alert">{error}</p>}
       </div>
     )
   }
 
   const { label, fieldId, error, as: _as, ...rest } = props
   const cls = [inputCls, error ? errorInputCls : ''].join(' ')
+  const errorId = error ? `${fieldId}-error` : undefined
 
   return (
     <div>
@@ -88,9 +92,11 @@ export const FormField = React.forwardRef<
         id={fieldId}
         ref={ref as React.Ref<HTMLInputElement>}
         className={cls}
+        aria-invalid={error ? 'true' : 'false'}
+        aria-describedby={errorId}
         {...rest}
       />
-      {error && <p className={errorMsgCls}>{error}</p>}
+      {error && <p id={errorId} className={errorMsgCls} role="alert">{error}</p>}
     </div>
   )
 })
