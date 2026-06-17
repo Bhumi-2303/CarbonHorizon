@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import apiClient from '@/api/client'
+import { useTheme } from '@/context/ThemeContext'
 
 const SettingsPage = () => {
+  const { theme, setTheme } = useTheme()
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences'>('profile')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -9,7 +11,11 @@ const SettingsPage = () => {
 
   // Form states
   const [profile, setProfile] = useState({ first_name: '', last_name: '', email: '' })
-  const [preferences, setPreferences] = useState({ notifications: true, dark_mode: false, currency: 'USD' })
+  const [preferences, setPreferences] = useState({
+    notifications: true,
+    dark_mode: theme === 'dark',
+    currency: 'USD'
+  })
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -25,6 +31,9 @@ const SettingsPage = () => {
         // Mocking preferences if available from backend
         if (response.data.preferences) {
           setPreferences(response.data.preferences)
+          if (response.data.preferences.dark_mode !== undefined) {
+            setTheme(response.data.preferences.dark_mode ? 'dark' : 'light')
+          }
         }
       } catch (err: any) {
         // If 404, we might just be showing default empty forms
@@ -60,6 +69,7 @@ const SettingsPage = () => {
       setMessage(null)
       // Mock update call
       await apiClient.put('/users/me/preferences', preferences)
+      setTheme(preferences.dark_mode ? 'dark' : 'light')
       setMessage({ type: 'success', text: 'Preferences saved successfully!' })
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || 'Failed to save preferences' })

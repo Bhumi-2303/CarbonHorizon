@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { authApi, type UserProfile, type AgeGroup, type LifestyleType } from '@/api/auth'
 import { dashboardApi, type DashboardData } from '@/api/dashboard'
 import { useAuth } from '@/context/AuthContext'
+import { useTheme } from '@/context/ThemeContext'
 
 export default function Profile() {
   const { logout, setUser } = useAuth()
+  const { theme: currentTheme, setTheme: updateGlobalTheme } = useTheme()
   const navigate = useNavigate()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -23,9 +25,7 @@ export default function Profile() {
   const [country, setCountry] = useState('')
 
   // Preferences State
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(
-    (localStorage.getItem('ch_theme') as any) || 'dark'
-  )
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(currentTheme)
   const [unit, setUnit] = useState<'metric' | 'imperial'>(
     (localStorage.getItem('ch_unit') as any) || 'metric'
   )
@@ -87,7 +87,7 @@ export default function Profile() {
   }
 
   const handlePreferencesSave = () => {
-    localStorage.setItem('ch_theme', theme)
+    updateGlobalTheme(theme)
     localStorage.setItem('ch_unit', unit)
     localStorage.setItem('ch_notifications', String(notifications))
     setMessage({ type: 'success', text: 'Preferences saved successfully!' })
