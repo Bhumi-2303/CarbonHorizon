@@ -4,17 +4,30 @@ on:
   push:
     branches:
       - main
+      - staging
 
 env:
-  PROJECT_ID: your-gcp-project-id
   REGION: us-central1
   AR_REPO: carbon-horizon-repo
-  BACKEND_IMAGE: us-central1-docker.pkg.dev/your-gcp-project-id/carbon-horizon-repo/backend:latest
-  FRONTEND_IMAGE: us-central1-docker.pkg.dev/your-gcp-project-id/carbon-horizon-repo/frontend:latest
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,6 +46,10 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run pytest with coverage
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/postgres
+          ENVIRONMENT: testing
+          SECRET_KEY: test-secret-key-32-chars-minimum-for-testing
         run: |
           cd backend
           pytest --cov=app --cov-fail-under=90
@@ -43,6 +60,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set Environment Variables
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "ENV_SUFFIX=prod" >> $GITHUB_ENV
+            echo "SERVICE_SUFFIX=" >> $GITHUB_ENV
+            echo "DB_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          else
+            echo "ENV_SUFFIX=staging" >> $GITHUB_ENV
+            echo "SERVICE_SUFFIX=-staging" >> $GITHUB_ENV
+            echo "DB_URL=${{ secrets.DATABASE_URL_STAGING || secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          fi
 
       - name: Authenticate to Google Cloud
         id: auth
@@ -56,6 +85,11 @@ jobs:
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
+      - name: Define Image Tags
+        run: |
+          echo "BACKEND_IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.AR_REPO }}/backend:${{ env.ENV_SUFFIX }}" >> $GITHUB_ENV
+          echo "FRONTEND_IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.AR_REPO }}/frontend:${{ env.ENV_SUFFIX }}" >> $GITHUB_ENV
+
       - name: Build and Push Backend Image
         run: |
           docker build -f Dockerfile.backend -t ${{ env.BACKEND_IMAGE }} .
@@ -63,12 +97,12 @@ jobs:
 
       - name: Deploy Backend to Cloud Run
         run: |
-          gcloud run deploy carbon-horizon-backend \
+          gcloud run deploy carbon-horizon-backend${{ env.SERVICE_SUFFIX }} \
             --image ${{ env.BACKEND_IMAGE }} \
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars="GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},DATABASE_URL=${{ secrets.DATABASE_URL }},SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}"
+            --set-env-vars="GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},DATABASE_URL=${{ env.DB_URL }},SECRET_KEY=${{ secrets.JWT_SECRET_KEY }},ENVIRONMENT=${{ env.ENV_SUFFIX == 'prod' && 'production' || 'staging' }}"
 
       - name: Build and Push Frontend Image
         run: |
@@ -77,7 +111,7 @@ jobs:
 
       - name: Deploy Frontend to Cloud Run
         run: |
-          gcloud run deploy carbon-horizon-frontend \
+          gcloud run deploy carbon-horizon-frontend${{ env.SERVICE_SUFFIX }} \
             --image ${{ env.FRONTEND_IMAGE }} \
             --region ${{ env.REGION }} \
             --platform managed \
