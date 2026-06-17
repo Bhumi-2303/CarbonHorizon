@@ -145,3 +145,63 @@ def test_coach_rate_limit(client, db, auth_headers, mock_gemini):
     # We expect either all 200s (if rate limit is not active in test) or at least one 429
     # Just asserting it doesn't crash with 500.
     assert all(status in [200, 429] for status in responses)
+
+def test_coach_gemini_api_key_missing(client, auth_headers):
+    with patch("app.services.coach_service.settings.GEMINI_API_KEY", ""), \
+         patch.dict("os.environ", {}, clear=True):
+        resp = client.post("/api/v1/coach/chat", json={"message": "hello"}, headers=auth_headers)
+        assert resp.status_code == 500
+        assert "Gemini API Key is missing" in resp.json()["message"]
+
+def test_coach_non_retryable_api_error(client, auth_headers, mock_gemini):
+    from google.genai import errors
+    import requests
+    mock_client_class = mock_gemini
+    mock_chat_session = mock_client_class.return_value.chats.create.return_value
+    resp_obj = requests.Response()
+    resp_obj.status_code = 403
+    resp_obj._content = b'{"error": {"message": "Invalid key"}}'
+    api_error = errors.APIError(code=403, response=resp_obj)
+    mock_chat_session.send_message.side_effect = api_error
+
+    resp = client.post("/api/v1/coach/chat", json={"message": "hello"}, headers=auth_headers)
+    assert resp.status_code == 503
+    assert "The AI Coach is temporarily unavailable" in resp.json()["message"]
+
+def test_coach_exhaust_retries_429(client, auth_headers, mock_gemini):
+    from google.genai import errors
+    import requests
+    mock_client_class = mock_gemini
+    mock_chat_session = mock_client_class.return_value.chats.create.return_value
+    resp_obj = requests.Response()
+    resp_obj.status_code = 429
+    resp_obj._content = b'{"error": {"message": "Quota exceeded"}}'
+    api_error = errors.APIError(code=429, response=resp_obj)
+    mock_chat_session.send_message.side_effect = [api_error, api_error, api_error]
+
+    with patch("time.sleep"):
+        resp = client.post("/api/v1/coach/chat", json={"message": "hello"}, headers=auth_headers)
+    assert resp.status_code == 429
+
+def test_coach_exhaust_retries_504(client, auth_headers, mock_gemini):
+    from google.genai import errors
+    import requests
+    mock_client_class = mock_gemini
+    mock_chat_session = mock_client_class.return_value.chats.create.return_value
+    resp_obj = requests.Response()
+    resp_obj.status_code = 504
+    resp_obj._content = b'{"error": {"message": "Gateway timeout"}}'
+    api_error = errors.APIError(code=504, response=resp_obj)
+    mock_chat_session.send_message.side_effect = [api_error, api_error, api_error]
+
+    with patch("time.sleep"):
+        resp = client.post("/api/v1/coach/chat", json={"message": "hello"}, headers=auth_headers)
+    assert resp.status_code == 504
+
+def test_coach_unexpected_exception(client, auth_headers, mock_gemini):
+    mock_client_class = mock_gemini
+    mock_chat_session = mock_client_class.return_value.chats.create.return_value
+    mock_chat_session.send_message.side_effect = Exception("unexpected error")
+
+    resp = client.post("/api/v1/coach/chat", json={"message": "hello"}, headers=auth_headers)
+    assert resp.status_code == 500

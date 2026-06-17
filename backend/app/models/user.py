@@ -53,7 +53,7 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
 
     # Relationships
     preferences: Mapped["UserPreferences"] = relationship(
-        "UserPreferences", back_populates="user", uselist=False, cascade="all, delete-orphan"
+        "UserPreferences", back_populates="user", uselist=False, cascade="all, delete-orphan", lazy="joined"
     )
     carbon_assessments: Mapped[list["CarbonAssessment"]] = relationship(
         "CarbonAssessment", back_populates="user", cascade="all, delete-orphan"

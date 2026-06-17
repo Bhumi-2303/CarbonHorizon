@@ -21,6 +21,8 @@ class GoalUpdate(BaseModel):
     target_reduction_percentage: Optional[float] = None
     target_emission_value: Optional[float] = None
     target_date: Optional[date] = None
+    current_progress: Optional[float] = None
+    status: Optional[GoalStatus] = None
 
 class GoalResponse(GoalBase):
     model_config = ConfigDict(from_attributes=True)

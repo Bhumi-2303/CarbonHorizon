@@ -17,12 +17,16 @@ class ReportService:
 
     @staticmethod
     def list_by_org(
-        db: Session, organization_id: str, skip: int = 0, limit: int = 100
+        db: Session, organization_id: str | uuid.UUID, skip: int = 0, limit: int = 100
     ) -> list[Report]:
+        if isinstance(organization_id, str):
+            organization_id = uuid.UUID(organization_id)
         return db.query(Report).filter(Report.user_id == organization_id).offset(skip).limit(limit).all()
 
     @staticmethod
-    def create(db: Session, payload: ReportCreate, user_id: str) -> Report:
+    def create(db: Session, payload: ReportCreate, user_id: str | uuid.UUID) -> Report:
+        if isinstance(user_id, str):
+            user_id = uuid.UUID(user_id)
         db_obj = Report(
             user_id=user_id,
             title=payload.title if hasattr(payload, 'title') else "Default Title",

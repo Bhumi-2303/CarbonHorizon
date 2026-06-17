@@ -76,3 +76,62 @@ def test_update_and_delete_goal(db, test_user):
     import fastapi
     with pytest.raises(fastapi.HTTPException):
         GoalService.get_goal(db, test_user.id, goal.id)
+
+def test_goal_not_found_raises_http_exception(db, test_user):
+    import fastapi
+    random_id = uuid.uuid4()
+    with pytest.raises(fastapi.HTTPException) as exc_info:
+        GoalService.get_goal(db, test_user.id, random_id)
+    assert exc_info.value.status_code == 404
+
+    with pytest.raises(fastapi.HTTPException) as exc_info:
+        GoalService.update_goal(db, test_user.id, random_id, GoalUpdate(goal_name="Nonexistent"))
+    assert exc_info.value.status_code == 404
+
+    with pytest.raises(fastapi.HTTPException) as exc_info:
+        GoalService.delete_goal(db, test_user.id, random_id)
+    assert exc_info.value.status_code == 404
+
+def test_expired_goal(db, test_user):
+    # Target date in the past
+    past_date = date.today() - timedelta(days=1)
+    goal_in = GoalCreate(
+        goal_name="Past Goal",
+        target_emission_value=50.0,
+        target_date=past_date
+    )
+    goal = GoalService.create_goal(db, test_user.id, goal_in)
+    
+    # get_goals should trigger expiration check
+    goals = GoalService.get_goals(db, test_user.id)
+    db.refresh(goal)
+    assert goal.status == GoalStatus.expired
+
+def test_goal_without_percentage_reduction(db, test_user):
+    # Goal created directly with target_emission_value, no percentage
+    goal_in = GoalCreate(
+        goal_name="Direct Goal",
+        target_emission_value=80.0,
+        target_date=date.today() + timedelta(days=30)
+    )
+    goal = GoalService.create_goal(db, test_user.id, goal_in)
+    assert goal.target_reduction_percentage is None
+    assert goal.target_emission_value == 80.0
+
+    # Get goals should not raise or guess progress incorrectly
+    goals = GoalService.get_goals(db, test_user.id)
+    assert goals[0].current_progress == 0.0
+
+@patch("app.services.goal_service.AssessmentService.get_latest_assessment")
+def test_create_goal_no_assessment(mock_get_latest, db, test_user):
+    import fastapi
+    # Mocking no assessment
+    mock_get_latest.side_effect = fastapi.HTTPException(status_code=404, detail="No assessment")
+    
+    goal_in = GoalCreate(
+        goal_name="No Assessment Goal",
+        target_reduction_percentage=15.0,
+        target_date=date.today() + timedelta(days=30)
+    )
+    goal = GoalService.create_goal(db, test_user.id, goal_in)
+    assert goal.target_emission_value is None
