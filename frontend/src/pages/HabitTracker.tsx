@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react'
-import { habitsApi, type Habit, type SummaryResponse } from '@/api/habits'
+import { habitsApi, type Habit } from '@/api/habits'
+import { Bus, RefreshCw, Lightbulb, Droplets, ShoppingBag, Flame, Lock, Award, Shield, CheckCircle, Target } from 'lucide-react'
 
 const HABIT_DEFINITIONS = [
-  { id: 'public_transport', label: 'Public Transport', icon: '🚌', factor: 1.2 },
-  { id: 'recycling', label: 'Recycling', icon: '♻️', factor: 0.5 },
-  { id: 'save_electricity', label: 'Save Electricity', icon: '💡', factor: 0.8 },
-  { id: 'water_conservation', label: 'Water Conservation', icon: '💧', factor: 0.3 },
-  { id: 'plastic_reduction', label: 'Plastic Reduction', icon: '🛍️', factor: 0.4 },
+  { id: 'public_transport', label: 'Public Transport', icon: Bus, factor: 1.2 },
+  { id: 'recycling', label: 'Recycling', icon: RefreshCw, factor: 0.5 },
+  { id: 'save_electricity', label: 'Save Electricity', icon: Lightbulb, factor: 0.8 },
+  { id: 'water_conservation', label: 'Water Conservation', icon: Droplets, factor: 0.3 },
+  { id: 'plastic_reduction', label: 'Plastic Reduction', icon: ShoppingBag, factor: 0.4 },
 ]
 
 export default function HabitTracker() {
   const [habits, setHabits] = useState<Habit[]>([])
   const [streak, setStreak] = useState(0)
-  const [weeklySummary, setWeeklySummary] = useState<SummaryResponse | null>(null)
+  // weeklySummary removed because it's not currently displayed in the new UI design.
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
   const [toggling, setToggling] = useState<string | null>(null)
 
   const todayStr = new Date().toISOString().split('T')[0]
@@ -25,17 +25,15 @@ export default function HabitTracker() {
       setLoading(true)
       const endDate = new Date()
       const startDate = new Date()
-      startDate.setDate(endDate.getDate() - 30) // last 30 days for calendar
+      startDate.setDate(endDate.getDate() - 34) // past 35 days inclusive
 
-      const [habitsData, streakData, weeklyData] = await Promise.all([
+      const [habitsData, streakData] = await Promise.all([
         habitsApi.list(startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]),
-        habitsApi.getStreak(),
-        habitsApi.getWeeklySummary()
+        habitsApi.getStreak()
       ])
 
       setHabits(habitsData)
       setStreak(streakData.streak)
-      setWeeklySummary(weeklyData)
       setError(null)
     } catch (err: any) {
       setError(err.message || 'Failed to load habit tracker data')
@@ -49,16 +47,13 @@ export default function HabitTracker() {
   }, [])
 
   const handleToggle = async (habitType: string, isCurrentlyCompleted: boolean) => {
-    if (isCurrentlyCompleted) return // the backend logic currently overrides with completed=True. We won't do "un-complete" for now since backend log_habit sets completed=True. If needed, we'd add a DELETE / uncomplete. Actually, backend log_habit sets completed=True unconditionally. So we only allow checking it.
-    
+    if (isCurrentlyCompleted) return
     setToggling(habitType)
     try {
       await habitsApi.log({
         habit_type: habitType,
         activity_date: todayStr
       })
-      
-      // Optimistic refresh
       await fetchDashboard()
     } catch (err: any) {
       setError(err.message || 'Failed to log habit')
@@ -67,170 +62,215 @@ export default function HabitTracker() {
     }
   }
 
-  // Get habits for today
-  const todaysHabits = habits.filter(h => h.activity_date === todayStr && h.completed)
-  const todaysCompletedTypes = new Set(todaysHabits.map(h => h.habit_type))
-
-  // Generate 30 days calendar grid
-  const past30Days = Array.from({ length: 30 }, (_, i) => {
+  // Activity Grid logic (35 days = 5 weeks)
+  const past35Days = Array.from({ length: 35 }, (_, i) => {
     const d = new Date()
-    d.setDate(d.getDate() - (29 - i))
+    d.setDate(d.getDate() - (34 - i))
     return d.toISOString().split('T')[0]
   })
-
-  // Map each date to whether a habit was logged
+  
   const dateLogMap = new Map<string, boolean>()
   habits.forEach(h => {
     if (h.completed) {
       dateLogMap.set(h.activity_date, true)
     }
   })
+  
+  const gridRows = []
+  for (let i = 0; i < 5; i++) {
+    gridRows.push(past35Days.slice(i * 7, i * 7 + 7))
+  }
+  
+  const totalCarbonSaved = habits.reduce((acc, h) => acc + (h.carbon_saved || 0), 0)
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 lg:p-8">
-      <div className="max-w-5xl mx-auto space-y-8 mt-16 lg:mt-0">
+    <div className="min-h-screen bg-space-black p-4 lg:p-8 font-inter">
+      <div className="max-w-5xl mx-auto space-y-10 mt-16 lg:mt-0">
         
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Daily Habits
-            </h1>
-            <p className="mt-2 text-slate-600 dark:text-slate-400">
-              Build sustainable routines and track your daily impact.
-            </p>
-          </div>
+        <header>
+          <h1 className="font-poppins text-3xl font-bold tracking-tight text-white">Habit Tracker</h1>
+          <p className="mt-2 text-muted">Build sustainable routines and track your daily impact.</p>
         </header>
 
         {error && (
-          <div className="p-4 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800/30">
+          <div className="p-4 bg-danger/10 text-danger rounded-xl border border-danger/30">
             {error}
           </div>
         )}
 
         {loading ? (
           <div className="flex justify-center p-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-emerald-500"></div>
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-earth-green"></div>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-10">
             
-            {/* Top Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Current Streak</p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                    {streak} <span className="text-lg text-orange-500">🔥</span>
-                  </p>
-                </div>
-                <div className="h-12 w-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-500">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" /></svg>
-                </div>
-              </div>
-              
-              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Saved This Week</p>
-                  <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                    {weeklySummary?.total_carbon_saved.toFixed(1)} <span className="text-lg font-medium text-slate-500 dark:text-slate-400">kg CO₂e</span>
-                  </p>
-                </div>
-                <div className="h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500">
-                  <span className="text-2xl">🌱</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Daily Habit Cards */}
-            <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Today's Habits</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* 1. Habit Streak Cards (Horizontal Scroll) */}
+            <section>
+              <h2 className="font-poppins text-xl font-bold text-white mb-4">Habit Streaks</h2>
+              <div className="flex overflow-x-auto gap-4 snap-x pb-4 custom-scrollbar">
                 {HABIT_DEFINITIONS.map(def => {
-                  const isCompleted = todaysCompletedTypes.has(def.id)
-                  const isToggling = toggling === def.id
+                  const past7 = past35Days.slice(-7)
+                  const completedDays = past7.filter(d => habits.find(h => h.activity_date === d && h.habit_type === def.id && h.completed)).length
+                  const carbonThisWeek = habits.filter(h => past7.includes(h.activity_date) && h.habit_type === def.id && h.completed)
+                                                .reduce((acc, h) => acc + (h.carbon_saved || 0), 0)
+                  
+                  const strokeOffset = 100.5 - (100.5 * completedDays) / 7
+                  const Icon = def.icon
+
                   return (
-                    <div 
-                      key={def.id}
-                      className={`relative overflow-hidden rounded-2xl border p-5 transition-all ${
-                        isCompleted 
-                          ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-900/10 dark:border-emerald-800/40' 
-                          : 'bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
-                          isCompleted ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-slate-100 dark:bg-slate-800'
-                        }`}>
-                          {def.icon}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className={`font-semibold ${isCompleted ? 'text-emerald-900 dark:text-emerald-300' : 'text-slate-900 dark:text-white'}`}>
-                            {def.label}
-                          </h3>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Saves {def.factor} kg CO₂e
-                          </p>
-                        </div>
+                    <div key={def.id} className="glass-card snap-start min-w-[240px] p-5 flex flex-col justify-between shrink-0 hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+                      <div className="flex items-start justify-between mb-4">
                         <div>
-                          <button
-                            disabled={isCompleted || isToggling}
-                            onClick={() => handleToggle(def.id, isCompleted)}
-                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${
-                              isCompleted 
-                                ? 'bg-emerald-500 border-emerald-500 text-white' 
-                                : 'bg-transparent border-slate-300 dark:border-slate-600 hover:border-emerald-500 text-transparent hover:text-emerald-500/20'
-                            } ${isToggling ? 'opacity-50 cursor-wait' : ''}`}
-                          >
-                            {isToggling ? (
-                              <div className="w-4 h-4 border-2 border-slate-400 border-t-emerald-500 rounded-full animate-spin"></div>
-                            ) : (
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                            )}
-                          </button>
+                          <div className="p-2 bg-deep-ocean rounded-lg inline-block border border-forest-green/30 mb-2">
+                            <Icon className="w-5 h-5 text-earth-green" />
+                          </div>
+                          <p className="text-sm font-semibold text-white">{def.label}</p>
                         </div>
+                        <div className="relative w-12 h-12">
+                          <svg className="w-12 h-12 transform -rotate-90">
+                            <circle cx="24" cy="24" r="16" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-forest-green/30" />
+                            <circle cx="24" cy="24" r="16" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray="100.5" strokeDashoffset={strokeOffset} className="text-earth-green transition-all duration-1000 ease-out" strokeLinecap="round" />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="font-montserrat font-bold text-xs text-white">{completedDays}/7</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-montserrat font-semibold text-earth-green text-lg">{completedDays} Day Streak</p>
+                        <p className="text-xs text-muted">{carbonThisWeek.toFixed(1)} kg CO₂e saved</p>
                       </div>
                     </div>
                   )
                 })}
               </div>
+            </section>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* 4. Mark Daily Completion */}
+              <section>
+                <h2 className="font-poppins text-xl font-bold text-white mb-4">Today's Habits</h2>
+                <div className="space-y-3">
+                  {HABIT_DEFINITIONS.map(def => {
+                    const isCompleted = habits.some(h => h.activity_date === todayStr && h.habit_type === def.id && h.completed)
+                    const isToggling = toggling === def.id
+                    const Icon = def.icon
+
+                    return (
+                      <button 
+                        key={def.id}
+                        disabled={isCompleted || isToggling}
+                        onClick={() => handleToggle(def.id, isCompleted)}
+                        className={`w-full text-left relative overflow-hidden rounded-2xl border p-4 transition-all duration-200 flex items-center justify-between ${
+                          isCompleted 
+                            ? 'bg-earth-green/20 border-earth-green' 
+                            : 'bg-deep-ocean border-forest-green/30 hover:border-earth-green/60'
+                        } ${isToggling ? 'opacity-50 cursor-wait' : ''}`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isCompleted ? 'bg-earth-green text-deep-ocean' : 'bg-space-black text-earth-green'}`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-white">{def.label}</h3>
+                            <p className="text-xs text-muted mt-0.5">Saves ~{def.factor} kg CO₂e</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-medium ${isCompleted ? 'text-earth-green' : 'text-muted'}`}>
+                            {isCompleted ? 'Completed' : 'Pending'}
+                          </span>
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                            isCompleted ? 'bg-earth-green border-earth-green text-deep-ocean' : 'border-muted text-transparent'
+                          }`}>
+                            <CheckCircle className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </section>
+
+              {/* 2. Weekly Activity Grid */}
+              <section>
+                <h2 className="font-poppins text-xl font-bold text-white mb-4">Activity Map</h2>
+                <div className="glass-card p-6">
+                  <div className="grid grid-cols-7 gap-2 mb-2">
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
+                      <div key={i} className="text-center text-xs text-muted font-medium">{day}</div>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    {gridRows.map((row, rowIdx) => (
+                      <div key={rowIdx} className="grid grid-cols-7 gap-2">
+                        {row.map(dateStr => {
+                          const isLogged = dateLogMap.get(dateStr)
+                          const carbonForDay = habits.filter(h => h.activity_date === dateStr && h.completed).reduce((acc, h) => acc + (h.carbon_saved || 0), 0)
+                          
+                          return (
+                            <div 
+                              key={dateStr}
+                              title={`${dateStr}: ${isLogged ? carbonForDay.toFixed(1) + ' kg CO₂e saved' : 'No activity'}`}
+                              className={`w-full aspect-square rounded-[4px] sm:rounded-md transition-colors duration-200 cursor-pointer ${
+                                isLogged 
+                                  ? 'bg-earth-green shadow-[0_0_8px_rgba(46,204,113,0.3)]' 
+                                  : 'bg-deep-ocean border border-forest-green/30 hover:border-earth-green/50'
+                              }`}
+                            ></div>
+                          )
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex items-center justify-end gap-2 text-xs text-muted">
+                    <span>Less</span>
+                    <div className="w-3 h-3 rounded-[4px] bg-deep-ocean border border-forest-green/30"></div>
+                    <div className="w-3 h-3 rounded-[4px] bg-earth-green/40"></div>
+                    <div className="w-3 h-3 rounded-[4px] bg-earth-green/70"></div>
+                    <div className="w-3 h-3 rounded-[4px] bg-earth-green shadow-[0_0_4px_rgba(46,204,113,0.5)]"></div>
+                    <span>More</span>
+                  </div>
+                </div>
+              </section>
             </div>
 
-            {/* 30-Day Calendar */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Past 30 Days</h2>
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <div className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800"></div> Missed
-                  <div className="w-3 h-3 rounded-full bg-emerald-500 ml-2"></div> Logged
+            {/* 3. Achievement Milestones */}
+            <section>
+              <h2 className="font-poppins text-xl font-bold text-white mb-4">Milestones</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                
+                <div className={`glass-card p-5 relative overflow-hidden ${streak >= 7 ? 'border-earth-green/50' : 'opacity-40'}`}>
+                  {streak < 7 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
+                  <Flame className={`w-8 h-8 mb-3 ${streak >= 7 ? 'text-earth-green' : 'text-muted'}`} />
+                  <h3 className="font-semibold text-white">7-Day Streak</h3>
+                  <p className="text-xs text-muted mt-1">{streak >= 7 ? 'Unlocked' : 'Keep going'}</p>
                 </div>
+
+                <div className={`glass-card p-5 relative overflow-hidden ${streak >= 30 ? 'border-earth-green/50' : 'opacity-40'}`}>
+                  {streak < 30 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
+                  <Shield className={`w-8 h-8 mb-3 ${streak >= 30 ? 'text-earth-green' : 'text-muted'}`} />
+                  <h3 className="font-semibold text-white">30-Day Streak</h3>
+                  <p className="text-xs text-muted mt-1">{streak >= 30 ? 'Unlocked' : 'Requires 30 days'}</p>
+                </div>
+
+                <div className={`glass-card p-5 relative overflow-hidden ${totalCarbonSaved >= 100 ? 'border-earth-green/50' : 'opacity-40'}`}>
+                  {totalCarbonSaved < 100 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
+                  <Target className={`w-8 h-8 mb-3 ${totalCarbonSaved >= 100 ? 'text-earth-green' : 'text-muted'}`} />
+                  <h3 className="font-semibold text-white">100kg CO₂ Saved</h3>
+                  <p className="text-xs text-muted mt-1">{totalCarbonSaved >= 100 ? 'Unlocked' : `${(100 - totalCarbonSaved).toFixed(0)}kg remaining`}</p>
+                </div>
+
+                <div className={`glass-card p-5 relative overflow-hidden ${habits.length > 0 ? 'border-earth-green/50' : 'opacity-40'}`}>
+                  {habits.length === 0 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
+                  <Award className={`w-8 h-8 mb-3 ${habits.length > 0 ? 'text-earth-green' : 'text-muted'}`} />
+                  <h3 className="font-semibold text-white">First Habit</h3>
+                  <p className="text-xs text-muted mt-1">{habits.length > 0 ? 'Unlocked' : 'Log a habit'}</p>
+                </div>
+
               </div>
-              
-              <div className="grid grid-cols-7 sm:grid-cols-10 md:grid-cols-15 gap-2 lg:gap-3">
-                {past30Days.map((dateStr) => {
-                  const isLogged = dateLogMap.get(dateStr)
-                  const dateObj = new Date(dateStr)
-                  const isToday = dateStr === todayStr
-                  
-                  return (
-                    <div 
-                      key={dateStr}
-                      title={`${dateStr}${isLogged ? ' (Logged)' : ''}`}
-                      className="group relative aspect-square flex flex-col items-center justify-center"
-                    >
-                      <div className={`w-full h-full rounded-lg transition-colors ${
-                        isLogged 
-                          ? 'bg-emerald-500 shadow-sm shadow-emerald-500/20' 
-                          : 'bg-slate-100 dark:bg-slate-800'
-                      } ${isToday ? 'ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900' : ''}`}>
-                      </div>
-                      <span className="absolute -bottom-5 text-[10px] text-slate-400 opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap bg-slate-800 text-white px-2 py-0.5 rounded shadow-lg z-10 transition-opacity">
-                        {dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+            </section>
 
           </div>
         )}
