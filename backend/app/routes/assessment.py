@@ -29,7 +29,7 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     summary="Submit a new carbon assessment with emission inputs",
 )
-@limiter.limit("10/minute")
+@limiter.limit("60/minute")
 async def create_assessment(
     request: Request,
     payload: AssessmentInputs,
@@ -49,7 +49,9 @@ async def create_assessment(
     response_model=AssessmentListAPIResponse,
     summary="List all carbon assessments for the current user",
 )
+@limiter.limit("60/minute")
 async def get_history(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> AssessmentListAPIResponse:
@@ -65,7 +67,9 @@ async def get_history(
     response_model=AssessmentAPIResponse,
     summary="Fetch the most recent carbon assessment",
 )
+@limiter.limit("60/minute")
 async def get_latest_assessment(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> AssessmentAPIResponse:
@@ -82,7 +86,9 @@ async def get_latest_assessment(
     response_model=AssessmentAPIResponse,
     summary="Fetch a specific assessment by ID",
 )
+@limiter.limit("60/minute")
 async def get_assessment(
+    request: Request,
     assessment_id: UUID,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
@@ -100,7 +106,9 @@ async def get_assessment(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete an assessment by ID",
 )
+@limiter.limit("60/minute")
 async def delete_assessment(
+    request: Request,
     assessment_id: UUID,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
