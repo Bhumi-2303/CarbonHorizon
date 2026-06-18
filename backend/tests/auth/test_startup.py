@@ -17,7 +17,7 @@ def test_startup_production_default_key(monkeypatch):
 
 def test_startup_production_another_default_key(monkeypatch):
     monkeypatch.setattr(settings, "ENVIRONMENT", "production")
-    monkeypatch.setattr(settings, "SECRET_KEY", "d1f90b3f4b88b7de7810f836d56e1d6d996a916135ae927c2187f59cc1a091cd")
+    monkeypatch.setattr(settings, "SECRET_KEY", "change-me-use-a-32-char-random-hex-string")
     with pytest.raises(ValueError, match="SECRET_KEY must be provided and cannot be a default value in production"):
         anyio.run(startup_event)
 

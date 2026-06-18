@@ -68,8 +68,7 @@ async def startup_event():
     if settings.ENVIRONMENT == "production":
         default_keys = [
             "change-me-in-production-use-32-char-minimum",
-            "change-me-use-a-32-char-random-hex-string",
-            "d1f90b3f4b88b7de7810f836d56e1d6d996a916135ae927c2187f59cc1a091cd"
+            "change-me-use-a-32-char-random-hex-string"
         ]
         if not settings.SECRET_KEY or settings.SECRET_KEY in default_keys:
             logger.error("FATAL: Cannot start production server without a valid SECRET_KEY.")

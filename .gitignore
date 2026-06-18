@@ -1,0 +1,17 @@
+# Secrets
+.env
+.env.*
+backend/.env
+prod_env.yaml
+*.key
+secrets.json
+
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+
+# Build
+dist/
+build/
+*.egg-info/

@@ -81,8 +81,7 @@ class Settings(BaseSettings):
     def assemble_secret_key(self) -> "Settings":
         default_keys = [
             "change-me-in-production-use-32-char-minimum",
-            "change-me-use-a-32-char-random-hex-string",
-            "d1f90b3f4b88b7de7810f836d56e1d6d996a916135ae927c2187f59cc1a091cd"
+            "change-me-use-a-32-char-random-hex-string"
         ]
         if self.ENVIRONMENT == "production":
             if not self.SECRET_KEY or self.SECRET_KEY in default_keys:
