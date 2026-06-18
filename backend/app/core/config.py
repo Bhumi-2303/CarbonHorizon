@@ -11,7 +11,11 @@ ASYNC_DATABASE_URL is derived automatically from DATABASE_URL when not set.
 """
 from __future__ import annotations
 
+import os
 import secrets
+from dotenv import load_dotenv
+
+load_dotenv()
 from typing import List, Optional, Any, Union
 
 from pydantic import model_validator, field_validator
@@ -37,7 +41,7 @@ class Settings(BaseSettings):
 
     # ── Database ────────────────────────────────────────────────────────────
     # PostgreSQL configuration
-    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/carbonhorizon"
+    DATABASE_URL: str = os.getenv("DATABASE_URL") or "postgresql://postgres:password@localhost:5432/carbonhorizon"
 
     # Async URL is derived from DATABASE_URL automatically if not set.
     ASYNC_DATABASE_URL: Optional[str] = None
@@ -55,16 +59,14 @@ class Settings(BaseSettings):
         return url
 
     # ── JWT / Auth ──────────────────────────────────────────────────────────
-    SECRET_KEY: str = ""
+    SECRET_KEY: str = os.getenv("SECRET_KEY") or ""
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # ── CORS ────────────────────────────────────────────────────────────────
     ALLOWED_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "https://carbon-horizon.vercel.app",
+        "https://carbonhorizon-frontend-tvxxkekeuq-el.a.run.app"
     ]
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
@@ -75,7 +77,7 @@ class Settings(BaseSettings):
         return v
 
     # ── External APIs ───────────────────────────────────────────────────────
-    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
 
     @model_validator(mode="after")
     def assemble_secret_key(self) -> "Settings":

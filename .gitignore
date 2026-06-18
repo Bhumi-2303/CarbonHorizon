@@ -5,6 +5,12 @@ backend/.env
 prod_env.yaml
 *.key
 secrets.json
+.env.local
+.env.production
+*.pem
+secrets.yaml
+credentials.json
+service-account.json
 
 # Dependencies
 node_modules/
