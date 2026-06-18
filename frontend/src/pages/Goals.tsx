@@ -114,7 +114,7 @@ export default function Goals() {
     const isCompleted = goal.status === 'completed'
     
     return (
-      <div key={goal.id} className={`card group relative ${isExpired ? 'opacity-50 grayscale' : ''}`}>
+      <div key={goal.id} className={`glass-card group relative ${isExpired ? 'opacity-50 grayscale' : ''}`}>
         <div className="flex justify-between items-start mb-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
@@ -123,17 +123,17 @@ export default function Goals() {
               {isExpired && <span className="bg-slate-700/50 text-slate-300 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Expired</span>}
               {goal.status === 'active' && <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Active</span>}
             </div>
-            {goal.goal_description && <p className="body text-slate-400 text-sm mt-1">{goal.goal_description}</p>}
+            {goal.goal_description && <p className="body text-muted text-sm mt-1">{goal.goal_description}</p>}
           </div>
           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={() => openModal(goal)} className="text-slate-400 hover:text-[#2ECC71] p-1"><i className="ti ti-edit text-xl"></i></button>
-            <button onClick={() => handleDelete(goal.id)} className="text-slate-400 hover:text-red-500 p-1"><i className="ti ti-trash text-xl"></i></button>
+            <button onClick={() => openModal(goal)} className="text-muted hover:text-[#2ECC71] p-1"><i className="ti ti-edit text-xl"></i></button>
+            <button onClick={() => handleDelete(goal.id)} className="text-muted hover:text-red-500 p-1"><i className="ti ti-trash text-xl"></i></button>
           </div>
         </div>
 
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-slate-400">Progress</span>
+            <span className="text-muted">Progress</span>
             <span className="font-bold text-white">{goal.current_progress.toFixed(1)}%</span>
           </div>
           <div className="w-full bg-[#08121E] rounded-full h-2 overflow-hidden border border-slate-800">
@@ -144,7 +144,7 @@ export default function Goals() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400 border-t border-slate-700/50 pt-4 mt-4">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-muted border-t border-slate-700/50 pt-4 mt-4">
           {goal.target_reduction_percentage && (
             <div className="flex items-center gap-1.5">
               <i className="ti ti-trending-down text-[#2ECC71]"></i>
@@ -172,7 +172,7 @@ export default function Goals() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="heading-xl text-white m-0">Goals</h1>
-          <p className="body text-slate-400 mt-1">Set, track, and crush your sustainability targets.</p>
+          <p className="body text-muted mt-1">Set, track, and crush your sustainability targets.</p>
         </div>
         <button onClick={() => openModal()} className="btn-primary flex items-center gap-2 self-start md:self-auto">
           <i className="ti ti-plus"></i> New Goal
@@ -190,10 +190,10 @@ export default function Goals() {
           <i className="ti ti-loader animate-spin text-4xl text-[#2ECC71]"></i>
         </div>
       ) : goals.length === 0 ? (
-        <div className="card text-center p-12 flex flex-col items-center">
+        <div className="glass-card text-center p-12 flex flex-col items-center">
           <i className="ti ti-target text-6xl text-[#2ECC71] mb-6"></i>
           <h2 className="heading-lg text-white mb-2">No goals set yet</h2>
-          <p className="body text-slate-400 max-w-md mb-8">
+          <p className="body text-muted max-w-md mb-8">
             Setting goals is the first step towards a greener lifestyle. Challenge yourself to reduce emissions!
           </p>
           <button onClick={() => openModal()} className="btn-primary">
@@ -208,7 +208,7 @@ export default function Goals() {
               {activeGoals.map(renderGoalCard)}
               {expiredGoals.map(renderGoalCard)}
               {activeGoals.length === 0 && expiredGoals.length === 0 && (
-                <p className="text-slate-500">No active goals.</p>
+                <p className="text-muted">No active goals.</p>
               )}
             </div>
           </section>
@@ -217,7 +217,7 @@ export default function Goals() {
             <section>
               <button 
                 onClick={() => setShowCompleted(!showCompleted)} 
-                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors heading-md mb-4"
+                className="flex items-center gap-2 text-muted hover:text-white transition-colors heading-md mb-4"
               >
                 <i className={`ti ti-chevron-${showCompleted ? 'down' : 'right'}`}></i>
                 Completed Goals ({completedGoals.length})
@@ -235,8 +235,8 @@ export default function Goals() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#08121E]/80 backdrop-blur-sm">
-          <div className="card w-full max-w-lg animate-fade-in relative max-h-[90vh] overflow-y-auto">
-            <button onClick={closeModal} className="absolute top-4 right-4 text-slate-400 hover:text-white">
+          <div className="glass-card w-full max-w-lg animate-fade-in relative max-h-[90vh] overflow-y-auto">
+            <button onClick={closeModal} className="absolute top-4 right-4 text-muted hover:text-white">
               <i className="ti ti-x text-2xl"></i>
             </button>
             <h2 className="heading-lg text-white mb-6">

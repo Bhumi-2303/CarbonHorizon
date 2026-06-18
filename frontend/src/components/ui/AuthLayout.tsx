@@ -17,8 +17,8 @@ export function AuthLayout({
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 flex items-center justify-center p-4">
       {/* Background decorative orbs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-emerald-600/8 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-earth-green/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-earth-green/8 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
@@ -30,15 +30,15 @@ export function AuthLayout({
             </svg>
           </div>
           <span className="text-xl font-semibold tracking-tight text-slate-100">
-            Carbon<span className="text-emerald-400">Horizon</span>
+            Carbon<span className="text-earth-green">Horizon</span>
           </span>
         </div>
 
         {/* Card */}
-        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/40 p-8">
+        <div className="bg-deep-ocean/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/40 p-8">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-slate-100">{title}</h1>
-            <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+            <p className="mt-1 text-sm text-muted">{subtitle}</p>
           </div>
           {children}
         </div>

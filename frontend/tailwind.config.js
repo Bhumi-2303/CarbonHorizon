@@ -8,6 +8,15 @@ export default {
   theme: {
     extend: {
       colors: {
+        'space-black': '#08121E',
+        'deep-ocean': '#0F172A',
+        'earth-green': '#2ECC71',
+        'forest-green': '#1B5E20',
+        'eco-lime': '#A3E635',
+        'muted': '#94A3B8',
+        success: '#22C55E',
+        warning: '#F59E0B',
+        danger: '#EF4444',
         emerald: {
           50:  'hsl(152, 80%, 97%)',
           100: 'hsl(152, 75%, 90%)',
@@ -28,6 +37,8 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        poppins: ['Poppins', 'sans-serif'],
+        montserrat: ['Montserrat', 'sans-serif'],
       },
       animation: {
         'spin-slow': 'spin 2s linear infinite',

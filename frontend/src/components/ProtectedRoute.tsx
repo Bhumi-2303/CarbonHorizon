@@ -49,7 +49,7 @@ function AuthLoadingScreen() {
 
       <div className="text-center space-y-1">
         <p className="text-sm font-medium text-slate-300">Refreshing session…</p>
-        <p className="text-xs text-slate-500">Please wait</p>
+        <p className="text-xs text-muted">Please wait</p>
       </div>
     </div>
   )

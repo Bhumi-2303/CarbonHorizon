@@ -132,7 +132,7 @@ export default function Login() {
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-[34px] text-slate-500 hover:text-slate-300 transition-colors"
+            className="absolute right-3 top-[34px] text-muted hover:text-slate-300 transition-colors"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -141,9 +141,9 @@ export default function Login() {
 
         {/* Forgot password stub */}
         <div className="flex justify-end -mt-1">
-          <span className="text-xs text-slate-500 select-none">
+          <span className="text-xs text-muted select-none">
             Forgot password?{' '}
-            <span className="text-emerald-600/80">(coming soon)</span>
+            <span className="text-earth-green/80">(coming soon)</span>
           </span>
         </div>
 
@@ -158,7 +158,7 @@ export default function Login() {
             <div className="w-full border-t border-slate-700/60" />
           </div>
           <div className="relative flex justify-center">
-            <span className="px-3 text-xs text-slate-500 bg-slate-900">New to Carbon Horizon?</span>
+            <span className="px-3 text-xs text-muted bg-deep-ocean">New to Carbon Horizon?</span>
           </div>
         </div>
 
@@ -166,8 +166,8 @@ export default function Login() {
         <Link
           to="/register"
           className="w-full py-2.5 px-4 rounded-xl text-sm font-medium text-slate-300
-                     border border-slate-700 hover:border-emerald-500/50
-                     hover:text-emerald-400 hover:bg-emerald-500/5
+                     border border-slate-700 hover:border-earth-green/50
+                     hover:text-earth-green hover:bg-earth-green/5
                      transition-all duration-200 flex items-center justify-center"
         >
           Create a free account

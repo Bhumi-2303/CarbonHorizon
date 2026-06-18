@@ -15,6 +15,7 @@ import {
   TooltipItem
 } from 'chart.js'
 import { assessmentApi } from '@/api/assessment'
+import { Car, Zap, Salad, Trash2 } from 'lucide-react'
 
 ChartJS.register(
   CategoryScale,
@@ -78,10 +79,10 @@ export default function AssessmentResult() {
   if (error || !data) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="card text-center p-12 max-w-lg">
+        <div className="glass-card text-center p-12 max-w-lg">
           <i className="ti ti-alert-triangle text-5xl text-red-500 mb-4"></i>
           <h2 className="heading-md text-white mb-2">Assessment Not Found</h2>
-          <p className="body text-slate-400 mb-6">{error || 'Unable to load your results.'}</p>
+          <p className="body text-muted mb-6">{error || 'Unable to load your results.'}</p>
           <Link to="/assessment" className="btn-primary">Take New Assessment</Link>
         </div>
       </div>
@@ -117,10 +118,10 @@ export default function AssessmentResult() {
 
   // Find largest category
   const categories = [
-    { name: 'Transport', value: transport, icon: '🚗', tip: 'Consider carpooling, public transit, or biking to reduce transport emissions.' },
-    { name: 'Energy', value: energy, icon: '⚡', tip: 'Switching to LED bulbs or adjusting your thermostat can make a huge impact.' },
-    { name: 'Food', value: food, icon: '🥗', tip: 'Reducing meat consumption just a few days a week lowers food footprint significantly.' },
-    { name: 'Waste', value: waste, icon: '🗑️', tip: 'Focus on recycling more and avoiding single-use plastics.' }
+    { name: 'Transport', value: transport, icon: <Car className="w-8 h-8 text-[#2ECC71]" />, tip: 'Consider carpooling, public transit, or biking to reduce transport emissions.' },
+    { name: 'Energy', value: energy, icon: <Zap className="w-8 h-8 text-[#2ECC71]" />, tip: 'Switching to LED bulbs or adjusting your thermostat can make a huge impact.' },
+    { name: 'Food', value: food, icon: <Salad className="w-8 h-8 text-[#2ECC71]" />, tip: 'Reducing meat consumption just a few days a week lowers food footprint significantly.' },
+    { name: 'Waste', value: waste, icon: <Trash2 className="w-8 h-8 text-[#2ECC71]" />, tip: 'Focus on recycling more and avoiding single-use plastics.' }
   ]
   const largest = categories.reduce((prev, current) => (prev.value > current.value) ? prev : current)
 
@@ -158,7 +159,7 @@ export default function AssessmentResult() {
     <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-8 animate-fade-in">
       
       {/* 1. Hero: Carbon Score */}
-      <div className="card text-center flex flex-col items-center py-12 relative overflow-hidden">
+      <div className="glass-card text-center flex flex-col items-center py-12 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#2ECC71]/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
         
@@ -178,7 +179,7 @@ export default function AssessmentResult() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* 2. Emission Breakdown Donut Chart */}
-        <div className="card flex flex-col">
+        <div className="glass-card flex flex-col">
           <h2 className="heading-md text-white mb-6">Emission Breakdown</h2>
           <div className="flex-1 min-h-[300px] relative">
             <Doughnut data={donutData} options={donutOptions} />
@@ -188,24 +189,24 @@ export default function AssessmentResult() {
         <div className="space-y-8">
           {/* 3. Metric Cards (Daily, Monthly, Annual) */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="card text-center p-4">
-              <p className="text-xs text-slate-400 uppercase font-medium mb-2">Daily</p>
-              <p className="text-xl font-bold text-[#2ECC71]">{(totalEmission / 30).toFixed(1)} <span className="text-xs text-slate-500 font-normal">kg</span></p>
+            <div className="glass-card text-center p-4">
+              <p className="text-xs text-muted uppercase font-medium mb-2">Daily</p>
+              <p className="text-xl font-bold text-[#2ECC71]">{(totalEmission / 30).toFixed(1)} <span className="text-xs text-muted font-normal">kg</span></p>
             </div>
-            <div className="card text-center p-4">
-              <p className="text-xs text-slate-400 uppercase font-medium mb-2">Monthly</p>
-              <p className="text-xl font-bold text-[#2ECC71]">{totalEmission.toFixed(1)} <span className="text-xs text-slate-500 font-normal">kg</span></p>
+            <div className="glass-card text-center p-4">
+              <p className="text-xs text-muted uppercase font-medium mb-2">Monthly</p>
+              <p className="text-xl font-bold text-[#2ECC71]">{totalEmission.toFixed(1)} <span className="text-xs text-muted font-normal">kg</span></p>
             </div>
-            <div className="card text-center p-4">
-              <p className="text-xs text-slate-400 uppercase font-medium mb-2">Annual</p>
-              <p className="text-xl font-bold text-[#2ECC71]">{(totalEmission * 12).toFixed(1)} <span className="text-xs text-slate-500 font-normal">kg</span></p>
+            <div className="glass-card text-center p-4">
+              <p className="text-xs text-muted uppercase font-medium mb-2">Annual</p>
+              <p className="text-xl font-bold text-[#2ECC71]">{(totalEmission * 12).toFixed(1)} <span className="text-xs text-muted font-normal">kg</span></p>
             </div>
           </div>
 
           {/* 4. Top Source Callout */}
-          <div className="card border-l-4 border-l-orange-500 bg-orange-500/10">
+          <div className="glass-card border-l-4 border-l-orange-500 bg-orange-500/10">
             <div className="flex items-start gap-4">
-              <div className="text-4xl">{largest.icon}</div>
+              <div>{largest.icon}</div>
               <div>
                 <h3 className="heading-md text-orange-400 mb-1">Top Emission Source: {largest.name}</h3>
                 <p className="body text-slate-300 text-sm">{largest.tip}</p>

@@ -15,6 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate } from 'react-router-dom'
 import { assessmentApi, type AssessmentResult } from '@/api/assessment'
+import { Car, Zap, Salad, CheckCircle } from 'lucide-react'
 
 // ─── Zod schemas (one per step) ──────────────────────────────────────────────
 
@@ -72,26 +73,26 @@ type FullFormData = z.infer<typeof fullSchema>
 
 // ─── Step config ─────────────────────────────────────────────────────────────
 
-const STEPS = [
-  { id: 1, label: 'Transport', icon: '🚗' },
-  { id: 2, label: 'Energy',    icon: '⚡' },
-  { id: 3, label: 'Food & Waste', icon: '🥗' },
-  { id: 4, label: 'Review',    icon: '✅' },
+const STEPS: { id: number; label: string; icon: React.ReactNode }[] = [
+  { id: 1, label: 'Transport', icon: <Car className="w-4 h-4 inline-block text-[#2ECC71]" /> },
+  { id: 2, label: 'Energy',    icon: <Zap className="w-4 h-4 inline-block text-[#2ECC71]" /> },
+  { id: 3, label: 'Food & Waste', icon: <Salad className="w-4 h-4 inline-block text-[#2ECC71]" /> },
+  { id: 4, label: 'Review',    icon: <CheckCircle className="w-4 h-4 inline-block text-[#2ECC71]" /> },
 ]
 
 const TRANSPORT_OPTIONS = [
-  { value: 'car',        label: '🚗  Car',        sub: '0.192 kg CO₂e/km' },
-  { value: 'motorcycle', label: '🏍️  Motorcycle', sub: '0.113 kg CO₂e/km' },
-  { value: 'bus',        label: '🚌  Bus',         sub: '0.089 kg CO₂e/km' },
-  { value: 'train',      label: '🚆  Train',       sub: '0.041 kg CO₂e/km' },
-  { value: 'flight',     label: '✈️  Flight',      sub: '0.255 kg CO₂e/km' },
-  { value: 'bicycle',    label: '🚲  Bicycle',     sub: '0 kg CO₂e/km' },
+  { value: 'car',        label: 'Car',        sub: '0.192 kg CO₂e/km' },
+  { value: 'motorcycle', label: 'Motorcycle', sub: '0.113 kg CO₂e/km' },
+  { value: 'bus',        label: 'Bus',         sub: '0.089 kg CO₂e/km' },
+  { value: 'train',      label: 'Train',       sub: '0.041 kg CO₂e/km' },
+  { value: 'flight',     label: 'Flight',      sub: '0.255 kg CO₂e/km' },
+  { value: 'bicycle',    label: 'Bicycle',     sub: '0 kg CO₂e/km' },
 ]
 
 const DIET_OPTIONS = [
-  { value: 'vegetarian',     label: '🥦  Vegetarian',     sub: '1.7 kg CO₂e/day' },
-  { value: 'mixed',          label: '🥗  Mixed',           sub: '2.5 kg CO₂e/day' },
-  { value: 'non_vegetarian', label: '🍖  Non-Vegetarian',  sub: '3.3 kg CO₂e/day' },
+  { value: 'vegetarian',     label: 'Vegetarian',     sub: '1.7 kg CO₂e/day' },
+  { value: 'mixed',          label: 'Mixed',           sub: '2.5 kg CO₂e/day' },
+  { value: 'non_vegetarian', label: 'Non-Vegetarian',  sub: '3.3 kg CO₂e/day' },
 ]
 
 // ─── Small helpers ────────────────────────────────────────────────────────────
@@ -121,11 +122,11 @@ function ScoreButton({
         'w-10 h-10 rounded-xl text-sm font-bold border-2 transition-all duration-200',
         selected
           ? isLow
-            ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/30 scale-110'
+            ? 'bg-earth-green border-earth-green text-white shadow-lg shadow-emerald-500/30 scale-110'
             : isHigh
             ? 'bg-rose-500 border-rose-400 text-white shadow-lg shadow-rose-500/30 scale-110'
             : 'bg-amber-500 border-amber-400 text-white shadow-lg shadow-amber-500/30 scale-110'
-          : 'bg-slate-800/60 border-slate-600 text-slate-400 hover:border-slate-400 hover:text-slate-200',
+          : 'bg-deep-ocean/60 border-slate-600 text-muted hover:border-slate-400 hover:text-slate-200',
       ].join(' ')}
     >
       {value}
@@ -137,7 +138,7 @@ function FieldLabel({ children, hint }: { children: React.ReactNode; hint?: stri
   return (
     <label className="block text-sm font-medium text-slate-300 mb-1.5">
       {children}
-      {hint && <span className="ml-1.5 text-xs text-slate-500 font-normal">{hint}</span>}
+      {hint && <span className="ml-1.5 text-xs text-muted font-normal">{hint}</span>}
     </label>
   )
 }
@@ -175,8 +176,8 @@ function NumberInput({
           else if (e.target.value === '') onChange(0)
         }}
         className={[
-          'w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border text-slate-100 placeholder-slate-500 text-sm',
-          'focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500 transition-all duration-200',
+          'w-full px-4 py-2.5 rounded-xl bg-deep-ocean/60 border text-slate-100 placeholder-slate-500 text-sm',
+          'focus:outline-none focus:ring-2 focus:ring-earth-green/70 focus:border-earth-green transition-all duration-200',
           error ? 'border-red-500/70' : 'border-slate-700',
         ].join(' ')}
       />
@@ -209,15 +210,15 @@ function SelectCard({
               className={[
                 'flex flex-col items-start p-3 rounded-xl border-2 text-left transition-all duration-200 group',
                 active
-                  ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
-                  : 'border-slate-700 bg-slate-800/40 hover:border-slate-500 hover:bg-slate-800/70',
+                  ? 'border-earth-green bg-earth-green/10 shadow-lg shadow-emerald-500/10'
+                  : 'border-slate-700 bg-deep-ocean/40 hover:border-slate-500 hover:bg-deep-ocean/70',
               ].join(' ')}
             >
               <span className={`text-sm font-medium leading-snug ${active ? 'text-emerald-300' : 'text-slate-200'}`}>
                 {opt.label}
               </span>
               {opt.sub && (
-                <span className={`mt-0.5 text-xs ${active ? 'text-emerald-400/80' : 'text-slate-500'}`}>
+                <span className={`mt-0.5 text-xs ${active ? 'text-earth-green/80' : 'text-muted'}`}>
                   {opt.sub}
                 </span>
               )}
@@ -250,23 +251,23 @@ function Toggle({
       className={[
         'w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200',
         checked
-          ? 'border-emerald-500 bg-emerald-500/10'
-          : 'border-slate-700 bg-slate-800/40 hover:border-slate-500',
+          ? 'border-earth-green bg-earth-green/10'
+          : 'border-slate-700 bg-deep-ocean/40 hover:border-slate-500',
       ].join(' ')}
     >
       <div className="text-left">
         <p className={`text-sm font-medium ${checked ? 'text-emerald-300' : 'text-slate-200'}`}>{label}</p>
-        {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
+        {description && <p className="text-xs text-muted mt-0.5">{description}</p>}
       </div>
       <div
         className={[
           'relative w-11 h-6 rounded-full transition-colors duration-300 flex-shrink-0',
-          checked ? 'bg-emerald-500' : 'bg-slate-600',
+          checked ? 'bg-earth-green' : 'bg-slate-600',
         ].join(' ')}
       >
         <span
           className={[
-            'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300',
+            'absolute top-0.5 left-0.5 w-5 h-5 bg-deep-ocean rounded-full shadow transition-transform duration-300',
             checked ? 'translate-x-5' : 'translate-x-0',
           ].join(' ')}
         />
@@ -278,8 +279,8 @@ function Toggle({
 function ReviewRow({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className="flex justify-between items-center py-2.5 border-b border-slate-800 last:border-0">
-      <span className="text-sm text-slate-400">{label}</span>
-      <span className={`text-sm font-medium ${highlight ? 'text-emerald-400' : 'text-slate-200'}`}>{value}</span>
+      <span className="text-sm text-muted">{label}</span>
+      <span className={`text-sm font-medium ${highlight ? 'text-earth-green' : 'text-slate-200'}`}>{value}</span>
     </div>
   )
 }
@@ -398,8 +399,8 @@ export default function AssessmentForm() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 flex items-center justify-center p-4 py-10">
       {/* Background orbs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-emerald-500/8 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-emerald-700/6 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-earth-green/8 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-earth-green/20 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-xl">
@@ -411,7 +412,7 @@ export default function AssessmentForm() {
             </svg>
           </div>
           <span className="text-xl font-semibold tracking-tight text-slate-100">
-            Carbon<span className="text-emerald-400">Horizon</span>
+            Carbon<span className="text-earth-green">Horizon</span>
           </span>
         </div>
 
@@ -429,10 +430,10 @@ export default function AssessmentForm() {
                   className={[
                     'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300',
                     s.id < step
-                      ? 'bg-emerald-500 border-emerald-400 text-white'
+                      ? 'bg-earth-green border-earth-green text-white'
                       : s.id === step
-                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 ring-4 ring-emerald-500/15'
-                      : 'bg-slate-800 border-slate-700 text-slate-600',
+                      ? 'bg-earth-green/20 border-earth-green text-earth-green ring-4 ring-earth-green/15'
+                      : 'bg-deep-ocean border-slate-700 text-muted',
                   ].join(' ')}
                 >
                   {s.id < step ? (
@@ -445,7 +446,7 @@ export default function AssessmentForm() {
                 </div>
                 <span
                   className={`text-xs font-medium hidden sm:block ${
-                    s.id === step ? 'text-emerald-400' : s.id < step ? 'text-emerald-500/70' : 'text-slate-600'
+                    s.id === step ? 'text-earth-green' : s.id < step ? 'text-earth-green/70' : 'text-muted'
                   }`}
                 >
                   {s.label}
@@ -455,27 +456,27 @@ export default function AssessmentForm() {
           </div>
 
           {/* Progress track */}
-          <div className="relative h-1.5 bg-slate-800 rounded-full overflow-hidden">
+          <div className="relative h-1.5 bg-deep-ocean rounded-full overflow-hidden">
             <div
               className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }}
             />
           </div>
 
-          <p className="text-xs text-slate-500 mt-2 text-right">
+          <p className="text-xs text-muted mt-2 text-right">
             Step {step} of {STEPS.length}
           </p>
         </div>
 
         {/* ── Card ── */}
-        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/40 p-7">
+        <div className="bg-deep-ocean/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/40 p-7">
 
           {/* Step 1: Transport */}
           {step === 1 && (
             <div className="space-y-5 animate-fade-in">
               <div>
                 <h2 className="text-xl font-bold text-slate-100">Transport</h2>
-                <p className="text-sm text-slate-400 mt-1">How do you mainly get around each month?</p>
+                <p className="text-sm text-muted mt-1">How do you mainly get around each month?</p>
               </div>
 
               <div>
@@ -519,7 +520,7 @@ export default function AssessmentForm() {
             <div className="space-y-5 animate-fade-in">
               <div>
                 <h2 className="text-xl font-bold text-slate-100">Energy Usage</h2>
-                <p className="text-sm text-slate-400 mt-1">Monthly household energy consumption.</p>
+                <p className="text-sm text-muted mt-1">Monthly household energy consumption.</p>
               </div>
 
               <div>
@@ -583,7 +584,7 @@ export default function AssessmentForm() {
                   <Toggle
                     checked={field.value}
                     onChange={field.onChange}
-                    label="☀️  Solar panels installed"
+                    label="Solar panels installed"
                     description="Offsets 100% of grid electricity emissions"
                   />
                 )}
@@ -596,7 +597,7 @@ export default function AssessmentForm() {
             <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="text-xl font-bold text-slate-100">Food &amp; Waste</h2>
-                <p className="text-sm text-slate-400 mt-1">Your diet and waste habits per month.</p>
+                <p className="text-sm text-muted mt-1">Your diet and waste habits per month.</p>
               </div>
 
               <div>
@@ -619,7 +620,7 @@ export default function AssessmentForm() {
               <div>
                 <FieldLabel>
                   Recycling habit score
-                  <span className="ml-1.5 text-xs text-slate-500 font-normal">1 = never, 5 = always</span>
+                  <span className="ml-1.5 text-xs text-muted font-normal">1 = never, 5 = always</span>
                 </FieldLabel>
                 <Controller
                   name="recycling_score"
@@ -627,7 +628,7 @@ export default function AssessmentForm() {
                   render={({ field }) => (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-emerald-400 w-12">Never</span>
+                        <span className="text-xs text-earth-green w-12">Never</span>
                         {[1, 2, 3, 4, 5].map((v) => (
                           <ScoreButton
                             key={v}
@@ -638,7 +639,7 @@ export default function AssessmentForm() {
                             highLabel="Always"
                           />
                         ))}
-                        <span className="text-xs text-emerald-400 w-12 text-right">Always</span>
+                        <span className="text-xs text-earth-green w-12 text-right">Always</span>
                       </div>
                       {errors.recycling_score && (
                         <p className="text-xs text-red-400">{errors.recycling_score.message}</p>
@@ -652,7 +653,7 @@ export default function AssessmentForm() {
               <div>
                 <FieldLabel>
                   Plastic usage score
-                  <span className="ml-1.5 text-xs text-slate-500 font-normal">1 = minimal, 5 = heavy</span>
+                  <span className="ml-1.5 text-xs text-muted font-normal">1 = minimal, 5 = heavy</span>
                 </FieldLabel>
                 <Controller
                   name="plastic_usage_score"
@@ -660,7 +661,7 @@ export default function AssessmentForm() {
                   render={({ field }) => (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-emerald-400 w-12">Low</span>
+                        <span className="text-xs text-earth-green w-12">Low</span>
                         {[1, 2, 3, 4, 5].map((v) => (
                           <ScoreButton
                             key={v}
@@ -707,38 +708,38 @@ export default function AssessmentForm() {
             <div className="space-y-5 animate-fade-in">
               <div>
                 <h2 className="text-xl font-bold text-slate-100">Review &amp; Submit</h2>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="text-sm text-muted mt-1">
                   Check your inputs below. Go back to edit any step.
                 </p>
               </div>
 
               {/* Transport summary */}
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+              <div className="bg-deep-ocean/50 rounded-xl p-4 border border-slate-700/50">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-base">🚗</span>
-                  <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wide">Transport</h3>
+                  <Car className="w-5 h-5 text-[#2ECC71]" />
+                  <h3 className="text-sm font-semibold text-earth-green uppercase tracking-wide">Transport</h3>
                 </div>
                 <ReviewRow label="Mode" value={transportLabel} />
                 <ReviewRow label="Monthly distance" value={`${vals.distance_km.toLocaleString()} km`} />
               </div>
 
               {/* Energy summary */}
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+              <div className="bg-deep-ocean/50 rounded-xl p-4 border border-slate-700/50">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-base">⚡</span>
-                  <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wide">Energy</h3>
+                  <Zap className="w-5 h-5 text-[#2ECC71]" />
+                  <h3 className="text-sm font-semibold text-earth-green uppercase tracking-wide">Energy</h3>
                 </div>
                 <ReviewRow label="Electricity" value={`${vals.electricity_kwh} kWh/month`} />
                 <ReviewRow label="AC usage" value={`${vals.ac_hours} hrs/month`} />
                 <ReviewRow label="LPG / gas" value={`${vals.lpg_usage} kg/month`} />
-                <ReviewRow label="Solar panels" value={vals.solar_usage ? '✅  Yes' : '❌  No'} />
+                <ReviewRow label="Solar panels" value={vals.solar_usage ? 'Yes' : 'No'} />
               </div>
 
               {/* Food & Waste summary */}
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+              <div className="bg-deep-ocean/50 rounded-xl p-4 border border-slate-700/50">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-base">🥗</span>
-                  <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wide">Food &amp; Waste</h3>
+                  <Salad className="w-5 h-5 text-[#2ECC71]" />
+                  <h3 className="text-sm font-semibold text-earth-green uppercase tracking-wide">Food &amp; Waste</h3>
                 </div>
                 <ReviewRow label="Diet" value={dietLabel} />
                 <ReviewRow label="Recycling score" value={`${vals.recycling_score} / 5`} />
@@ -747,8 +748,8 @@ export default function AssessmentForm() {
               </div>
 
               {/* Period badge */}
-              <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
-                <svg className="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-earth-green/10 border border-earth-green/30 rounded-xl">
+                <svg className="w-4 h-4 text-earth-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <span className="text-sm text-emerald-300 font-medium">

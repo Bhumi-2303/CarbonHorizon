@@ -10,6 +10,7 @@ import {
   Legend
 } from 'recharts'
 import apiClient from '@/api/client'
+import { Leaf, AlertTriangle } from 'lucide-react'
 
 interface ChartData {
   period: string
@@ -77,7 +78,7 @@ const EmissionsPage = () => {
       ) : error ? (
         <div className="p-4 text-red-700 bg-red-100 rounded-lg">{error}</div>
       ) : data.length === 0 ? (
-        <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-100 text-center">
+        <div className="bg-deep-ocean p-12 rounded-xl shadow-sm border border-gray-100 text-center">
           <svg className="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
@@ -88,7 +89,7 @@ const EmissionsPage = () => {
         <>
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-deep-ocean p-6 rounded-xl shadow-sm border border-gray-100">
               <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Latest Period Total</h3>
               <div className="flex items-baseline">
                 <span className="text-4xl font-bold text-gray-900">{currentTotal.toFixed(1)}</span>
@@ -96,19 +97,19 @@ const EmissionsPage = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-deep-ocean p-6 rounded-xl shadow-sm border border-gray-100">
               <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Trend vs Previous</h3>
               <div className="flex items-baseline">
-                <span className={`text-4xl font-bold ${trend === 'down' ? 'text-green-600' : trend === 'up' ? 'text-red-600' : 'text-gray-900'}`}>
+                <span className={`text-4xl font-bold ${trend === 'down' ? 'text-earth-green' : trend === 'up' ? 'text-red-600' : 'text-gray-900'}`}>
                   {trend === 'up' ? '+' : ''}{percentChange.toFixed(1)}%
                 </span>
                 <span className="ml-2 text-sm text-gray-500 font-medium">
-                  {trend === 'down' ? 'Decrease 🌿' : trend === 'up' ? 'Increase ⚠️' : 'No Change'}
+                  {trend === 'down' ? <><Leaf className="w-4 h-4 inline-block mr-1 text-[#2ECC71]" /> Decrease</> : trend === 'up' ? <><AlertTriangle className="w-4 h-4 inline-block mr-1 text-amber-500" /> Increase</> : 'No Change'}
                 </span>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-deep-ocean p-6 rounded-xl shadow-sm border border-gray-100">
               <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Largest Scope</h3>
               <div className="flex items-baseline">
                 <span className="text-4xl font-bold text-gray-900">
@@ -125,7 +126,7 @@ const EmissionsPage = () => {
           </div>
 
           {/* Chart */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-deep-ocean p-6 rounded-xl shadow-sm border border-gray-100">
             <h3 className="text-lg font-bold text-gray-800 mb-6">Historical Emissions by Scope</h3>
             <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">

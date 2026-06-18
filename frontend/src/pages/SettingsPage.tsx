@@ -98,7 +98,7 @@ const SettingsPage = () => {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row">
+      <div className="bg-deep-ocean rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row">
         
         {/* Sidebar Tabs */}
         <div className="md:w-64 bg-gray-50 border-r border-gray-100 flex-shrink-0">
@@ -191,7 +191,7 @@ const SettingsPage = () => {
                       checked={preferences.notifications}
                       onChange={(e) => setPreferences({...preferences, notifications: e.target.checked})}
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-deep-ocean after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
                   </label>
                 </div>
 
@@ -207,7 +207,7 @@ const SettingsPage = () => {
                       checked={preferences.dark_mode}
                       onChange={(e) => setPreferences({...preferences, dark_mode: e.target.checked})}
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-deep-ocean after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
                   </label>
                 </div>
 
@@ -216,7 +216,7 @@ const SettingsPage = () => {
                   <select 
                     value={preferences.currency}
                     onChange={(e) => setPreferences({...preferences, currency: e.target.value})}
-                    className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow bg-white"
+                    className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow bg-deep-ocean"
                   >
                     <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>

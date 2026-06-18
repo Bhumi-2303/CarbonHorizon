@@ -10,9 +10,9 @@ const labelCls =
   'block text-sm font-medium text-slate-300 mb-1.5'
 
 const inputCls =
-  'w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 ' +
+  'w-full px-4 py-2.5 rounded-xl bg-deep-ocean/60 border border-slate-700 ' +
   'text-slate-100 placeholder-slate-500 text-sm ' +
-  'focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500 ' +
+  'focus:outline-none focus:ring-2 focus:ring-earth-green/70 focus:border-earth-green ' +
   'transition-all duration-200'
 
 const errorInputCls = 'border-red-500/70 focus:ring-red-500/50 focus:border-red-500'
@@ -64,12 +64,12 @@ export const FormField = React.forwardRef<
           {...rest}
         >
           {placeholder && (
-            <option value="" className="bg-slate-800">
+            <option value="" className="bg-deep-ocean">
               {placeholder}
             </option>
           )}
           {options.map((o) => (
-            <option key={o.value} value={o.value} className="bg-slate-800">
+            <option key={o.value} value={o.value} className="bg-deep-ocean">
               {o.label}
             </option>
           ))}

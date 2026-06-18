@@ -43,7 +43,7 @@ export default function AppLayout() {
       </a>
       
       {/* Sidebar Navigation (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen sticky top-0 flex-shrink-0" aria-label="Sidebar Navigation">
+      <aside className="hidden md:flex flex-col w-64 bg-deep-ocean dark:bg-deep-ocean border-r border-slate-200 border-deep-ocean h-screen sticky top-0 flex-shrink-0" aria-label="Sidebar Navigation">
         
         <div className="p-6 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20" aria-hidden="true">
@@ -51,7 +51,7 @@ export default function AppLayout() {
               <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-8 2 0 0-4 0-4 8" />
             </svg>
           </div>
-          <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white">
+          <span className="font-bold text-lg tracking-tight text-white text-white">
             Carbon Horizon
           </span>
         </div>
@@ -64,8 +64,8 @@ export default function AppLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-earth-green/20 dark:text-earth-green'
+                    : 'text-muted hover:bg-deep-ocean hover:text-white dark:text-muted dark:hover:bg-deep-ocean dark:hover:text-white'
                 }`
               }
             >
@@ -75,19 +75,19 @@ export default function AppLayout() {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
-          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 flex flex-col gap-3">
+        <div className="p-4 border-t border-slate-200 border-deep-ocean">
+          <div className="bg-deep-ocean dark:bg-deep-ocean/50 rounded-xl p-4 flex flex-col gap-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+              <p className="text-sm font-semibold text-white text-white truncate">
                 {user?.full_name}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Score: <span className="font-bold text-emerald-600 dark:text-emerald-400">{score}</span>
+              <p className="text-xs text-muted dark:text-muted">
+                Score: <span className="font-bold text-earth-green dark:text-earth-green">{score}</span>
               </p>
             </div>
             <button
               onClick={handleLogout}
-              className="text-xs text-left text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 flex items-center gap-2 transition-colors w-max"
+              className="text-xs text-left text-muted hover:text-red-500 dark:text-muted dark:hover:text-red-400 flex items-center gap-2 transition-colors w-max"
               aria-label="Logout from account"
             >
               <i className="ti ti-logout" aria-hidden="true"></i> Logout
@@ -103,7 +103,7 @@ export default function AppLayout() {
       </main>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-around z-50 px-2 pb-safe" aria-label="Mobile Navigation">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-deep-ocean dark:bg-deep-ocean border-t border-slate-200 border-deep-ocean flex items-center justify-around z-50 px-2 pb-safe" aria-label="Mobile Navigation">
         {NAV_ITEMS.slice(0, 5).map((item) => (
           <NavLink
             key={item.path}
@@ -111,8 +111,8 @@ export default function AppLayout() {
             className={({ isActive }) =>
               `flex flex-col items-center justify-center p-3 min-w-[64px] ${
                 isActive
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                  ? 'text-earth-green dark:text-earth-green'
+                  : 'text-muted hover:text-white dark:text-muted dark:hover:text-white'
               }`
             }
           >

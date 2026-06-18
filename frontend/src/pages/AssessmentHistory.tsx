@@ -13,6 +13,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { assessmentApi, type AssessmentResult } from '@/api/assessment'
+import { Car, Zap, Salad, Trash2 } from 'lucide-react'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -33,14 +34,14 @@ function formatEmission(val: number): string {
 
 /** Returns Tailwind classes + label for the carbon score band */
 function scoreBadge(score: number): { bg: string; text: string; ring: string; label: string } {
-  if (score >= 75) return { bg: 'bg-emerald-500/15', text: 'text-emerald-400', ring: 'ring-emerald-500/30', label: 'Excellent' }
+  if (score >= 75) return { bg: 'bg-earth-green/15', text: 'text-earth-green', ring: 'ring-earth-green/30', label: 'Excellent' }
   if (score >= 50) return { bg: 'bg-amber-500/15',   text: 'text-amber-400',   ring: 'ring-amber-500/30',   label: 'Moderate' }
   if (score >= 25) return { bg: 'bg-orange-500/15',  text: 'text-orange-400',  ring: 'ring-orange-500/30',  label: 'High'     }
   return             { bg: 'bg-rose-500/15',    text: 'text-rose-400',    ring: 'ring-rose-500/30',    label: 'Critical' }
 }
 
 function scoreGauge(score: number): string {
-  if (score >= 75) return 'bg-emerald-500'
+  if (score >= 75) return 'bg-earth-green'
   if (score >= 50) return 'bg-amber-500'
   if (score >= 25) return 'bg-orange-500'
   return 'bg-rose-500'
@@ -72,11 +73,11 @@ function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => voi
       </div>
       <div>
         <p className="text-slate-300 font-medium">Failed to load history</p>
-        <p className="text-sm text-slate-500 mt-1">{message}</p>
+        <p className="text-sm text-muted mt-1">{message}</p>
       </div>
       <button
         onClick={onRetry}
-        className="px-5 py-2 rounded-xl text-sm font-medium text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/10 transition-colors"
+        className="px-5 py-2 rounded-xl text-sm font-medium text-earth-green border border-earth-green/40 hover:bg-earth-green/10 transition-colors"
       >
         Try again
       </button>
@@ -89,20 +90,20 @@ function EmptyState({ onRecalculate }: { onRecalculate: () => void }) {
     <div className="flex flex-col items-center gap-5 py-20 text-center">
       {/* Illustration */}
       <div className="relative">
-        <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-          <svg className="w-10 h-10 text-emerald-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-20 h-20 rounded-3xl bg-earth-green/10 border border-earth-green/20 flex items-center justify-center">
+          <svg className="w-10 h-10 text-earth-green/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2}
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
         </div>
-        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-          <span className="text-xs text-emerald-400">0</span>
+        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-earth-green/20 border border-earth-green/40 flex items-center justify-center">
+          <span className="text-xs text-earth-green">0</span>
         </div>
       </div>
 
       <div>
         <h3 className="text-lg font-semibold text-slate-200">No assessments yet</h3>
-        <p className="text-sm text-slate-500 mt-1 max-w-xs mx-auto">
+        <p className="text-sm text-muted mt-1 max-w-xs mx-auto">
           Run your first carbon footprint assessment to start tracking your environmental impact.
         </p>
       </div>
@@ -140,15 +141,15 @@ function AssessmentCard({
       id={`assessment-card-${item.assessment_id}`}
       type="button"
       onClick={onClick}
-      className="w-full text-left group bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50
+      className="w-full text-left group bg-deep-ocean/40 hover:bg-deep-ocean/70 border border-slate-700/50
         hover:border-slate-600 rounded-2xl p-5 transition-all duration-200 hover:shadow-lg
         hover:shadow-black/20 hover:-translate-y-0.5 focus-visible:outline-none
-        focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+        focus-visible:ring-2 focus-visible:ring-earth-green/60"
     >
       <div className="flex items-start gap-4">
         {/* Rank pill */}
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-700/60 flex items-center justify-center">
-          <span className="text-xs font-semibold text-slate-400">#{rank}</span>
+          <span className="text-xs font-semibold text-muted">#{rank}</span>
         </div>
 
         <div className="flex-1 min-w-0">
@@ -158,7 +159,7 @@ function AssessmentCard({
               <p className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">
                 {formatDate(item.created_at)}
               </p>
-              <span className="inline-block mt-1 text-xs text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded-full">
+              <span className="inline-block mt-1 text-xs text-muted bg-slate-700/50 px-2 py-0.5 rounded-full">
                 {periodLabel(item.assessment_period)}
               </span>
             </div>
@@ -178,30 +179,30 @@ function AssessmentCard({
           {/* Emission row */}
           <div className="mt-3 flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs text-slate-500 mb-0.5">Total emission</p>
+              <p className="text-xs text-muted mb-0.5">Total emission</p>
               <p className="text-lg font-bold text-slate-100 tabular-nums">
                 {formatEmission(item.total_emission)}
-                <span className="text-xs font-normal text-slate-400 ml-1">kg CO₂e</span>
+                <span className="text-xs font-normal text-muted ml-1">kg CO₂e</span>
               </p>
             </div>
 
             {/* Mini emission bars */}
             <div className="hidden sm:flex flex-col gap-1 min-w-[140px]">
               {[
-                { label: '🚗', val: item.transport, total: item.total_emission },
-                { label: '⚡', val: item.energy,    total: item.total_emission },
-                { label: '🥗', val: item.food,      total: item.total_emission },
-                { label: '🗑️', val: item.waste,     total: item.total_emission },
-              ].map(({ label, val, total }) => (
-                <div key={label} className="flex items-center gap-2">
+                { label: <Car className="w-4 h-4 inline-block text-[#2ECC71]" />, val: item.transport, total: item.total_emission },
+                { label: <Zap className="w-4 h-4 inline-block text-[#2ECC71]" />, val: item.energy,    total: item.total_emission },
+                { label: <Salad className="w-4 h-4 inline-block text-[#2ECC71]" />, val: item.food,      total: item.total_emission },
+                { label: <Trash2 className="w-4 h-4 inline-block text-[#2ECC71]" />, val: item.waste,     total: item.total_emission },
+              ].map(({ label, val, total }, idx) => (
+                <div key={idx} className="flex items-center gap-2">
                   <span className="text-xs w-5 text-center">{label}</span>
                   <div className="flex-1 h-1.5 bg-slate-700/80 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-emerald-500/70 rounded-full transition-all duration-500"
+                      className="h-full bg-earth-green/70 rounded-full transition-all duration-500"
                       style={{ width: total > 0 ? `${Math.min((val / total) * 100, 100)}%` : '0%' }}
                     />
                   </div>
-                  <span className="text-xs text-slate-500 w-10 text-right tabular-nums">
+                  <span className="text-xs text-muted w-10 text-right tabular-nums">
                     {val.toFixed(0)}
                   </span>
                 </div>
@@ -221,7 +222,7 @@ function AssessmentCard({
         </div>
 
         {/* Chevron */}
-        <div className="flex-shrink-0 self-center text-slate-600 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all duration-200">
+        <div className="flex-shrink-0 self-center text-muted group-hover:text-muted group-hover:translate-x-0.5 transition-all duration-200">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
@@ -272,8 +273,8 @@ export default function AssessmentHistory() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-4 sm:p-8">
       {/* Background orbs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-emerald-500/6 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-emerald-700/5 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-earth-green/6 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-earth-green/20 blur-3xl" />
       </div>
 
       <div className="relative max-w-2xl mx-auto">
@@ -284,7 +285,7 @@ export default function AssessmentHistory() {
             {/* Back link */}
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 mb-3 transition-colors"
+              className="flex items-center gap-1.5 text-xs text-muted hover:text-slate-300 mb-3 transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -294,15 +295,15 @@ export default function AssessmentHistory() {
 
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10
-                border border-emerald-500/30 flex items-center justify-center">
-                <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                border border-earth-green/30 flex items-center justify-center">
+                <svg className="w-5 h-5 text-earth-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               <div>
                 <h1 className="text-xl font-bold text-slate-100">Assessment History</h1>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-muted">
                   {status === 'success'
                     ? items.length
                       ? `${items.length} assessment${items.length !== 1 ? 's' : ''} recorded`
@@ -340,13 +341,13 @@ export default function AssessmentHistory() {
                 label: 'Avg Score',
                 value: avgScore !== null ? String(avgScore) : '—',
                 sub: 'out of 100',
-                color: avgScore !== null ? scoreBadge(avgScore).text : 'text-slate-400',
+                color: avgScore !== null ? scoreBadge(avgScore).text : 'text-muted',
               },
               {
                 label: 'Best Score',
                 value: bestScore !== null ? String(bestScore) : '—',
                 sub: 'personal best',
-                color: bestScore !== null ? scoreBadge(bestScore).text : 'text-slate-400',
+                color: bestScore !== null ? scoreBadge(bestScore).text : 'text-muted',
               },
               {
                 label: 'Avg Emission',
@@ -357,11 +358,11 @@ export default function AssessmentHistory() {
             ].map(({ label, value, sub, color }) => (
               <div
                 key={label}
-                className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 text-center"
+                className="bg-deep-ocean/50 border border-slate-700/50 rounded-2xl p-4 text-center"
               >
                 <p className={`text-2xl font-bold tabular-nums ${color}`}>{value}</p>
                 <p className="text-xs font-medium text-slate-300 mt-0.5">{label}</p>
-                <p className="text-xs text-slate-600 mt-0.5">{sub}</p>
+                <p className="text-xs text-muted mt-0.5">{sub}</p>
               </div>
             ))}
           </div>

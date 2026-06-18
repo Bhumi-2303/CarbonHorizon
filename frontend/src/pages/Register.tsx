@@ -201,7 +201,7 @@ export default function Register() {
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-[34px] text-slate-500 hover:text-slate-300 transition-colors"
+            className="absolute right-3 top-[34px] text-muted hover:text-slate-300 transition-colors"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -260,9 +260,9 @@ export default function Register() {
         </button>
 
         {/* Login link */}
-        <p className="text-center text-sm text-slate-400 pt-1">
+        <p className="text-center text-sm text-muted pt-1">
           Already have an account?{' '}
-          <Link to="/login" className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
+          <Link to="/login" className="text-earth-green hover:text-emerald-300 font-medium transition-colors">
             Sign in
           </Link>
         </p>

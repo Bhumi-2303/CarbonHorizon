@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Doughnut, Line } from 'react-chartjs-2'
+import { Globe, Target, TrendingDown, Car, Zap, Utensils, Trash2 } from 'lucide-react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -30,12 +31,7 @@ ChartJS.register(
   Filler
 )
 
-function getScoreColorClass(score: number) {
-  if (score >= 80) return 'text-[#2ECC71]'
-  if (score >= 60) return 'text-[#EAB308]' // yellow
-  if (score >= 40) return 'text-[#F97316]' // orange
-  return 'text-[#EF4444]' // red
-}
+
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
@@ -66,15 +62,15 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="p-8 space-y-6">
-        <div className="h-8 w-48 bg-slate-800 rounded animate-pulse" />
+        <div className="h-8 w-48 bg-deep-ocean rounded animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="card h-32 animate-pulse" />
+            <div key={i} className="glass-card h-32 animate-pulse" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="card h-80 animate-pulse" />
-          <div className="card h-80 animate-pulse" />
+          <div className="glass-card h-80 animate-pulse" />
+          <div className="glass-card h-80 animate-pulse" />
         </div>
       </div>
     )
@@ -85,10 +81,10 @@ export default function DashboardPage() {
   if (!latest) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[80vh]">
-        <div className="card w-full max-w-2xl text-center p-12">
-          <i className="ti ti-leaf text-6xl text-emerald-500 mb-6 inline-block"></i>
+        <div className="glass-card w-full max-w-2xl text-center p-12">
+          <i className="ti ti-leaf text-6xl text-earth-green mb-6 inline-block"></i>
           <h2 className="heading-xl mb-4 text-white">Welcome to Carbon Horizon</h2>
-          <p className="body text-slate-300 mb-8">
+          <p className="body text-muted mb-8">
             You haven't completed a carbon assessment yet. Calculate your footprint to unlock your dashboard, AI coach, and personalized goals.
           </p>
           <Link to="/assessment" className="btn-primary inline-flex items-center gap-2 text-lg px-8 py-4">
@@ -103,7 +99,17 @@ export default function DashboardPage() {
   const annualTons = ((latest.total_emission * 12) / 1000).toFixed(2)
   const score = Math.round(latest.carbon_score)
   // trend_delta is negative for reduction
-  const reductionPotential = dashboard?.trend_delta ? `${dashboard.trend_delta > 0 ? '+' : ''}${dashboard.trend_delta.toFixed(1)}%` : 'N/A'
+  const reductionPotential = dashboard?.trend_delta ? `${dashboard.trend_delta > 0 ? '+' : ''}${dashboard.trend_delta.toFixed(1)}%` : '0%'
+
+  const sources = [
+    { name: 'Transportation', value: latest.transport_emission, icon: Car },
+    { name: 'Energy', value: latest.energy_emission, icon: Zap },
+    { name: 'Food', value: latest.food_emission, icon: Utensils },
+    { name: 'Waste', value: latest.waste_emission, icon: Trash2 },
+  ]
+  const largestSource = sources.reduce((max, s) => s.value > max.value ? s : max, sources[0])
+  const largestSourcePct = latest.total_emission > 0 ? Math.round((largestSource.value / latest.total_emission) * 100) : 0
+  const SourceIcon = largestSource.icon
 
   // 2. Donut Chart Data
   const donutData = {
@@ -111,24 +117,48 @@ export default function DashboardPage() {
     datasets: [
       {
         data: [latest.transport_emission, latest.energy_emission, latest.food_emission, latest.waste_emission],
-        backgroundColor: ['#3B82F6', '#F59E0B', '#2ECC71', '#8B5CF6'],
+        backgroundColor: ['#2ECC71', '#A3E635', '#1B5E20', '#94A3B8'],
         borderWidth: 0,
-        hoverOffset: 4
+        hoverOffset: 6
       }
     ]
   }
   const donutOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    cutout: '75%',
     plugins: {
-      legend: { position: 'bottom' as const, labels: { color: '#cbd5e1' } },
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          color: '#94A3B8',
+          font: { family: 'Inter', size: 12 },
+          boxWidth: 10,
+          boxHeight: 10,
+        }
+      },
       tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleFont: { family: 'Inter', size: 13 },
+        bodyFont: { family: 'Inter', size: 13 },
+        borderColor: 'rgba(46, 204, 113, 0.2)',
+        borderWidth: 1,
+        padding: 12,
         callbacks: {
           label: function(context: TooltipItem<'doughnut'>) {
             const val = context.raw as number
             const total = latest.total_emission
             const pct = total > 0 ? Math.round((val / total) * 100) : 0
-            return ` ${context.label}: ${val.toFixed(1)} kg (${pct}%)`
+            const recs: Record<string, string> = {
+              'Transport': 'Consider public transit or biking.',
+              'Energy': 'Switch to renewables or reduce AC.',
+              'Food': 'Try adding more plant-based meals.',
+              'Waste': 'Improve recycling and reduce plastics.'
+            }
+            return [
+              `${context.label}: ${val.toFixed(1)} kg CO₂e (${pct}%)`,
+              recs[context.label] || ''
+            ]
           }
         }
       }
@@ -167,7 +197,7 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="heading-xl text-white m-0">Dashboard</h1>
-          <p className="body text-slate-400 mt-1">Your sustainability overview at a glance.</p>
+          <p className="body text-muted mt-1">Your sustainability overview at a glance.</p>
         </div>
         <Link to="/assessment" className="btn-primary flex items-center gap-2 self-start md:self-auto">
           <i className="ti ti-plus"></i> New Assessment
@@ -176,37 +206,67 @@ export default function DashboardPage() {
 
       {/* 1. Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card flex flex-col justify-between">
-          <p className="text-sm text-slate-400 font-medium">Annual Emissions</p>
-          <div className="mt-4 flex items-end justify-between">
-            <span className="metric text-white">{annualTons} <span className="text-lg text-slate-500 font-normal">tons</span></span>
-            <i className="ti ti-cloud text-slate-600 text-3xl"></i>
+        
+        {/* Card 1: Annual Footprint */}
+        <div className="glass-card hover:scale-[1.02] transition-transform duration-200 cursor-pointer flex flex-col justify-between relative p-6">
+          <div className="absolute top-6 right-6">
+            <Globe className="w-8 h-8 text-earth-green/40" />
+          </div>
+          <div>
+            <p className="font-inter text-sm text-muted uppercase tracking-widest">Annual Carbon Footprint</p>
+            <p className="font-inter text-xs text-muted mt-1">Based on your latest assessment</p>
+          </div>
+          <div className="mt-6">
+            <span className="font-montserrat font-semibold text-earth-green text-4xl">{annualTons} Tons CO₂e</span>
           </div>
         </div>
         
-        <div className="card flex flex-col justify-between">
-          <p className="text-sm text-slate-400 font-medium">Carbon Score</p>
-          <div className="mt-4 flex items-end justify-between">
-            <span className={`metric ${getScoreColorClass(score)}`}>{score}<span className="text-lg text-slate-500 font-normal">/100</span></span>
-            <i className="ti ti-rosette text-slate-600 text-3xl"></i>
+        {/* Card 2: Carbon Score */}
+        <div className="glass-card hover:scale-[1.02] transition-transform duration-200 cursor-pointer flex flex-col justify-between relative p-6">
+          <div className="absolute top-6 right-6">
+            <Target className="w-8 h-8 text-earth-green/40" />
+          </div>
+          <div>
+            <p className="font-inter text-sm text-muted uppercase tracking-widest">Carbon Score</p>
+            <p className="font-inter text-xs text-muted mt-1 opacity-0">Spacer</p>
+          </div>
+          <div className="mt-6 flex items-center gap-4">
+            <div className="relative w-14 h-14">
+              <svg className="w-14 h-14 transform -rotate-90">
+                <circle cx="28" cy="28" r="24" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-forest-green/30" />
+                <circle cx="28" cy="28" r="24" stroke="currentColor" strokeWidth="5" fill="transparent" strokeDasharray="150.8" strokeDashoffset={150.8 - (150.8 * score) / 100} className="text-earth-green transition-all duration-1000 ease-out" strokeLinecap="round" />
+              </svg>
+            </div>
+            <span className="font-montserrat font-semibold text-earth-green text-4xl">{score}/100</span>
           </div>
         </div>
 
-        <div className="card flex flex-col justify-between">
-          <p className="text-sm text-slate-400 font-medium">Trend / Delta</p>
-          <div className="mt-4 flex items-end justify-between">
-            <span className={`metric ${dashboard?.trend_delta && dashboard.trend_delta <= 0 ? 'text-[#2ECC71]' : 'text-[#EF4444]'}`}>
-              {reductionPotential}
-            </span>
-            <i className={`ti ${dashboard?.trend_delta && dashboard.trend_delta <= 0 ? 'ti-trending-down text-emerald-500' : 'ti-trending-up text-red-500'} text-3xl`}></i>
+        {/* Card 3: Reduction Potential */}
+        <div className="glass-card hover:scale-[1.02] transition-transform duration-200 cursor-pointer flex flex-col justify-between relative p-6">
+          <div className="absolute top-6 right-6">
+            <TrendingDown className="w-8 h-8 text-earth-green/40" />
+          </div>
+          <div>
+            <p className="font-inter text-sm text-muted uppercase tracking-widest">Reduction Potential</p>
+            <p className="font-inter text-xs text-muted mt-1">If you adopt all recommendations</p>
+          </div>
+          <div className="mt-6">
+            <span className="font-montserrat font-semibold text-eco-lime text-4xl">{reductionPotential}</span>
           </div>
         </div>
 
-        <div className="card flex flex-col justify-between">
-          <p className="text-sm text-slate-400 font-medium">Active Goals</p>
-          <div className="mt-4 flex items-end justify-between">
-            <span className="metric text-white">{dashboard?.active_goals_count || 0}</span>
-            <i className="ti ti-target text-slate-600 text-3xl"></i>
+        {/* Card 4: Largest Emission Source */}
+        <div className="glass-card hover:scale-[1.02] transition-transform duration-200 cursor-pointer flex flex-col justify-between relative p-6">
+          <div className="absolute top-6 right-6">
+            <SourceIcon className="w-8 h-8 text-earth-green/40" />
+          </div>
+          <div>
+            <p className="font-inter text-sm text-muted uppercase tracking-widest">Largest Source</p>
+            <p className="font-inter text-xs text-muted mt-1">{largestSource.name}</p>
+          </div>
+          <div className="mt-6 flex items-baseline gap-2">
+            <span className={`font-montserrat font-semibold text-4xl ${largestSourcePct > 40 ? 'text-warning' : 'text-earth-green'}`}>{largestSourcePct}%</span>
+            <span className="font-inter text-sm text-muted">of footprint</span>
           </div>
         </div>
       </div>
@@ -215,7 +275,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* 2. Emission Breakdown */}
-        <div className="card lg:col-span-1 flex flex-col">
+        <div className="glass-card lg:col-span-1 flex flex-col">
           <h3 className="heading-md text-white mb-6">Footprint Breakdown</h3>
           <div className="flex-1 relative min-h-[250px]">
             <Doughnut data={donutData} options={donutOptions} />
@@ -223,13 +283,13 @@ export default function DashboardPage() {
         </div>
 
         {/* 3. Assessment History */}
-        <div className="card lg:col-span-2 flex flex-col">
+        <div className="glass-card lg:col-span-2 flex flex-col">
           <h3 className="heading-md text-white mb-6">Emissions Trend</h3>
           <div className="flex-1 relative min-h-[250px]">
             {sortedHist.length > 1 ? (
               <Line data={lineData} options={lineOptions} />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-slate-500">
+              <div className="absolute inset-0 flex items-center justify-center text-muted">
                 <p>Complete another assessment to see your trend over time.</p>
               </div>
             )}
@@ -241,29 +301,29 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* 4. Habit Streak & Goals */}
-        <div className="card space-y-6">
+        <div className="glass-card space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="heading-md text-white">Current Progress</h3>
-            <div className="bg-slate-800 rounded-full px-3 py-1 flex items-center gap-2">
+            <div className="bg-deep-ocean rounded-full px-3 py-1 flex items-center gap-2">
               <i className="ti ti-flame text-orange-500"></i>
               <span className="text-sm font-bold text-white">{dashboard?.current_habit_streak || 0} Day Streak</span>
             </div>
           </div>
           
           <div className="space-y-4 mt-4">
-            <p className="text-sm text-slate-400">Active Goals</p>
+            <p className="text-sm text-muted">Active Goals</p>
             {goals.length === 0 ? (
-              <p className="text-sm text-slate-500">No active goals yet. <Link to="/goals" className="text-emerald-500 hover:underline">Set one up.</Link></p>
+              <p className="text-sm text-muted">No active goals yet. <Link to="/goals" className="text-earth-green hover:underline">Set one up.</Link></p>
             ) : (
               goals.slice(0, 3).map(goal => (
                 <div key={goal.id} className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-200 truncate">{goal.goal_name}</span>
-                    <span className="text-emerald-400">{Math.round(goal.current_progress)}%</span>
+                    <span className="text-white truncate">{goal.goal_name}</span>
+                    <span className="text-earth-green">{Math.round(goal.current_progress)}%</span>
                   </div>
-                  <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-deep-ocean rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
+                      className="h-full bg-earth-green rounded-full"
                       style={{ width: `${Math.min(goal.current_progress, 100)}%` }}
                     />
                   </div>
@@ -271,7 +331,7 @@ export default function DashboardPage() {
               ))
             )}
             {goals.length > 3 && (
-              <Link to="/goals" className="text-sm text-slate-400 hover:text-emerald-400 block mt-2 text-center">
+              <Link to="/goals" className="text-sm text-muted hover:text-earth-green block mt-2 text-center">
                 View all {goals.length} goals
               </Link>
             )}
@@ -279,24 +339,24 @@ export default function DashboardPage() {
         </div>
 
         {/* 5. Forecast Teaser */}
-        <div className="card flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl transition-transform group-hover:scale-110"></div>
+        <div className="glass-card flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-earth-green/10 rounded-full blur-3xl transition-transform group-hover:scale-110"></div>
           
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="heading-md text-white">3-Month Forecast</h3>
-              <i className="ti ti-stars text-emerald-400 text-xl"></i>
+              <i className="ti ti-stars text-earth-green text-xl"></i>
             </div>
-            <p className="body text-slate-400 mb-6">Based on your current habits and baseline, here is your projected emission in 3 months.</p>
+            <p className="body text-muted mb-6">Based on your current habits and baseline, here is your projected emission in 3 months.</p>
             
             {dashboard?.forecast_summary ? (
               <div className="flex items-end gap-3">
-                <span className="metric text-emerald-400">
-                  {dashboard.forecast_summary.month_3_emission.toFixed(0)} <span className="text-lg font-normal text-slate-500">kg CO2e</span>
+                <span className="metric text-earth-green">
+                  {dashboard.forecast_summary.month_3_emission.toFixed(0)} <span className="text-lg font-normal text-muted">kg CO2e</span>
                 </span>
               </div>
             ) : (
-              <p className="text-slate-500">Forecast data not available.</p>
+              <p className="text-muted">Forecast data not available.</p>
             )}
           </div>
 

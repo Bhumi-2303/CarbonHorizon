@@ -74,8 +74,8 @@ export const Forecast: React.FC = () => {
     return (
       <div className="flex h-[calc(100vh-4rem)] items-center justify-center p-4">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-emerald-500"></div>
-          <p className="mt-4 text-slate-600 dark:text-slate-400">Generating forecast models...</p>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-earth-green"></div>
+          <p className="mt-4 text-muted dark:text-muted">Generating forecast models...</p>
         </div>
       </div>
     );
@@ -162,10 +162,10 @@ export const Forecast: React.FC = () => {
     <div className="p-4 md:p-8 animate-fade-in max-w-7xl mx-auto">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-bold tracking-tight text-white text-white">
             Future Projection
           </h1>
-          <p className="mt-2 text-slate-600 dark:text-slate-400">
+          <p className="mt-2 text-muted dark:text-muted">
             See how your carbon footprint could evolve over the next year.
           </p>
         </div>
@@ -173,7 +173,7 @@ export const Forecast: React.FC = () => {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Chart Section */}
-        <div className="col-span-1 lg:col-span-3 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+        <div className="col-span-1 lg:col-span-3 rounded-2xl bg-deep-ocean p-6 shadow-sm ring-1 ring-slate-200 dark:bg-deep-ocean dark:ring-slate-800">
           <div className="h-80 w-full">
             <Line options={options} data={data} />
           </div>
@@ -181,7 +181,7 @@ export const Forecast: React.FC = () => {
 
         {/* Callout Cards for Recommended Path */}
         <div className="col-span-1 lg:col-span-3">
-          <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Recommended Path Trajectory</h2>
+          <h2 className="text-xl font-bold mb-4 text-white text-white">Recommended Path Trajectory</h2>
           <div className="grid gap-4 md:grid-cols-3">
             {recommendedPathPoints.map((point) => (
               <div key={point.id} className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 ring-1 ring-emerald-100 dark:from-emerald-950/40 dark:to-teal-900/40 dark:ring-emerald-900/50 flex flex-col justify-between items-start">
@@ -193,7 +193,7 @@ export const Forecast: React.FC = () => {
                     <span className="text-3xl font-bold tracking-tight text-emerald-950 dark:text-emerald-100">
                       {point.predicted_emission.toFixed(1)}
                     </span>
-                    <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                    <span className="text-sm font-medium text-emerald-700 dark:text-earth-green">
                       kg CO₂e
                     </span>
                   </div>
@@ -207,7 +207,7 @@ export const Forecast: React.FC = () => {
                 onClick={() => navigate("/coach")}
                 className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-8 py-3 font-semibold text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-emerald-500/25 active:scale-95"
               >
-                <div className="absolute inset-0 bg-white/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+                <div className="absolute inset-0 bg-deep-ocean/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
                 <span className="relative flex items-center gap-2">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
