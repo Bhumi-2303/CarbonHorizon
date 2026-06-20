@@ -13,7 +13,7 @@ const STORAGE_KEY = 'ch_theme'
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    return (localStorage.getItem(STORAGE_KEY) as Theme) || 'light'
+    return (localStorage.getItem(STORAGE_KEY) as Theme) || 'dark'
   })
 
   useEffect(() => {

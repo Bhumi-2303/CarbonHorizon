@@ -8,17 +8,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        'space-black': 'var(--color-bg-primary)',
-        'deep-ocean': 'var(--color-bg-card-solid)',
+        'bg-primary': 'var(--color-bg-primary)',
+        'bg-secondary': 'var(--color-bg-secondary)',
+        'bg-card-solid': 'var(--color-bg-card-solid)',
+        
+        // Single accent color as requested
         'earth-green': 'var(--color-accent)',
-        'forest-green': 'var(--color-forest-green)',
-        'eco-lime': 'var(--color-leaf-green-light)',
+        'accent': 'var(--color-accent)',
+        
+        // Retain semantic mappings for backwards compatibility if needed, 
+        // but map them to the single accent where appropriate to enforce the design.
+        'forest-green': 'var(--color-accent)',
+        'eco-lime': 'var(--color-accent)',
+        
         'muted': 'var(--color-text-muted)',
         white: 'var(--color-text-primary)',
         black: 'var(--color-bg-primary)',
+        
         success: '#22C55E',
         warning: '#F59E0B',
-        danger: '#EF4444',
+        danger: 'var(--color-danger)',
+        
         emerald: {
           50:  'hsl(152, 80%, 97%)',
           100: 'hsl(152, 75%, 90%)',
