@@ -1,9 +1,11 @@
-import { useEffect, useState, FormEvent } from 'react'
+import { useEffect, useState, FormEvent, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { authApi, type UserProfile, type AgeGroup, type LifestyleType } from '@/api/auth'
+import { authApi, type UserProfile, type AgeGroup, type LifestyleType, type Gender } from '@/api/auth'
 import { dashboardApi, type DashboardData } from '@/api/dashboard'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
+import { Country, State, City } from 'country-state-city'
+import { OCCUPATIONS, isOccupationValidForAge, getOccupationLockReason } from '@/config/occupations'
 
 export default function Profile() {
   const { logout, setUser } = useAuth()
@@ -19,13 +21,16 @@ export default function Profile() {
 
   // Form State
   const [fullName, setFullName] = useState('')
+  const [age, setAge] = useState<number | ''>('')
+  const [gender, setGender] = useState<Gender | ''>('')
   const [ageGroup, setAgeGroup] = useState<AgeGroup | ''>('')
   const [lifestyle, setLifestyle] = useState<LifestyleType | ''>('')
-  const [city, setCity] = useState('')
-  const [country, setCountry] = useState('')
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>('')
+  const [selectedStateCode, setSelectedStateCode] = useState<string>('')
+  const [selectedCityName, setSelectedCityName] = useState<string>('')
 
   // Preferences State
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(currentTheme)
+  const [theme, setTheme] = useState<'light' | 'dark' | 'high-contrast' | 'system'>(currentTheme)
   const [unit, setUnit] = useState<'metric' | 'imperial'>(
     (localStorage.getItem('ch_unit') as any) || 'metric'
   )
@@ -51,10 +56,26 @@ export default function Profile() {
         setDashboard(dashRes)
 
         setFullName(profRes.full_name || '')
+        setAge(profRes.age || '')
+        setGender(profRes.gender || '')
         setAgeGroup(profRes.age_group || '')
         setLifestyle(profRes.lifestyle_type || '')
-        setCity(profRes.city || '')
-        setCountry(profRes.country || '')
+        
+        if (profRes.country) {
+          const c = Country.getAllCountries().find(x => x.name === profRes.country)
+          if (c) {
+            setSelectedCountryCode(c.isoCode)
+            if (profRes.state_province) {
+              const s = State.getStatesOfCountry(c.isoCode).find(x => x.name === profRes.state_province)
+              if (s) {
+                setSelectedStateCode(s.isoCode)
+              }
+            }
+          }
+        }
+        if (profRes.city) {
+          setSelectedCityName(profRes.city)
+        }
       } catch (err: any) {
         setMessage({ type: 'error', text: 'Failed to load profile data.' })
       } finally {
@@ -64,17 +85,60 @@ export default function Profile() {
     loadData()
   }, [])
 
+  const countryOptions = useMemo(() => {
+    return Country.getAllCountries().map(c => ({
+      value: c.isoCode,
+      label: c.name
+    }))
+  }, [])
+
+  const stateOptions = useMemo(() => {
+    if (!selectedCountryCode) return []
+    return State.getStatesOfCountry(selectedCountryCode).map(s => ({
+      value: s.isoCode,
+      label: s.name
+    }))
+  }, [selectedCountryCode])
+
+  const cityOptions = useMemo(() => {
+    if (!selectedCountryCode || !selectedStateCode) return []
+    return City.getCitiesOfState(selectedCountryCode, selectedStateCode).map(c => ({
+      value: c.name,
+      label: c.name
+    }))
+  }, [selectedCountryCode, selectedStateCode])
+
+  const lifestyleOptions = useMemo(() => {
+    return OCCUPATIONS.map((occ) => {
+      const isValid = isOccupationValidForAge(occ.id, age)
+      return {
+        value: occ.id,
+        label: occ.label,
+        disabled: !isValid,
+        title: !isValid ? getOccupationLockReason(occ.id) : undefined,
+      }
+    })
+  }, [age])
+
   const handleProfileSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setSaving(true)
     setMessage(null)
     try {
+      const countryObj = selectedCountryCode ? Country.getCountryByCode(selectedCountryCode) : null
+      const stateObj = (selectedCountryCode && selectedStateCode) 
+        ? State.getStateByCodeAndCountry(selectedStateCode, selectedCountryCode) 
+        : null
+
       const updated = await authApi.updateProfile({
         full_name: fullName,
+        age: age ? Number(age) : undefined,
+        gender: gender ? (gender as Gender) : undefined,
         age_group: ageGroup ? (ageGroup as AgeGroup) : undefined,
         lifestyle_type: lifestyle ? (lifestyle as LifestyleType) : undefined,
-        city,
-        country
+        country: countryObj ? countryObj.name : undefined,
+        state_province: stateObj ? stateObj.name : undefined,
+        city: selectedCityName || undefined
       })
       setProfile(updated)
       setUser(updated)
@@ -188,6 +252,31 @@ export default function Profile() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <label className="block text-xs text-muted mb-1.5">Age</label>
+                <input 
+                  type="number" 
+                  value={age} 
+                  onChange={e => setAge(e.target.value ? Number(e.target.value) : '')}
+                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-muted mb-1.5">Gender</label>
+                <select 
+                  value={gender} 
+                  onChange={e => setGender(e.target.value as Gender)}
+                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none"
+                >
+                  <option value="">Select...</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Non-Binary">Non-Binary</option>
+                  <option value="Prefer Not to Say">Prefer Not to Say</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <label className="block text-xs text-muted mb-1.5">Age Group</label>
                 <select 
                   value={ageGroup} 
@@ -201,38 +290,77 @@ export default function Profile() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-muted mb-1.5">Lifestyle</label>
+                <label className="block text-xs text-muted mb-1.5">Lifestyle / Occupation</label>
                 <select 
                   value={lifestyle} 
                   onChange={e => setLifestyle(e.target.value as LifestyleType)}
                   className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none"
                 >
                   <option value="">Select...</option>
-                  <option value="student">Student</option>
-                  <option value="professional">Professional</option>
-                  <option value="homemaker">Homemaker</option>
-                  <option value="retired">Retired</option>
+                  {lifestyleOptions.map((o) => (
+                    <option 
+                      key={o.value} 
+                      value={o.value} 
+                      disabled={o.disabled}
+                      title={o.title}
+                      className="disabled:text-slate-600 bg-[#08121E]"
+                    >
+                      {o.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-muted mb-1.5">City</label>
-                <input 
-                  type="text" 
-                  value={city} 
-                  onChange={e => setCity(e.target.value)}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71]"
-                />
-              </div>
+            <div className="space-y-4">
               <div>
                 <label className="block text-xs text-muted mb-1.5">Country</label>
-                <input 
-                  type="text" 
-                  value={country} 
-                  onChange={e => setCountry(e.target.value)}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71]"
-                />
+                <select 
+                  value={selectedCountryCode} 
+                  onChange={e => {
+                    setSelectedCountryCode(e.target.value)
+                    setSelectedStateCode('')
+                    setSelectedCityName('')
+                  }}
+                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none"
+                >
+                  <option value="">Select Country...</option>
+                  {countryOptions.map((o: {value: string, label: string}) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-muted mb-1.5">State / Province</label>
+                  <select 
+                    value={selectedStateCode} 
+                    onChange={e => {
+                      setSelectedStateCode(e.target.value)
+                      setSelectedCityName('')
+                    }}
+                    disabled={!selectedCountryCode}
+                    className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none disabled:opacity-50"
+                  >
+                    <option value="">Select State...</option>
+                    {stateOptions.map((o: {value: string, label: string}) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-muted mb-1.5">City</label>
+                  <select 
+                    value={selectedCityName} 
+                    onChange={e => setSelectedCityName(e.target.value)}
+                    disabled={!selectedStateCode}
+                    className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none disabled:opacity-50"
+                  >
+                    <option value="">Select City...</option>
+                    {cityOptions.map((o: {value: string, label: string}) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
             <button 
@@ -266,6 +394,7 @@ export default function Profile() {
                 >
                   <option value="dark">Dark</option>
                   <option value="light">Light</option>
+                  <option value="high-contrast">High Contrast</option>
                   <option value="system">System</option>
                 </select>
               </div>

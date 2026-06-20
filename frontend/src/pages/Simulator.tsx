@@ -29,7 +29,7 @@ import {
   type DietType,
   type SimulationSaved,
 } from '@/api/simulator'
-import { Car, Zap, TrainFront, Bus, Bike, Plane, Salad, Snowflake, Sun, Trash2 } from 'lucide-react'
+import { Car, Zap, TrainFront, Bus, Bike, Plane, Salad, Snowflake, Sun, Trash2, Check } from 'lucide-react'
 
 // ─── Colour helpers ───────────────────────────────────────────────────────────
 
@@ -59,10 +59,10 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 // Toggle card used in the scenario builder
 function ToggleCard({
-  id, emoji, title, subtitle, active, onClick, children,
+  id, icon, title, subtitle, active, onClick, children,
 }: {
   id: string
-  emoji: React.ReactNode
+  icon: React.ReactNode
   title: string
   subtitle: string
   active: boolean
@@ -83,7 +83,7 @@ function ToggleCard({
         onClick={onClick}
         className="w-full flex items-center gap-3 p-4 text-left"
       >
-        <span className="flex-shrink-0">{emoji}</span>
+        <span className="flex-shrink-0" aria-hidden="true">{icon}</span>
         <div className="flex-1 min-w-0">
           <p className={`text-sm font-semibold ${active ? 'text-emerald-300' : 'text-slate-200'}`}>
             {title}
@@ -246,19 +246,19 @@ function buildChanges(s: ScenarioState): ScenarioChanges {
   return changes
 }
 
-const TRANSPORT_OPTIONS: { value: TransportMode; label: string; emoji: React.ReactNode }[] = [
-  { value: 'bus',      label: 'Bus',      emoji: <Bus className="w-5 h-5 text-[#2ECC71]" /> },
-  { value: 'train',    label: 'Train',    emoji: <TrainFront className="w-5 h-5 text-[#2ECC71]" /> },
-  { value: 'bicycle',  label: 'Bicycle',  emoji: <Bike className="w-5 h-5 text-[#2ECC71]" /> },
-  { value: 'car',      label: 'Car',      emoji: <Car className="w-5 h-5 text-[#2ECC71]" /> },
-  { value: 'motorcycle', label: 'Bike',   emoji: <Bike className="w-5 h-5 text-[#2ECC71]" /> },
-  { value: 'flight',   label: 'Flight',   emoji: <Plane className="w-5 h-5 text-[#2ECC71]" /> },
+const TRANSPORT_OPTIONS: { value: TransportMode; label: string; icon: React.ReactNode }[] = [
+  { value: 'bus',      label: 'Bus',      icon: <Bus className="w-5 h-5 text-earth-green" aria-hidden="true" /> },
+  { value: 'train',    label: 'Train',    icon: <TrainFront className="w-5 h-5 text-earth-green" aria-hidden="true" /> },
+  { value: 'bicycle',  label: 'Bicycle',  icon: <Bike className="w-5 h-5 text-earth-green" aria-hidden="true" /> },
+  { value: 'car',      label: 'Car',      icon: <Car className="w-5 h-5 text-earth-green" aria-hidden="true" /> },
+  { value: 'motorcycle', label: 'Bike',   icon: <Bike className="w-5 h-5 text-earth-green" aria-hidden="true" /> },
+  { value: 'flight',   label: 'Flight',   icon: <Plane className="w-5 h-5 text-earth-green" aria-hidden="true" /> },
 ]
 
-const DIET_OPTIONS: { value: DietType; label: string; emoji: React.ReactNode }[] = [
-  { value: 'vegetarian',     label: 'Vegetarian',     emoji: <Salad className="w-5 h-5 text-[#2ECC71]" /> },
-  { value: 'mixed',          label: 'Mixed',          emoji: <Salad className="w-5 h-5 text-[#2ECC71]" /> },
-  { value: 'non_vegetarian', label: 'Non-Vegetarian', emoji: <Salad className="w-5 h-5 text-[#2ECC71]" /> },
+const DIET_OPTIONS: { value: DietType; label: string; icon: React.ReactNode }[] = [
+  { value: 'vegetarian',     label: 'Vegetarian',     icon: <Salad className="w-5 h-5 text-earth-green" aria-hidden="true" /> },
+  { value: 'mixed',          label: 'Mixed',          icon: <Salad className="w-5 h-5 text-earth-green" aria-hidden="true" /> },
+  { value: 'non_vegetarian', label: 'Non-Vegetarian', icon: <Salad className="w-5 h-5 text-earth-green" aria-hidden="true" /> },
 ]
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -508,10 +508,10 @@ export default function Simulator() {
               </div>
 
               {/* ── Transport ── */}
-              <SectionLabel><><Car className="w-4 h-4 inline-block mr-1 text-[#2ECC71]" /> Transport</></SectionLabel>
+              <SectionLabel><><Car className="w-4 h-4 inline-block mr-1 text-earth-green" aria-hidden="true" /> Transport</></SectionLabel>
               <ToggleCard
                 id="toggle-transport"
-                emoji={<Car className="w-5 h-5 text-[#2ECC71]" />}
+                icon={<Car className="w-5 h-5 text-earth-green" aria-hidden="true" />}
                 title="Switch transport mode"
                 subtitle={sc.transportActive ? `→ ${sc.newMode}` : 'Swap your primary vehicle'}
                 active={sc.transportActive}
@@ -532,8 +532,11 @@ export default function Simulator() {
                             : 'bg-deep-ocean/60 border-slate-700 text-muted hover:border-slate-500'
                           }`}
                       >
-                        {opt.emoji}
-                        {opt.label}
+                        {opt.icon}
+                        <span className="flex items-center gap-1">
+                          {opt.label}
+                          {sc.newMode === opt.value && <Check className="w-3 h-3" />}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -543,10 +546,10 @@ export default function Simulator() {
               <div className="mt-3" />
 
               {/* ── Energy ── */}
-              <SectionLabel><><Zap className="w-4 h-4 inline-block mr-1 text-[#2ECC71]" /> Energy</></SectionLabel>
+              <SectionLabel><><Zap className="w-4 h-4 inline-block mr-1 text-earth-green" aria-hidden="true" /> Energy</></SectionLabel>
               <ToggleCard
                 id="toggle-energy"
-                emoji={<Zap className="w-5 h-5 text-[#2ECC71]" />}
+                icon={<Zap className="w-5 h-5 text-earth-green" aria-hidden="true" />}
                 title="Reduce energy consumption"
                 subtitle={sc.energyActive
                   ? [
@@ -576,7 +579,7 @@ export default function Simulator() {
                         : 'bg-deep-ocean border-slate-700 text-muted hover:border-slate-500'
                       }`}
                   >
-                    <Snowflake className="w-4 h-4 inline-block mr-1 text-[#2ECC71]" /> No AC
+                    <Snowflake className="w-4 h-4 inline-block mr-1 text-earth-green" aria-hidden="true" /> No AC
                   </button>
                   {/* Solar */}
                   <button
@@ -589,7 +592,7 @@ export default function Simulator() {
                         : 'bg-deep-ocean border-slate-700 text-muted hover:border-slate-500'
                       }`}
                   >
-                    <Sun className="w-4 h-4 inline-block mr-1 text-[#2ECC71]" /> Solar panels
+                    <Sun className="w-4 h-4 inline-block mr-1 text-earth-green" aria-hidden="true" /> Solar panels
                   </button>
                 </div>
               </ToggleCard>
@@ -597,10 +600,10 @@ export default function Simulator() {
               <div className="mt-3" />
 
               {/* ── Food ── */}
-              <SectionLabel><><Salad className="w-4 h-4 inline-block mr-1 text-[#2ECC71]" /> Food</></SectionLabel>
+              <SectionLabel><><Salad className="w-4 h-4 inline-block mr-1 text-earth-green" aria-hidden="true" /> Food</></SectionLabel>
               <ToggleCard
                 id="toggle-food"
-                emoji={<Salad className="w-5 h-5 text-[#2ECC71]" />}
+                icon={<Salad className="w-5 h-5 text-earth-green" aria-hidden="true" />}
                 title="Change diet type"
                 subtitle={sc.foodActive ? `→ ${sc.newDietType.replace('_', ' ')}` : 'Switch your eating habits'}
                 active={sc.foodActive}
@@ -619,7 +622,7 @@ export default function Simulator() {
                           : 'bg-deep-ocean/60 border-slate-700 text-muted hover:border-slate-500'
                         }`}
                     >
-                      {opt.emoji}
+                      {opt.icon}
                       {opt.label}
                     </button>
                   ))}
@@ -629,10 +632,10 @@ export default function Simulator() {
               <div className="mt-3" />
 
               {/* ── Waste ── */}
-              <SectionLabel><><Trash2 className="w-4 h-4 inline-block mr-1 text-[#2ECC71]" /> Waste</></SectionLabel>
+              <SectionLabel><><Trash2 className="w-4 h-4 inline-block mr-1 text-earth-green" aria-hidden="true" /> Waste</></SectionLabel>
               <ToggleCard
                 id="toggle-waste"
-                emoji={<Trash2 className="w-5 h-5 text-[#2ECC71]" />}
+                icon={<Trash2 className="w-5 h-5 text-earth-green" aria-hidden="true" />}
                 title="Improve waste habits"
                 subtitle={sc.wasteActive
                   ? `Recycle +${sc.recyclingImprovement} · Plastic −${sc.plasticReduction}`
@@ -836,7 +839,7 @@ export default function Simulator() {
                       {saving ? (
                         <><Spinner size="sm" /><span>Saving…</span></>
                       ) : saved ? (
-                        <><span>✓</span><span>Saved!</span></>
+                        <><Check className="w-4 h-4" aria-hidden="true" /><span>Saved!</span></>
                       ) : (
                         <>
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

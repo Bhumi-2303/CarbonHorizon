@@ -34,7 +34,7 @@ interface SelectFieldProps extends Omit<React.SelectHTMLAttributes<HTMLSelectEle
   label: string
   fieldId: string
   error?: string
-  options: { value: string; label: string }[]
+  options: { value: string; label: string; disabled?: boolean; title?: string }[]
   placeholder?: string
 }
 
@@ -69,7 +69,13 @@ export const FormField = React.forwardRef<
             </option>
           )}
           {options.map((o) => (
-            <option key={o.value} value={o.value} className="bg-deep-ocean">
+            <option 
+              key={o.value} 
+              value={o.value} 
+              className="bg-deep-ocean disabled:text-slate-500"
+              disabled={o.disabled}
+              title={o.title}
+            >
               {o.label}
             </option>
           ))}

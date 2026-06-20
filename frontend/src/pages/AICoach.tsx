@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import { v4 as uuidv4 } from 'uuid'
 import { assessmentApi, type AssessmentResult } from '@/api/assessment'
 import { coachApi } from '@/api/coach'
-import { Leaf, MessageCircle, Send } from 'lucide-react'
+import { Leaf, MessageCircle, Send, MapPin } from 'lucide-react'
 
 // Local interface to handle optimistic UI updates
 interface UIContextMessage {
@@ -265,15 +265,35 @@ export default function AICoach() {
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div className={`
-                    ${msg.role === 'user' ? 'bg-forest-green text-white rounded-2xl rounded-br-sm px-4 py-3 max-w-xs ml-auto' : ''}
-                    ${msg.role === 'assistant' && !isOutOfScope ? 'bg-deep-ocean border border-earth-green/20 text-white rounded-2xl rounded-bl-sm px-4 py-3 max-w-sm' : ''}
-                    ${msg.role === 'assistant' && isOutOfScope ? 'bg-deep-ocean border-earth-green/20 border-l-4 border-warning text-muted italic rounded-2xl rounded-bl-sm px-4 py-3 max-w-sm' : ''}
+                    ${msg.role === 'user' ? 'bg-forest-green/90 backdrop-blur-sm text-white rounded-2xl rounded-br-sm px-4 py-3 max-w-xs ml-auto shadow-md' : ''}
+                    ${msg.role === 'assistant' && !isOutOfScope ? 'bg-deep-ocean/70 backdrop-blur-md border border-earth-green/30 text-white rounded-2xl rounded-bl-sm px-5 py-4 max-w-[85%] shadow-lg' : ''}
+                    ${msg.role === 'assistant' && isOutOfScope ? 'bg-deep-ocean/50 border-earth-green/20 border-l-4 border-warning text-muted italic rounded-2xl rounded-bl-sm px-4 py-3 max-w-sm' : ''}
                   `} aria-label={msg.role === 'user' ? 'You said' : 'Coach said'}>
                     {msg.role === 'assistant' ? (
                       <div className="text-sm leading-relaxed whitespace-pre-wrap 
-                          prose prose-invert prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5
-                          prose-strong:text-white prose-a:text-earth-green">
-                        <ReactMarkdown>
+                          prose prose-invert prose-p:my-2 prose-strong:text-white prose-a:text-earth-green max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            blockquote: ({ children }) => (
+                                <blockquote className="localized-context border-l-4 border-emerald-400 bg-emerald-500/10 text-emerald-100 p-3 rounded-r my-4 text-sm font-medium shadow-[0_2px_10px_rgba(16,185,129,0.1)]">
+                                <MapPin className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                                <div className="text-xs text-emerald-100/90 font-medium [&>p]:m-0">
+                                  {children}
+                                </div>
+                              </blockquote>
+                            ),
+                            ul: ({ node, children, ...props }) => (
+                              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-4 pl-0" {...props}>
+                                {children}
+                              </ul>
+                            ),
+                            li: ({ node, children, ...props }) => (
+                              <li className="bg-slate-800/40 border border-slate-700/50 p-3.5 rounded-xl shadow-sm text-slate-200 list-none m-0" {...props}>
+                                {children}
+                              </li>
+                            )
+                          }}
+                        >
                           {msg.message}
                         </ReactMarkdown>
                       </div>

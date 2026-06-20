@@ -6,7 +6,7 @@
  * Submission: POST /api/v1/auth/register → login → store tokens in AuthContext
  * On success: redirect to /dashboard
  */
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -15,6 +15,8 @@ import { AuthLayout } from '@/components/ui/AuthLayout'
 import { FormField } from '@/components/ui/FormField'
 import { useAuth } from '@/context/AuthContext'
 import { authApi } from '@/api/auth'
+import { Country, State, City } from 'country-state-city'
+import { OCCUPATIONS, isOccupationValidForAge, getOccupationLockReason } from '@/config/occupations'
 
 // ─── Zod schema ──────────────────────────────────────────────────────────────
 
@@ -31,16 +33,19 @@ const registerSchema = z.object({
     .refine((v) => !/^\d+$/.test(v), {
       message: 'Password must not be all digits',
     }),
+  age: z.coerce.number().int().min(1, 'Age is required').max(150, 'Invalid age'),
+  gender: z.enum(['Male', 'Female', 'Non-Binary', 'Prefer Not to Say']),
   age_group: z
     .enum(['child', 'student', 'adult', 'senior'])
     .optional()
     .or(z.literal('')),
   lifestyle_type: z
-    .enum(['student', 'professional', 'homemaker', 'retired'])
+    .enum(['student', 'professional', 'homemaker', 'house_helper', 'retired', 'self_employed', 'business_owner', 'consultant'])
     .optional()
     .or(z.literal('')),
-  city: z.string().max(100, 'City is too long').optional(),
-  country: z.string().max(100, 'Country is too long').optional(),
+  country: z.string().min(1, 'Country is required'),
+  state_province: z.string().min(1, 'State/Province is required'),
+  city: z.string().min(1, 'City is required'),
 })
 
 type RegisterFormData = z.infer<typeof registerSchema>
@@ -54,11 +59,13 @@ const AGE_GROUP_OPTIONS = [
   { value: 'senior', label: 'Senior (60+)' },
 ]
 
-const LIFESTYLE_OPTIONS = [
-  { value: 'student', label: 'Student' },
-  { value: 'professional', label: 'Professional' },
-  { value: 'homemaker', label: 'Homemaker' },
-  { value: 'retired', label: 'Retired' },
+
+
+const GENDER_OPTIONS = [
+  { value: 'Male', label: 'Male' },
+  { value: 'Female', label: 'Female' },
+  { value: 'Non-Binary', label: 'Non-Binary' },
+  { value: 'Prefer Not to Say', label: 'Prefer Not to Say' },
 ]
 
 // ─── Spinner icon ─────────────────────────────────────────────────────────────
@@ -100,34 +107,87 @@ export default function Register() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
+    // @ts-expect-error: zod resolver type mismatch due to coerce
     resolver: zodResolver(registerSchema),
     defaultValues: {
       full_name: '',
       email: '',
       password: '',
+      age: '' as unknown as number,
+      gender: '' as any,
       age_group: '',
       lifestyle_type: '',
-      city: '',
       country: '',
+      state_province: '',
+      city: '',
     },
   })
+
+  // Cascading location logic
+  const selectedCountryCode = watch('country')
+  const selectedStateCode = watch('state_province')
+  const currentAge = watch('age')
+
+  const lifestyleOptions = useMemo(() => {
+    return OCCUPATIONS.map((occ) => {
+      const isValid = isOccupationValidForAge(occ.id, currentAge)
+      return {
+        value: occ.id,
+        label: occ.label,
+        disabled: !isValid,
+        title: !isValid ? getOccupationLockReason(occ.id) : undefined,
+      }
+    })
+  }, [currentAge])
+
+  const countryOptions = useMemo(() => {
+    return Country.getAllCountries().map(c => ({
+      value: c.isoCode,
+      label: c.name
+    }))
+  }, [])
+
+  const stateOptions = useMemo(() => {
+    if (!selectedCountryCode) return []
+    return State.getStatesOfCountry(selectedCountryCode).map(s => ({
+      value: s.isoCode,
+      label: s.name
+    }))
+  }, [selectedCountryCode])
+
+  const cityOptions = useMemo(() => {
+    if (!selectedCountryCode || !selectedStateCode) return []
+    return City.getCitiesOfState(selectedCountryCode, selectedStateCode).map(c => ({
+      value: c.name, // City usually doesn't have an ISO code, we store name
+      label: c.name
+    }))
+  }, [selectedCountryCode, selectedStateCode])
 
   const onSubmit = async (data: RegisterFormData) => {
     setApiError(null)
     try {
+      // Resolve names for backend instead of ISO codes
+      const countryObj = Country.getCountryByCode(data.country)
+      const stateObj = State.getStateByCodeAndCountry(data.state_province, data.country)
+
       const payload = {
         full_name: data.full_name,
         email: data.email,
         password: data.password,
-        ...(data.age_group ? { age_group: data.age_group as 'child' | 'student' | 'adult' | 'senior' } : {}),
-        ...(data.lifestyle_type ? { lifestyle_type: data.lifestyle_type as 'student' | 'professional' | 'homemaker' | 'retired' } : {}),
-        ...(data.city ? { city: data.city } : {}),
-        ...(data.country ? { country: data.country } : {}),
+        age: data.age,
+        gender: data.gender,
+        country: countryObj ? countryObj.name : data.country,
+        state_province: stateObj ? stateObj.name : data.state_province,
+        city: data.city,
+        ...(data.age_group ? { age_group: data.age_group as any } : {}),
+        ...(data.lifestyle_type ? { lifestyle_type: data.lifestyle_type as any } : {}),
       }
 
-      const result = await authApi.register(payload)
+      const result = await authApi.register(payload as any)
       // Auto-login after registration
       const tokens = await authApi.login({ email: data.email, password: data.password })
       login(tokens, result.user)
@@ -147,6 +207,7 @@ export default function Register() {
 
   return (
     <AuthLayout title="Create your account" subtitle="Start tracking your carbon footprint today">
+      {/* @ts-expect-error: handleSubmit type mismatch */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
 
         {/* API error banner */}
@@ -168,7 +229,7 @@ export default function Register() {
           placeholder="Priya Sharma"
           required
           autoComplete="name"
-          error={errors.full_name?.message}
+          error={errors.full_name?.message as string}
           {...register('full_name')}
         />
 
@@ -181,7 +242,7 @@ export default function Register() {
           placeholder="priya@example.com"
           required
           autoComplete="email"
-          error={errors.email?.message}
+          error={errors.email?.message as string}
           {...register('email')}
         />
 
@@ -195,7 +256,7 @@ export default function Register() {
             placeholder="Min. 8 characters"
             required
             autoComplete="new-password"
-            error={errors.password?.message}
+            error={errors.password?.message as string}
             {...register('password')}
           />
           <button
@@ -208,6 +269,30 @@ export default function Register() {
           </button>
         </div>
 
+        {/* Age + Gender */}
+        <div className="grid grid-cols-2 gap-3">
+          <FormField
+            as="input"
+            fieldId="age"
+            label="Age"
+            type="number"
+            placeholder="Age"
+            required
+            error={errors.age?.message as string}
+            {...register('age')}
+          />
+          <FormField
+            as="select"
+            fieldId="gender"
+            label="Gender"
+            placeholder="Select…"
+            required
+            options={GENDER_OPTIONS}
+            error={errors.gender?.message as string}
+            {...register('gender')}
+          />
+        </div>
+
         {/* Age group + Lifestyle */}
         <div className="grid grid-cols-2 gap-3">
           <FormField
@@ -216,41 +301,63 @@ export default function Register() {
             label="Age group"
             placeholder="Select…"
             options={AGE_GROUP_OPTIONS}
-            error={errors.age_group?.message}
+            error={errors.age_group?.message as string}
             {...register('age_group')}
           />
           <FormField
             as="select"
             fieldId="lifestyle_type"
-            label="Lifestyle"
+            label="Lifestyle / Occupation"
             placeholder="Select…"
-            options={LIFESTYLE_OPTIONS}
-            error={errors.lifestyle_type?.message}
+            options={lifestyleOptions}
+            error={errors.lifestyle_type?.message as string}
             {...register('lifestyle_type')}
           />
         </div>
 
-        {/* City + Country */}
+        {/* Cascading Location: Country -> State -> City */}
+        <FormField
+          as="select"
+          fieldId="country"
+          label="Country"
+          placeholder="Select Country…"
+          required
+          options={countryOptions}
+          error={errors.country?.message as string}
+          {...register('country', {
+            onChange: () => {
+              setValue('state_province', '')
+              setValue('city', '')
+            }
+          })}
+        />
+
         <div className="grid grid-cols-2 gap-3">
           <FormField
-            as="input"
-            fieldId="city"
-            label="City"
-            type="text"
-            placeholder="Mumbai"
-            autoComplete="address-level2"
-            error={errors.city?.message}
-            {...register('city')}
+            as="select"
+            fieldId="state_province"
+            label="State / Province"
+            placeholder="Select State…"
+            required
+            disabled={!selectedCountryCode}
+            options={stateOptions}
+            error={errors.state_province?.message as string}
+            {...register('state_province', {
+              onChange: () => {
+                setValue('city', '')
+              }
+            })}
           />
           <FormField
-            as="input"
-            fieldId="country"
-            label="Country"
-            type="text"
-            placeholder="India"
-            autoComplete="country-name"
-            error={errors.country?.message}
-            {...register('country')}
+            as="select"
+            fieldId="city"
+            label="City"
+            placeholder="Select City…"
+            required
+            disabled={!selectedStateCode}
+            options={cityOptions}
+            error={errors.city?.message as string}
+            {...register('city')}
           />
         </div>
 

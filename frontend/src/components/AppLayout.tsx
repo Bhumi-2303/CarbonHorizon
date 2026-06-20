@@ -1,32 +1,65 @@
-import { useEffect, useState } from 'react'
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useEffect, useState, useRef } from 'react'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { assessmentApi, type AssessmentResult } from '@/api/assessment'
+import {
+  Leaf, Home, ClipboardList, Bot, LineChart, FileText, User,
+  MoreHorizontal, LogOut, Menu, X, Target, Heart, History, Settings,
+  FlaskConical, TrendingUp, Building2, Compass
+} from 'lucide-react'
+import ThemeToggle from './ThemeToggle'
 
-const NAV_ITEMS = [
-  { path: '/dashboard', label: 'Dashboard', icon: 'ti-home' },
-  { path: '/assessment', label: 'Assessment', icon: 'ti-clipboard' },
-  { path: '/simulator', label: 'Simulator', icon: 'ti-flask' },
-  { path: '/forecast', label: 'Forecast', icon: 'ti-chart-line' },
-  { path: '/goals', label: 'Goals', icon: 'ti-target' },
-  { path: '/habits', label: 'Habits', icon: 'ti-leaf' },
-  { path: '/coach', label: 'AI Coach', icon: 'ti-robot' },
-  { path: '/assessment/history', label: 'History', icon: 'ti-history' },
+const PRIMARY_NAV = [
+  { path: '/dashboard', label: 'Home', icon: Home },
+  { path: '/assessment', label: 'Assessment', icon: ClipboardList },
+  { path: '/coach', label: 'AI Coach', icon: Bot },
+  { path: '/emissions', label: 'Analytics', icon: LineChart },
+  { path: '/reports', label: 'Reports', icon: FileText },
+  { path: '/journey', label: 'Journey', icon: Compass },
+  { path: '/profile', label: 'Profile', icon: User },
+]
+
+const MORE_NAV = [
+  { path: '/simulator', label: 'Simulator', icon: FlaskConical },
+  { path: '/forecast', label: 'Forecast', icon: TrendingUp },
+  { path: '/goals', label: 'Goals', icon: Target },
+  { path: '/habits', label: 'Habits', icon: Heart },
+  { path: '/assessment/history', label: 'History', icon: History },
+  { path: '/settings', label: 'Settings', icon: Settings },
+  { path: '/organization', label: 'Organization', icon: Building2 },
 ]
 
 export default function AppLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   
   const [latestAssessment, setLatestAssessment] = useState<AssessmentResult | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false)
+  
+  const moreMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // Fetch latest assessment to display carbon score
     assessmentApi.history()
       .then(data => setLatestAssessment(data[0] || null))
-      .catch(() => {
-        // Suppress 404s if user hasn't completed an assessment yet
-      })
+      .catch(() => {})
+      
+    // Close mobile menu on route change
+    setMobileMenuOpen(false)
+    setMoreMenuOpen(false)
+  }, [location.pathname])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+        setMoreMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const handleLogout = () => {
@@ -37,90 +70,183 @@ export default function AppLayout() {
   const score = latestAssessment ? latestAssessment.carbon_score.toFixed(0) : 'N/A'
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-primary)] flex flex-col md:flex-row">
+    <div className="min-h-screen bg-bg-primary flex flex-col font-sans">
       <a href="#main-content" className="skip-to-content">
         Skip to main content
       </a>
       
-      {/* Sidebar Navigation (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 bg-deep-ocean dark:bg-deep-ocean border-r border-slate-200 border-deep-ocean h-screen sticky top-0 flex-shrink-0" aria-label="Sidebar Navigation">
+      {/* ── Floating Navigation Bar (Desktop) ── */}
+      <header className="fixed top-4 left-4 right-4 z-50 flex items-center justify-between glass-card px-4 py-2 hidden md:flex transition-all duration-300">
         
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20" aria-hidden="true">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-              <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-8 2 0 0-4 0-4 8" />
-            </svg>
+        {/* Brand / Logo */}
+        <div className="flex items-center gap-3 pr-6 border-r border-slate-700/50">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-earth-green to-forest-green flex items-center justify-center text-space-black shadow-sm" aria-hidden="true">
+            <Leaf className="w-5 h-5" />
           </div>
-          <span className="font-bold text-lg tracking-tight text-white text-white">
+          <span className="font-poppins font-bold text-lg tracking-tight text-white hidden lg:block">
             Carbon Horizon
           </span>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto" aria-label="Main Navigation">
-          {NAV_ITEMS.map((item) => (
+        {/* Primary Links */}
+        <nav className="flex-1 px-4 flex items-center gap-1" aria-label="Main Navigation">
+          {PRIMARY_NAV.map(item => (
             <NavLink
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                `flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-earth-green/20 dark:text-earth-green'
-                    : 'text-muted hover:bg-deep-ocean hover:text-white dark:text-muted dark:hover:bg-deep-ocean dark:hover:text-white'
+                    ? 'bg-earth-green/10 text-emerald-400 nav-glow'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`
               }
             >
-              <i className={`ti ${item.icon} text-lg`} aria-hidden="true"></i>
-              {item.label}
+              <item.icon className="w-4 h-4" aria-hidden="true" />
+              <span className="hidden xl:block">{item.label}</span>
             </NavLink>
           ))}
+
+          {/* More Dropdown */}
+          <div className="relative ml-2" ref={moreMenuRef}>
+            <button
+              type="button"
+              onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                moreMenuOpen ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-expanded={moreMenuOpen}
+              aria-haspopup="true"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+              <span className="hidden xl:block">More</span>
+            </button>
+
+            {moreMenuOpen && (
+              <div className="absolute top-full left-0 mt-2 w-48 glass-card border border-slate-700/50 p-2 flex flex-col gap-1 shadow-xl animate-fade-shift-up">
+                {MORE_NAV.map(item => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive ? 'bg-earth-green/10 text-emerald-400' : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      }`
+                    }
+                  >
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
 
-        <div className="p-4 border-t border-slate-200 border-deep-ocean">
-          <div className="bg-deep-ocean dark:bg-deep-ocean/50 rounded-xl p-4 flex flex-col gap-3">
-            <div>
-              <p className="text-sm font-semibold text-white text-white truncate">
-                {user?.full_name}
-              </p>
-              <p className="text-xs text-muted dark:text-muted">
-                Score: <span className="font-bold text-earth-green dark:text-earth-green">{score}</span>
-              </p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-xs text-left text-muted hover:text-red-500 dark:text-muted dark:hover:text-red-400 flex items-center gap-2 transition-colors w-max"
-              aria-label="Logout from account"
-            >
-              <i className="ti ti-logout" aria-hidden="true"></i> Logout
-            </button>
+        {/* User Status & Logout */}
+        <div className="flex items-center gap-4 pl-6 border-l border-slate-700/50">
+          <div className="hidden lg:block text-right">
+            <p className="text-xs font-semibold text-white truncate max-w-[120px]">
+              {user?.full_name}
+            </p>
+            <p className="text-[10px] text-slate-400">
+              Score: <span className="font-bold text-emerald-400">{score}</span>
+            </p>
           </div>
-        </div>
-
-      </aside>
-
-      {/* Main Content Area */}
-      <main id="main-content" tabIndex={-1} className="flex-1 min-w-0 pb-20 md:pb-0 relative outline-none">
-        <Outlet />
-      </main>
-
-      {/* Bottom Navigation (Mobile) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-deep-ocean dark:bg-deep-ocean border-t border-slate-200 border-deep-ocean flex items-center justify-around z-50 px-2 pb-safe" aria-label="Mobile Navigation">
-        {NAV_ITEMS.slice(0, 5).map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center p-3 min-w-[64px] ${
-                isActive
-                  ? 'text-earth-green dark:text-earth-green'
-                  : 'text-muted hover:text-white dark:text-muted dark:hover:text-white'
-              }`
-            }
+          <ThemeToggle />
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+            aria-label="Logout"
+            title="Logout"
           >
-            <i className={`ti ${item.icon} text-xl mb-1`} aria-hidden="true"></i>
-            <span className="text-[10px] font-medium leading-none">{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
+
+      {/* ── Mobile Navigation Bar ── */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-50 glass-card rounded-none border-t-0 border-x-0 border-b border-slate-700/50 p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-earth-green to-forest-green flex items-center justify-center text-space-black" aria-hidden="true">
+            <Leaf className="w-5 h-5" />
+          </div>
+          <span className="font-poppins font-bold text-white">Carbon Horizon</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 text-slate-300 hover:text-white"
+            aria-label="Toggle mobile menu"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 pt-20 pb-safe px-4 bg-bg-primary/95 backdrop-blur-xl overflow-y-auto animate-fade-in">
+          <nav className="flex flex-col gap-2 pb-8">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-4 px-2">Primary</p>
+            {PRIMARY_NAV.map(item => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+                    isActive ? 'bg-earth-green/10 text-emerald-400 nav-glow' : 'text-slate-300 hover:bg-white/5'
+                  }`
+                }
+              >
+                <item.icon className="w-5 h-5" />
+                {item.label}
+              </NavLink>
+            ))}
+            
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 px-2">More Tools</p>
+            {MORE_NAV.map(item => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+                    isActive ? 'bg-earth-green/10 text-emerald-400' : 'text-slate-300 hover:bg-white/5'
+                  }`
+                }
+              >
+                <item.icon className="w-5 h-5" />
+                {item.label}
+              </NavLink>
+            ))}
+
+            <div className="mt-8 pt-6 border-t border-slate-700/50 px-2">
+              <p className="text-sm font-semibold text-white mb-1">{user?.full_name}</p>
+              <p className="text-xs text-slate-400 mb-6">Latest Score: <span className="text-emerald-400 font-bold">{score}</span></p>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 text-red-400 hover:text-red-300 w-full px-2 py-3"
+              >
+                <LogOut className="w-5 h-5" />
+                Logout
+              </button>
+            </div>
+          </nav>
+        </div>
+      )}
+
+      {/* ── Main Content Area ── */}
+      <div className="flex-1 flex flex-col pt-20 md:pt-24 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full relative">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          key={location.pathname}
+          className="flex-1 outline-none animate-fade-shift-up w-full"
+        >
+          <Outlet />
+        </main>
+      </div>
 
     </div>
   )
