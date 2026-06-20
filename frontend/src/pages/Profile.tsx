@@ -6,6 +6,9 @@ import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
 import { Country, State, City } from 'country-state-city'
 import { OCCUPATIONS, isOccupationValidForAge, getOccupationLockReason } from '@/config/occupations'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { FormField } from '@/components/ui/FormField'
 
 export default function Profile() {
   const { logout, setUser } = useAuth()
@@ -174,7 +177,7 @@ export default function Profile() {
   if (loading) {
     return (
       <div className="flex justify-center p-20">
-        <i className="ti ti-loader animate-spin text-4xl text-[#2ECC71]"></i>
+        <i className="ti ti-loader animate-spin text-4xl text-accent"></i>
       </div>
     )
   }
@@ -195,251 +198,231 @@ export default function Profile() {
     <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
       
       {message && (
-        <div className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-[#2ECC71]/10 border-[#2ECC71]/30 text-[#2ECC71]' : 'bg-red-500/10 border-red-500/30 text-red-500'}`}>
+        <div className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-accent/10 border-accent/30 text-accent' : 'bg-danger/10 border-danger/30 text-danger'}`}>
           {message.text}
         </div>
       )}
 
       {/* 1. Header Profile */}
-      <div className="glass-card flex items-center gap-6 p-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#2ECC71]/5 rounded-full blur-3xl"></div>
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#2ECC71] to-emerald-700 flex items-center justify-center shadow-lg shadow-[#2ECC71]/20 border-4 border-[#0F172A] z-10">
-          <span className="text-3xl font-bold text-[#08121E]">{initials}</span>
+      <Card className="flex items-center gap-6 p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl"></div>
+        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent to-emerald-700 flex items-center justify-center shadow-lg shadow-accent/20 border-4 border-bg-primary z-10">
+          <span className="text-3xl font-bold text-bg-primary">{initials}</span>
         </div>
         <div className="z-10">
           <h1 className="heading-lg text-white mb-1">{profile.full_name}</h1>
           <p className="text-muted mb-2">{profile.email}</p>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#08121E] border border-slate-800 text-xs text-muted font-medium">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-bg-primary border border-white/10 text-xs text-muted font-medium">
             <i className="ti ti-calendar"></i>
             Member since {new Date(profile.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* 2. Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card text-center py-8">
+        <Card className="text-center py-8">
           <p className="text-xs text-muted uppercase font-medium mb-2 tracking-wider">Carbon Score</p>
-          <p className="text-4xl font-[Montserrat] font-bold text-[#2ECC71]">{Math.round(carbonScore)}</p>
-        </div>
-        <div className="glass-card text-center py-8">
+          <p className="text-4xl font-[Montserrat] font-bold text-accent">{Math.round(carbonScore)}</p>
+        </Card>
+        <Card className="text-center py-8">
           <p className="text-xs text-muted uppercase font-medium mb-2 tracking-wider">Assessments</p>
           <p className="text-4xl font-[Montserrat] font-bold text-slate-200">{totalAssessments}</p>
-        </div>
-        <div className="glass-card text-center py-8">
+        </Card>
+        <Card className="text-center py-8">
           <p className="text-xs text-muted uppercase font-medium mb-2 tracking-wider">Active Goals</p>
           <p className="text-4xl font-[Montserrat] font-bold text-slate-200">{activeGoals}</p>
-        </div>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* 3. Edit Profile Form */}
-        <div className="glass-card">
+        <Card>
           <h2 className="heading-md text-white mb-6 flex items-center gap-2">
-            <i className="ti ti-user-edit text-[#2ECC71]"></i> Personal Details
+            <i className="ti ti-user-edit text-accent"></i> Personal Details
           </h2>
           <form onSubmit={handleProfileSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs text-muted mb-1.5">Full Name</label>
-              <input 
-                type="text" 
-                required 
-                value={fullName} 
-                onChange={e => setFullName(e.target.value)}
-                className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] transition-colors"
+            <FormField
+              as="input"
+              fieldId="fullName"
+              label="Full Name"
+              type="text"
+              required
+              value={fullName}
+              onChange={e => setFullName(e.target.value)}
+            />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                as="input"
+                fieldId="age"
+                label="Age"
+                type="number"
+                value={age}
+                onChange={e => setAge(e.target.value ? Number(e.target.value) : '')}
+              />
+              <FormField
+                as="select"
+                fieldId="gender"
+                label="Gender"
+                value={gender}
+                onChange={e => setGender(e.target.value as Gender)}
+                options={[
+                  { value: 'Male', label: 'Male' },
+                  { value: 'Female', label: 'Female' },
+                  { value: 'Non-Binary', label: 'Non-Binary' },
+                  { value: 'Prefer Not to Say', label: 'Prefer Not to Say' }
+                ]}
+                placeholder="Select..."
               />
             </div>
+            
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-muted mb-1.5">Age</label>
-                <input 
-                  type="number" 
-                  value={age} 
-                  onChange={e => setAge(e.target.value ? Number(e.target.value) : '')}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71]"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-muted mb-1.5">Gender</label>
-                <select 
-                  value={gender} 
-                  onChange={e => setGender(e.target.value as Gender)}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none"
-                >
-                  <option value="">Select...</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Non-Binary">Non-Binary</option>
-                  <option value="Prefer Not to Say">Prefer Not to Say</option>
-                </select>
-              </div>
+              <FormField
+                as="select"
+                fieldId="ageGroup"
+                label="Age Group"
+                value={ageGroup}
+                onChange={e => setAgeGroup(e.target.value as AgeGroup)}
+                options={[
+                  { value: 'student', label: 'Student' },
+                  { value: 'adult', label: 'Adult' },
+                  { value: 'senior', label: 'Senior' }
+                ]}
+                placeholder="Select..."
+              />
+              <FormField
+                as="select"
+                fieldId="lifestyle"
+                label="Lifestyle / Occupation"
+                value={lifestyle}
+                onChange={e => setLifestyle(e.target.value as LifestyleType)}
+                options={lifestyleOptions}
+                placeholder="Select..."
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-muted mb-1.5">Age Group</label>
-                <select 
-                  value={ageGroup} 
-                  onChange={e => setAgeGroup(e.target.value as AgeGroup)}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none"
-                >
-                  <option value="">Select...</option>
-                  <option value="student">Student</option>
-                  <option value="adult">Adult</option>
-                  <option value="senior">Senior</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-muted mb-1.5">Lifestyle / Occupation</label>
-                <select 
-                  value={lifestyle} 
-                  onChange={e => setLifestyle(e.target.value as LifestyleType)}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none"
-                >
-                  <option value="">Select...</option>
-                  {lifestyleOptions.map((o) => (
-                    <option 
-                      key={o.value} 
-                      value={o.value} 
-                      disabled={o.disabled}
-                      title={o.title}
-                      className="disabled:text-slate-600 bg-[#08121E]"
-                    >
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs text-muted mb-1.5">Country</label>
-                <select 
-                  value={selectedCountryCode} 
+              <FormField
+                as="select"
+                fieldId="country"
+                label="Country"
+                value={selectedCountryCode}
+                onChange={e => {
+                  setSelectedCountryCode(e.target.value)
+                  setSelectedStateCode('')
+                  setSelectedCityName('')
+                }}
+                options={countryOptions}
+                placeholder="Select Country..."
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  as="select"
+                  fieldId="state"
+                  label="State / Province"
+                  value={selectedStateCode}
                   onChange={e => {
-                    setSelectedCountryCode(e.target.value)
-                    setSelectedStateCode('')
+                    setSelectedStateCode(e.target.value)
                     setSelectedCityName('')
                   }}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none"
-                >
-                  <option value="">Select Country...</option>
-                  {countryOptions.map((o: {value: string, label: string}) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-muted mb-1.5">State / Province</label>
-                  <select 
-                    value={selectedStateCode} 
-                    onChange={e => {
-                      setSelectedStateCode(e.target.value)
-                      setSelectedCityName('')
-                    }}
-                    disabled={!selectedCountryCode}
-                    className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none disabled:opacity-50"
-                  >
-                    <option value="">Select State...</option>
-                    {stateOptions.map((o: {value: string, label: string}) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-muted mb-1.5">City</label>
-                  <select 
-                    value={selectedCityName} 
-                    onChange={e => setSelectedCityName(e.target.value)}
-                    disabled={!selectedStateCode}
-                    className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-[#2ECC71] appearance-none disabled:opacity-50"
-                  >
-                    <option value="">Select City...</option>
-                    {cityOptions.map((o: {value: string, label: string}) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
+                  disabled={!selectedCountryCode}
+                  hint={!selectedCountryCode ? "Select a country first" : undefined}
+                  options={stateOptions}
+                  placeholder="Select State..."
+                />
+                <FormField
+                  as="select"
+                  fieldId="city"
+                  label="City"
+                  value={selectedCityName}
+                  onChange={e => setSelectedCityName(e.target.value)}
+                  disabled={!selectedStateCode}
+                  hint={!selectedStateCode ? "Select a state first" : undefined}
+                  options={cityOptions}
+                  placeholder="Select City..."
+                />
               </div>
             </div>
-            <button 
+            
+            <Button 
               type="submit" 
+              variant="primary"
               disabled={saving}
-              className="btn-primary w-full mt-4 flex items-center justify-center gap-2"
+              className="w-full mt-4"
             >
-              {saving ? <i className="ti ti-loader animate-spin"></i> : <i className="ti ti-device-floppy"></i>}
+              {saving ? <i className="ti ti-loader animate-spin mr-2"></i> : <i className="ti ti-device-floppy mr-2"></i>}
               {saving ? 'Saving...' : 'Save Profile'}
-            </button>
+            </Button>
           </form>
-        </div>
+        </Card>
 
         {/* 4. Preferences & Danger Zone */}
         <div className="space-y-8">
           
-          <div className="glass-card">
+          <Card>
             <h2 className="heading-md text-white mb-6 flex items-center gap-2">
-              <i className="ti ti-settings text-[#2ECC71]"></i> Preferences
+              <i className="ti ti-settings text-accent"></i> Preferences
             </h2>
             <div className="space-y-5">
+              
+              <FormField
+                as="select"
+                fieldId="theme"
+                label="Theme (Visual Aesthetic)"
+                value={theme}
+                onChange={e => setTheme(e.target.value as any)}
+                options={[
+                  { value: 'dark', label: 'Dark' },
+                  { value: 'light', label: 'Light' },
+                  { value: 'high-contrast', label: 'High Contrast' },
+                  { value: 'system', label: 'System' }
+                ]}
+              />
+
+              <FormField
+                as="select"
+                fieldId="unit"
+                label="Measurement Unit"
+                value={unit}
+                onChange={e => setUnit(e.target.value as any)}
+                options={[
+                  { value: 'metric', label: 'Metric (kg)' },
+                  { value: 'imperial', label: 'Imperial (lbs)' }
+                ]}
+              />
+
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-200">Theme</p>
-                  <p className="text-xs text-muted">Choose your visual aesthetic</p>
-                </div>
-                <select 
-                  value={theme} 
-                  onChange={e => setTheme(e.target.value as any)}
-                  className="bg-[#08121E] border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none"
-                >
-                  <option value="dark">Dark</option>
-                  <option value="light">Light</option>
-                  <option value="high-contrast">High Contrast</option>
-                  <option value="system">System</option>
-                </select>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-200">Measurement Unit</p>
-                  <p className="text-xs text-muted">Metric (kg) or Imperial (lbs)</p>
-                </div>
-                <select 
-                  value={unit} 
-                  onChange={e => setUnit(e.target.value as any)}
-                  className="bg-[#08121E] border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none"
-                >
-                  <option value="metric">Metric</option>
-                  <option value="imperial">Imperial</option>
-                </select>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-200">Notifications</p>
+                  <p className="text-sm font-medium text-white">Notifications</p>
                   <p className="text-xs text-muted">Weekly reports and goal reminders</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={notifications} onChange={e => setNotifications(e.target.checked)} />
-                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-deep-ocean after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2ECC71]"></div>
+                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-bg-primary after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
                 </label>
               </div>
-              <button onClick={handlePreferencesSave} className="btn-outline w-full text-sm py-2">
+              
+              <Button onClick={handlePreferencesSave} variant="secondary" className="w-full">
                 Save Preferences
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
 
-          <div className="glass-card border-red-900/50 bg-red-950/10">
-            <h2 className="heading-md text-red-500 mb-2 flex items-center gap-2">
+          <Card className="border-danger/50 bg-danger/10">
+            <h2 className="heading-md text-danger mb-2 flex items-center gap-2">
               <i className="ti ti-alert-triangle"></i> Danger Zone
             </h2>
             <p className="text-xs text-muted mb-4">Once you delete your account, there is no going back. Please be certain.</p>
-            <button 
+            <Button 
               onClick={() => { setShowDeleteModal(true); setDeleteStep(1); setDeleteConfirmText('') }} 
-              className="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl w-full text-sm font-bold hover:bg-red-500 hover:text-white transition-colors"
+              variant="danger"
+              className="w-full font-bold"
             >
               Delete Account
-            </button>
-          </div>
+            </Button>
+          </Card>
 
         </div>
       </div>
@@ -447,8 +430,8 @@ export default function Profile() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#0F172A] border border-red-900/50 rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/10 text-red-500 mx-auto mb-6">
+          <div className="bg-bg-primary border border-danger/50 rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-danger/10 text-danger mx-auto mb-6">
               <i className="ti ti-trash text-3xl"></i>
             </div>
             <h3 className="heading-md text-white text-center mb-2">Delete Account?</h3>
@@ -459,34 +442,35 @@ export default function Profile() {
                   This will permanently delete your account, assessment history, active goals, and all saved simulations.
                 </p>
                 <div className="flex gap-3">
-                  <button onClick={() => setShowDeleteModal(false)} className="flex-1 btn-outline">Cancel</button>
-                  <button onClick={() => setDeleteStep(2)} className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors">
+                  <Button onClick={() => setShowDeleteModal(false)} variant="secondary" className="flex-1">Cancel</Button>
+                  <Button onClick={() => setDeleteStep(2)} variant="danger" className="flex-1 font-bold">
                     Yes, proceed
-                  </button>
+                  </Button>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-muted text-center text-sm mb-6">
-                  To confirm, type <span className="text-white font-mono bg-deep-ocean px-2 py-0.5 rounded">DELETE</span> below.
+                  To confirm, type <span className="text-white font-mono bg-bg-secondary px-2 py-0.5 rounded border border-white/10">DELETE</span> below.
                 </p>
                 <input 
                   type="text" 
                   value={deleteConfirmText}
                   onChange={e => setDeleteConfirmText(e.target.value)}
                   placeholder="DELETE"
-                  className="w-full bg-[#08121E] border border-red-900/50 rounded-xl px-4 py-3 text-center text-white mb-6 focus:outline-none focus:border-red-500"
+                  className="w-full bg-white/5 border border-danger/50 rounded-xl px-4 py-3 text-center text-white mb-6 focus:outline-none focus:border-danger transition-colors"
                 />
                 <div className="flex gap-3">
-                  <button onClick={() => setShowDeleteModal(false)} className="flex-1 btn-outline">Cancel</button>
-                  <button 
+                  <Button onClick={() => setShowDeleteModal(false)} variant="secondary" className="flex-1">Cancel</Button>
+                  <Button 
                     onClick={handleDeleteAccount}
+                    variant="danger"
                     disabled={deleteConfirmText !== 'DELETE' || deleting}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 font-bold"
                   >
-                    {deleting ? <i className="ti ti-loader animate-spin"></i> : null}
+                    {deleting ? <i className="ti ti-loader animate-spin mr-2"></i> : null}
                     {deleting ? 'Deleting...' : 'Permanently Delete'}
-                  </button>
+                  </Button>
                 </div>
               </>
             )}

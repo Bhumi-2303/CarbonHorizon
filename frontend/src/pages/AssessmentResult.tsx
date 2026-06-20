@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useParams, Link } from 'react-router-dom'
+import { useLocation, useParams, useNavigate } from 'react-router-dom'
 import { Doughnut } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -16,6 +16,8 @@ import {
 } from 'chart.js'
 import { assessmentApi } from '@/api/assessment'
 import { Car, Zap, Salad, Trash2 } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
 
 ChartJS.register(
   CategoryScale,
@@ -32,7 +34,7 @@ ChartJS.register(
 export default function AssessmentResult() {
   const { id } = useParams<{ id: string }>()
   const location = useLocation()
-  // const navigate = useNavigate()
+  const navigate = useNavigate()
   
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -71,7 +73,7 @@ export default function AssessmentResult() {
   if (loading) {
     return (
       <div className="flex justify-center p-20">
-        <i className="ti ti-loader animate-spin text-4xl text-[#2ECC71]"></i>
+        <i className="ti ti-loader animate-spin text-4xl text-accent"></i>
       </div>
     )
   }
@@ -79,12 +81,12 @@ export default function AssessmentResult() {
   if (error || !data) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="glass-card text-center p-12 max-w-lg">
-          <i className="ti ti-alert-triangle text-5xl text-red-500 mb-4"></i>
+        <Card className="text-center p-12 max-w-lg">
+          <i className="ti ti-alert-triangle text-5xl text-danger mb-4"></i>
           <h2 className="heading-md text-white mb-2">Assessment Not Found</h2>
           <p className="body text-muted mb-6">{error || 'Unable to load your results.'}</p>
-          <Link to="/assessment" className="btn-primary">Take New Assessment</Link>
-        </div>
+          <Button onClick={() => navigate('/assessment')} variant="primary">Take New Assessment</Button>
+        </Card>
       </div>
     )
   }
@@ -118,10 +120,10 @@ export default function AssessmentResult() {
 
   // Find largest category
   const categories = [
-    { name: 'Transport', value: transport, icon: <Car className="w-8 h-8 text-[#2ECC71]" />, tip: 'Consider carpooling, public transit, or biking to reduce transport emissions.' },
-    { name: 'Energy', value: energy, icon: <Zap className="w-8 h-8 text-[#2ECC71]" />, tip: 'Switching to LED bulbs or adjusting your thermostat can make a huge impact.' },
-    { name: 'Food', value: food, icon: <Salad className="w-8 h-8 text-[#2ECC71]" />, tip: 'Reducing meat consumption just a few days a week lowers food footprint significantly.' },
-    { name: 'Waste', value: waste, icon: <Trash2 className="w-8 h-8 text-[#2ECC71]" />, tip: 'Focus on recycling more and avoiding single-use plastics.' }
+    { name: 'Transport', value: transport, icon: <Car className="w-8 h-8 text-accent" />, tip: 'Consider carpooling, public transit, or biking to reduce transport emissions.' },
+    { name: 'Energy', value: energy, icon: <Zap className="w-8 h-8 text-accent" />, tip: 'Switching to LED bulbs or adjusting your thermostat can make a huge impact.' },
+    { name: 'Food', value: food, icon: <Salad className="w-8 h-8 text-accent" />, tip: 'Reducing meat consumption just a few days a week lowers food footprint significantly.' },
+    { name: 'Waste', value: waste, icon: <Trash2 className="w-8 h-8 text-accent" />, tip: 'Focus on recycling more and avoiding single-use plastics.' }
   ]
   const largest = categories.reduce((prev, current) => (prev.value > current.value) ? prev : current)
 
@@ -131,7 +133,7 @@ export default function AssessmentResult() {
     datasets: [
       {
         data: [transport, energy, food, waste],
-        backgroundColor: ['#3B82F6', '#F59E0B', '#2ECC71', '#8B5CF6'],
+        backgroundColor: ['#3B82F6', '#F59E0B', '#10B981', '#8B5CF6'],
         borderWidth: 0,
         hoverOffset: 6
       }
@@ -159,52 +161,52 @@ export default function AssessmentResult() {
     <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-8 animate-fade-in">
       
       {/* 1. Hero: Carbon Score */}
-      <div className="glass-card text-center flex flex-col items-center py-12 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#2ECC71]/5 rounded-full blur-3xl"></div>
+      <Card className="text-center flex flex-col items-center py-12 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
         
         <h1 className="heading-lg text-white mb-8 z-10">Your Carbon Score</h1>
         
-        <div className={`w-48 h-48 rounded-full border-8 ${bandRing} flex flex-col items-center justify-center z-10 bg-[#08121E]`}>
+        <div className={`w-48 h-48 rounded-full border-8 ${bandRing} flex flex-col items-center justify-center z-10 bg-bg-primary`}>
           <span className={`text-6xl font-[Montserrat] font-semibold ${bandColor}`}>{Math.round(score)}</span>
         </div>
         
         <div className="mt-6 z-10">
-          <span className={`px-4 py-2 rounded-full font-bold uppercase tracking-wider text-sm bg-[#08121E] border ${bandRing} ${bandColor}`}>
+          <span className={`px-4 py-2 rounded-full font-bold uppercase tracking-wider text-sm bg-bg-primary border ${bandRing} ${bandColor}`}>
             {bandLabel}
           </span>
         </div>
-      </div>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* 2. Emission Breakdown Donut Chart */}
-        <div className="glass-card flex flex-col">
+        <Card className="flex flex-col">
           <h2 className="heading-md text-white mb-6">Emission Breakdown</h2>
           <div className="flex-1 min-h-[300px] relative">
             <Doughnut data={donutData} options={donutOptions} />
           </div>
-        </div>
+        </Card>
 
         <div className="space-y-8">
           {/* 3. Metric Cards (Daily, Monthly, Annual) */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="glass-card text-center p-4">
+            <Card className="text-center p-4">
               <p className="text-xs text-muted uppercase font-medium mb-2">Daily</p>
-              <p className="text-xl font-bold text-[#2ECC71]">{(totalEmission / 30).toFixed(1)} <span className="text-xs text-muted font-normal">kg</span></p>
-            </div>
-            <div className="glass-card text-center p-4">
+              <p className="text-xl font-bold text-accent">{(totalEmission / 30).toFixed(1)} <span className="text-xs text-muted font-normal">kg</span></p>
+            </Card>
+            <Card className="text-center p-4">
               <p className="text-xs text-muted uppercase font-medium mb-2">Monthly</p>
-              <p className="text-xl font-bold text-[#2ECC71]">{totalEmission.toFixed(1)} <span className="text-xs text-muted font-normal">kg</span></p>
-            </div>
-            <div className="glass-card text-center p-4">
+              <p className="text-xl font-bold text-accent">{totalEmission.toFixed(1)} <span className="text-xs text-muted font-normal">kg</span></p>
+            </Card>
+            <Card className="text-center p-4">
               <p className="text-xs text-muted uppercase font-medium mb-2">Annual</p>
-              <p className="text-xl font-bold text-[#2ECC71]">{(totalEmission * 12).toFixed(1)} <span className="text-xs text-muted font-normal">kg</span></p>
-            </div>
+              <p className="text-xl font-bold text-accent">{(totalEmission * 12).toFixed(1)} <span className="text-xs text-muted font-normal">kg</span></p>
+            </Card>
           </div>
 
           {/* 4. Top Source Callout */}
-          <div className="glass-card border-l-4 border-l-orange-500 bg-orange-500/10">
+          <Card className="border-l-4 border-l-orange-500 bg-orange-500/10">
             <div className="flex items-start gap-4">
               <div>{largest.icon}</div>
               <div>
@@ -212,16 +214,16 @@ export default function AssessmentResult() {
                 <p className="body text-slate-300 text-sm">{largest.tip}</p>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* 5. CTAs */}
           <div className="grid grid-cols-2 gap-4 pt-4">
-            <Link to="/dashboard" className="btn-outline flex items-center justify-center gap-2">
+            <Button onClick={() => navigate('/dashboard')} variant="secondary" className="flex items-center justify-center gap-2">
               <i className="ti ti-layout-dashboard"></i> View Dashboard
-            </Link>
-            <Link to="/simulator" className="btn-primary flex items-center justify-center gap-2">
+            </Button>
+            <Button onClick={() => navigate('/simulator')} variant="primary" className="flex items-center justify-center gap-2">
               <i className="ti ti-flask"></i> Simulate Changes
-            </Link>
+            </Button>
           </div>
         </div>
 

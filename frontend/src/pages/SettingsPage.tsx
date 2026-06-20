@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import apiClient from '@/api/client'
 import { useTheme } from '@/context/ThemeContext'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { FormField } from '@/components/ui/FormField'
 
 const SettingsPage = () => {
   const { theme, setTheme } = useTheme()
@@ -81,40 +84,40 @@ const SettingsPage = () => {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="text-gray-500 animate-pulse">Loading settings...</div>
+        <i className="ti ti-loader animate-spin text-4xl text-accent"></i>
       </div>
     )
   }
 
   return (
-    <main className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">Settings</h1>
+    <main className="max-w-4xl mx-auto p-6 animate-fade-in">
+      <h1 className="heading-xl text-white mb-8">Settings</h1>
 
       {message && (
-        <div className={`p-4 mb-8 rounded-lg font-medium ${
-          message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+        <div className={`p-4 mb-8 rounded-xl font-medium ${
+          message.type === 'success' ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-danger/10 text-danger border border-danger/20'
         }`}>
           {message.text}
         </div>
       )}
 
-      <div className="bg-deep-ocean rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row">
+      <Card className="flex flex-col md:flex-row p-0 overflow-hidden">
         
         {/* Sidebar Tabs */}
-        <div className="md:w-64 bg-gray-50 border-r border-gray-100 flex-shrink-0">
-          <nav className="flex flex-col p-4 space-y-1">
+        <div className="md:w-64 bg-white/5 border-r border-white/10 flex-shrink-0">
+          <nav className="flex flex-col p-4 space-y-2">
             <button 
               onClick={() => { setActiveTab('profile'); setMessage(null) }}
-              className={`px-4 py-3 text-left rounded-lg font-medium transition-colors ${
-                activeTab === 'profile' ? 'bg-teal-50 text-teal-700' : 'text-gray-600 hover:bg-gray-100'
+              className={`px-4 py-3 text-left rounded-xl font-medium transition-all duration-200 ${
+                activeTab === 'profile' ? 'bg-accent/20 text-accent' : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
               Profile Settings
             </button>
             <button 
               onClick={() => { setActiveTab('preferences'); setMessage(null) }}
-              className={`px-4 py-3 text-left rounded-lg font-medium transition-colors ${
-                activeTab === 'preferences' ? 'bg-teal-50 text-teal-700' : 'text-gray-600 hover:bg-gray-100'
+              className={`px-4 py-3 text-left rounded-xl font-medium transition-all duration-200 ${
+                activeTab === 'preferences' ? 'bg-accent/20 text-accent' : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
               Preferences
@@ -126,63 +129,61 @@ const SettingsPage = () => {
         <div className="p-8 flex-grow">
           {activeTab === 'profile' && (
             <form onSubmit={handleProfileSave} className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">Personal Information</h2>
+              <h2 className="heading-md text-white mb-6">Personal Information</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">First Name</label>
-                  <input 
-                    type="text" 
-                    value={profile.first_name}
-                    onChange={(e) => setProfile({...profile, first_name: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Last Name</label>
-                  <input 
-                    type="text" 
-                    value={profile.last_name}
-                    onChange={(e) => setProfile({...profile, last_name: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Email Address</label>
-                <input 
-                  type="email" 
-                  value={profile.email}
-                  onChange={(e) => setProfile({...profile, email: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow"
+                <FormField
+                  as="input"
+                  fieldId="firstName"
+                  label="First Name"
+                  type="text"
                   required
+                  value={profile.first_name}
+                  onChange={(e) => setProfile({...profile, first_name: e.target.value})}
+                />
+                <FormField
+                  as="input"
+                  fieldId="lastName"
+                  label="Last Name"
+                  type="text"
+                  required
+                  value={profile.last_name}
+                  onChange={(e) => setProfile({...profile, last_name: e.target.value})}
                 />
               </div>
 
-              <div className="pt-6 border-t border-gray-100 flex justify-end">
-                <button 
+              <FormField
+                as="input"
+                fieldId="email"
+                label="Email Address"
+                type="email"
+                required
+                value={profile.email}
+                onChange={(e) => setProfile({...profile, email: e.target.value})}
+              />
+
+              <div className="pt-6 border-t border-white/10 flex justify-end">
+                <Button 
                   type="submit" 
+                  variant="primary"
                   disabled={saving}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
                 >
+                  {saving ? <i className="ti ti-loader animate-spin mr-2"></i> : null}
                   {saving ? 'Saving...' : 'Save Profile'}
-                </button>
+                </Button>
               </div>
             </form>
           )}
 
           {activeTab === 'preferences' && (
             <form onSubmit={handlePreferencesSave} className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">Application Preferences</h2>
+              <h2 className="heading-md text-white mb-6">Application Preferences</h2>
               
               <div className="space-y-6">
-                <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                <div className="flex items-center justify-between py-3 border-b border-white/5">
                   <div>
-                    <h3 className="text-base font-medium text-gray-800">Email Notifications</h3>
-                    <p className="text-sm text-gray-500">Receive updates and weekly report summaries.</p>
+                    <h3 className="text-base font-medium text-white">Email Notifications</h3>
+                    <p className="text-sm text-muted">Receive updates and weekly report summaries.</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input 
@@ -191,14 +192,14 @@ const SettingsPage = () => {
                       checked={preferences.notifications}
                       onChange={(e) => setPreferences({...preferences, notifications: e.target.checked})}
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-deep-ocean after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-bg-primary after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
                   </label>
                 </div>
 
-                <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                <div className="flex items-center justify-between py-3 border-b border-white/5">
                   <div>
-                    <h3 className="text-base font-medium text-gray-800">Dark Mode</h3>
-                    <p className="text-sm text-gray-500">Switch application theme to dark mode.</p>
+                    <h3 className="text-base font-medium text-white">Dark Mode</h3>
+                    <p className="text-sm text-muted">Switch application theme to dark mode.</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input 
@@ -207,37 +208,40 @@ const SettingsPage = () => {
                       checked={preferences.dark_mode}
                       onChange={(e) => setPreferences({...preferences, dark_mode: e.target.checked})}
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-deep-ocean after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-bg-primary after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
                   </label>
                 </div>
 
-                <div className="space-y-2 py-3">
-                  <label className="block text-sm font-medium text-gray-700">Preferred Currency</label>
-                  <select 
+                <div className="py-3">
+                  <FormField
+                    as="select"
+                    fieldId="currency"
+                    label="Preferred Currency"
                     value={preferences.currency}
                     onChange={(e) => setPreferences({...preferences, currency: e.target.value})}
-                    className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow bg-deep-ocean"
-                  >
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                  </select>
+                    options={[
+                      { value: 'USD', label: 'USD ($)' },
+                      { value: 'EUR', label: 'EUR (€)' },
+                      { value: 'GBP', label: 'GBP (£)' }
+                    ]}
+                  />
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-gray-100 flex justify-end">
-                <button 
+              <div className="pt-6 border-t border-white/10 flex justify-end">
+                <Button 
                   type="submit" 
+                  variant="primary"
                   disabled={saving}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
                 >
+                  {saving ? <i className="ti ti-loader animate-spin mr-2"></i> : null}
                   {saving ? 'Saving...' : 'Save Preferences'}
-                </button>
+                </Button>
               </div>
             </form>
           )}
         </div>
-      </div>
+      </Card>
     </main>
   )
 }

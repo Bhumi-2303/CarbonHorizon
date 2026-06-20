@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { simulatorApi, type SimulationSaved } from '@/api/simulator'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
 
 export default function SimulatorHistory() {
   const navigate = useNavigate()
@@ -42,7 +44,7 @@ export default function SimulatorHistory() {
   if (loading) {
     return (
       <div className="flex justify-center p-20">
-        <i className="ti ti-loader animate-spin text-4xl text-[#2ECC71]"></i>
+        <i className="ti ti-loader animate-spin text-4xl text-accent"></i>
       </div>
     )
   }
@@ -54,36 +56,36 @@ export default function SimulatorHistory() {
           <h1 className="heading-xl text-white m-0">Saved Simulations</h1>
           <p className="body text-muted mt-1">Review and re-run your what-if scenarios.</p>
         </div>
-        <Link to="/simulator" className="btn-primary flex items-center gap-2 self-start md:self-auto">
+        <Button onClick={() => navigate('/simulator')} variant="primary" className="flex items-center gap-2 self-start md:self-auto">
           <i className="ti ti-plus"></i> New Simulation
-        </Link>
+        </Button>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-900/20 text-red-400 border border-red-900/50 rounded-xl">
+        <div className="p-4 bg-danger/20 text-danger border border-danger/50 rounded-xl">
           {error}
         </div>
       )}
 
       {history.length === 0 ? (
-        <div className="glass-card text-center p-12 flex flex-col items-center">
-          <i className="ti ti-flask text-6xl text-[#2ECC71] mb-6"></i>
+        <Card className="text-center p-12 flex flex-col items-center">
+          <i className="ti ti-flask text-6xl text-accent mb-6"></i>
           <h2 className="heading-lg text-white mb-2">No saved simulations</h2>
           <p className="body text-muted max-w-md mb-8">
             You haven't saved any simulations yet. Run a what-if scenario to see how small changes can reduce your carbon footprint!
           </p>
-          <Link to="/simulator" className="btn-primary">
+          <Button onClick={() => navigate('/simulator')} variant="primary">
             Start a Simulation
-          </Link>
-        </div>
+          </Button>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {history.map(sim => {
             const isReduction = (sim.reduction_percentage || 0) >= 0;
-            const reductionColor = isReduction ? 'text-[#2ECC71]' : 'text-red-500';
+            const reductionColor = isReduction ? 'text-accent' : 'text-danger';
 
             return (
-              <div key={sim.id} className="glass-card flex flex-col justify-between group">
+              <Card key={sim.id} className="flex flex-col justify-between group">
                 <div>
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -97,7 +99,7 @@ export default function SimulatorHistory() {
                     </div>
                     <button 
                       onClick={() => handleDelete(sim.id)} 
-                      className="text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      className="text-muted hover:text-danger transition-colors opacity-0 group-hover:opacity-100"
                       title="Delete"
                     >
                       <i className="ti ti-trash text-xl"></i>
@@ -109,13 +111,13 @@ export default function SimulatorHistory() {
                   )}
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-[#08121E] border border-slate-800 rounded-xl p-3 text-center">
+                    <div className="bg-bg-primary border border-white/10 rounded-xl p-3 text-center">
                       <p className="text-xs text-muted uppercase font-medium mb-1">Current</p>
                       <p className="text-xl font-bold text-slate-300">
                         {sim.current_emission?.toFixed(1) || '0'} <span className="text-sm font-normal text-muted">kg</span>
                       </p>
                     </div>
-                    <div className={`border rounded-xl p-3 text-center ${isReduction ? 'border-[#2ECC71]/30 bg-[#2ECC71]/5' : 'border-red-500/30 bg-red-500/5'}`}>
+                    <div className={`border rounded-xl p-3 text-center ${isReduction ? 'border-accent/30 bg-accent/5' : 'border-danger/30 bg-danger/5'}`}>
                       <p className="text-xs text-muted uppercase font-medium mb-1">Projected</p>
                       <p className={`text-xl font-bold ${reductionColor}`}>
                         {sim.projected_emission?.toFixed(1) || '0'} <span className="text-sm font-normal text-muted">kg</span>
@@ -139,13 +141,14 @@ export default function SimulatorHistory() {
                   </div>
                 </div>
 
-                <button 
+                <Button 
                   onClick={() => handleRerun(sim)}
-                  className="btn-outline w-full flex items-center justify-center gap-2 mt-auto"
+                  variant="secondary"
+                  className="w-full flex items-center justify-center gap-2 mt-auto"
                 >
                   <i className="ti ti-reload"></i> Re-run Scenario
-                </button>
-              </div>
+                </Button>
+              </Card>
             )
           })}
         </div>

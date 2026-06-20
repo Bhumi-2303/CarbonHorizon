@@ -80,7 +80,7 @@ export default function AppLayout() {
         
         {/* Brand / Logo */}
         <div className="flex items-center gap-3 pr-6 border-r border-slate-700/50">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-earth-green to-forest-green flex items-center justify-center text-space-black shadow-sm" aria-hidden="true">
+          <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-bg-primary shadow-sm" aria-hidden="true">
             <Leaf className="w-5 h-5" />
           </div>
           <span className="font-poppins font-bold text-lg tracking-tight text-white hidden lg:block">
@@ -97,7 +97,7 @@ export default function AppLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-earth-green/10 text-emerald-400 nav-glow'
+                    ? 'bg-accent/10 text-accent nav-glow'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`
               }
@@ -130,7 +130,7 @@ export default function AppLayout() {
                     to={item.path}
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive ? 'bg-earth-green/10 text-emerald-400' : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                        isActive ? 'bg-accent/10 text-accent' : 'text-slate-300 hover:bg-white/5 hover:text-white'
                       }`
                     }
                   >
@@ -150,7 +150,7 @@ export default function AppLayout() {
               {user?.full_name}
             </p>
             <p className="text-[10px] text-slate-400">
-              Score: <span className="font-bold text-emerald-400">{score}</span>
+              Score: <span className="font-bold text-accent">{score}</span>
             </p>
           </div>
           <ThemeToggle />
@@ -168,7 +168,7 @@ export default function AppLayout() {
       {/* ── Mobile Navigation Bar ── */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 glass-card rounded-none border-t-0 border-x-0 border-b border-slate-700/50 p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-earth-green to-forest-green flex items-center justify-center text-space-black" aria-hidden="true">
+          <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-bg-primary" aria-hidden="true">
             <Leaf className="w-5 h-5" />
           </div>
           <span className="font-poppins font-bold text-white">Carbon Horizon</span>
@@ -196,7 +196,7 @@ export default function AppLayout() {
                 to={item.path}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-                    isActive ? 'bg-earth-green/10 text-emerald-400 nav-glow' : 'text-slate-300 hover:bg-white/5'
+                    isActive ? 'bg-accent/10 text-accent nav-glow' : 'text-slate-300 hover:bg-white/5'
                   }`
                 }
               >
@@ -212,7 +212,7 @@ export default function AppLayout() {
                 to={item.path}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-                    isActive ? 'bg-earth-green/10 text-emerald-400' : 'text-slate-300 hover:bg-white/5'
+                    isActive ? 'bg-accent/10 text-accent' : 'text-slate-300 hover:bg-white/5'
                   }`
                 }
               >
@@ -223,7 +223,7 @@ export default function AppLayout() {
 
             <div className="mt-8 pt-6 border-t border-slate-700/50 px-2">
               <p className="text-sm font-semibold text-white mb-1">{user?.full_name}</p>
-              <p className="text-xs text-slate-400 mb-6">Latest Score: <span className="text-emerald-400 font-bold">{score}</span></p>
+              <p className="text-xs text-slate-400 mb-6">Latest Score: <span className="text-accent font-bold">{score}</span></p>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-3 text-red-400 hover:text-red-300 w-full px-2 py-3"

@@ -1,5 +1,8 @@
 import { useEffect, useState, FormEvent } from 'react'
 import { goalsApi, type Goal, type GoalCreate } from '@/api/goals'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { FormField } from '@/components/ui/FormField'
 
 export default function Goals() {
   const [goals, setGoals] = useState<Goal[]>([])
@@ -114,20 +117,20 @@ export default function Goals() {
     const isCompleted = goal.status === 'completed'
     
     return (
-      <div key={goal.id} className={`glass-card group relative ${isExpired ? 'opacity-50 grayscale' : ''}`}>
+      <Card key={goal.id} className={`group relative ${isExpired ? 'opacity-50 grayscale' : ''}`}>
         <div className="flex justify-between items-start mb-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h3 className="heading-md text-white m-0">{goal.goal_name}</h3>
-              {isCompleted && <span className="bg-[#2ECC71]/20 text-[#2ECC71] px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Completed</span>}
+              {isCompleted && <span className="bg-accent/20 text-accent px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Completed</span>}
               {isExpired && <span className="bg-slate-700/50 text-slate-300 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Expired</span>}
               {goal.status === 'active' && <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Active</span>}
             </div>
             {goal.goal_description && <p className="body text-muted text-sm mt-1">{goal.goal_description}</p>}
           </div>
           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={() => openModal(goal)} className="text-muted hover:text-[#2ECC71] p-1"><i className="ti ti-edit text-xl"></i></button>
-            <button onClick={() => handleDelete(goal.id)} className="text-muted hover:text-red-500 p-1"><i className="ti ti-trash text-xl"></i></button>
+            <button onClick={() => openModal(goal)} className="text-muted hover:text-accent p-1"><i className="ti ti-edit text-xl"></i></button>
+            <button onClick={() => handleDelete(goal.id)} className="text-muted hover:text-danger p-1"><i className="ti ti-trash text-xl"></i></button>
           </div>
         </div>
 
@@ -136,24 +139,24 @@ export default function Goals() {
             <span className="text-muted">Progress</span>
             <span className="font-bold text-white">{goal.current_progress.toFixed(1)}%</span>
           </div>
-          <div className="w-full bg-[#08121E] rounded-full h-2 overflow-hidden border border-slate-800">
+          <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden border border-white/5">
             <div 
-              className={`h-full transition-all duration-1000 ${isCompleted ? 'bg-[#2ECC71]' : 'bg-[#2ECC71]'}`}
+              className="h-full bg-accent transition-all duration-1000"
               style={{ width: `${Math.min(100, Math.max(0, goal.current_progress))}%` }}
             />
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-sm text-muted border-t border-slate-700/50 pt-4 mt-4">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-muted border-t border-white/10 pt-4 mt-4">
           {goal.target_reduction_percentage && (
             <div className="flex items-center gap-1.5">
-              <i className="ti ti-trending-down text-[#2ECC71]"></i>
+              <i className="ti ti-trending-down text-accent"></i>
               <span className="text-slate-300 font-medium">{goal.target_reduction_percentage}% Target</span>
             </div>
           )}
           {goal.target_date && (
             <div className="flex items-center gap-1.5">
-              <i className="ti ti-calendar text-[#2ECC71]"></i>
+              <i className="ti ti-calendar text-accent"></i>
               <span>{new Date(goal.target_date).toLocaleDateString()}</span>
               {daysRemaining !== null && goal.status === 'active' && (
                 <span className={`ml-1 font-medium ${daysRemaining < 7 ? 'text-orange-400' : 'text-slate-300'}`}>
@@ -163,7 +166,7 @@ export default function Goals() {
             </div>
           )}
         </div>
-      </div>
+      </Card>
     )
   }
 
@@ -174,32 +177,32 @@ export default function Goals() {
           <h1 className="heading-xl text-white m-0">Goals</h1>
           <p className="body text-muted mt-1">Set, track, and crush your sustainability targets.</p>
         </div>
-        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2 self-start md:self-auto">
+        <Button onClick={() => openModal()} variant="primary" className="flex items-center gap-2 self-start md:self-auto">
           <i className="ti ti-plus"></i> New Goal
-        </button>
+        </Button>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-900/20 text-red-400 border border-red-900/50 rounded-xl">
+        <div className="p-4 bg-danger/20 text-danger border border-danger/50 rounded-xl">
           {error}
         </div>
       )}
 
       {loading ? (
         <div className="flex justify-center p-12">
-          <i className="ti ti-loader animate-spin text-4xl text-[#2ECC71]"></i>
+          <i className="ti ti-loader animate-spin text-4xl text-accent"></i>
         </div>
       ) : goals.length === 0 ? (
-        <div className="glass-card text-center p-12 flex flex-col items-center">
-          <i className="ti ti-target text-6xl text-[#2ECC71] mb-6"></i>
+        <Card className="text-center p-12 flex flex-col items-center">
+          <i className="ti ti-target text-6xl text-accent mb-6"></i>
           <h2 className="heading-lg text-white mb-2">No goals set yet</h2>
           <p className="body text-muted max-w-md mb-8">
             Setting goals is the first step towards a greener lifestyle. Challenge yourself to reduce emissions!
           </p>
-          <button onClick={() => openModal()} className="btn-primary">
+          <Button onClick={() => openModal()} variant="primary">
             Set your first sustainability goal
-          </button>
-        </div>
+          </Button>
+        </Card>
       ) : (
         <div className="space-y-8">
           <section>
@@ -234,8 +237,8 @@ export default function Goals() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#08121E]/80 backdrop-blur-sm">
-          <div className="glass-card w-full max-w-lg animate-fade-in relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-primary/80 backdrop-blur-sm">
+          <Card className="w-full max-w-lg animate-fade-in relative max-h-[90vh] overflow-y-auto">
             <button onClick={closeModal} className="absolute top-4 right-4 text-muted hover:text-white">
               <i className="ti ti-x text-2xl"></i>
             </button>
@@ -243,47 +246,58 @@ export default function Goals() {
               {editingId ? 'Edit Goal' : 'Create Goal'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Goal Name *</label>
-                <input
-                  type="text" required value={goalName} onChange={e => setGoalName(e.target.value)}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#2ECC71]"
-                  placeholder="e.g. Reduce Car Usage"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
-                <textarea
-                  value={goalDesc} onChange={e => setGoalDesc(e.target.value)}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#2ECC71] min-h-[80px]"
-                  placeholder="Optional details..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Target Reduction (%) *</label>
-                <input
-                  type="number" min="1" max="100" required value={targetReduction} onChange={e => setTargetReduction(e.target.value ? Number(e.target.value) : '')}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#2ECC71]"
-                  placeholder="e.g. 15"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Target Date</label>
-                <input
-                  type="date" value={targetDate} onChange={e => setTargetDate(e.target.value)}
-                  className="w-full bg-[#08121E] border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#2ECC71] [color-scheme:dark]"
-                />
-              </div>
+              <FormField
+                as="input"
+                fieldId="goalName"
+                label="Goal Name *"
+                type="text"
+                required
+                value={goalName}
+                onChange={e => setGoalName(e.target.value)}
+                placeholder="e.g. Reduce Car Usage"
+              />
+              
+              <FormField
+                as="textarea"
+                fieldId="goalDesc"
+                label="Description"
+                value={goalDesc}
+                onChange={e => setGoalDesc(e.target.value)}
+                placeholder="Optional details..."
+              />
+              
+              <FormField
+                as="input"
+                fieldId="targetReduction"
+                label="Target Reduction (%) *"
+                type="number"
+                min="1"
+                max="100"
+                required
+                value={targetReduction}
+                onChange={e => setTargetReduction(e.target.value ? Number(e.target.value) : '')}
+                placeholder="e.g. 15"
+              />
+              
+              <FormField
+                as="input"
+                fieldId="targetDate"
+                label="Target Date"
+                type="date"
+                value={targetDate}
+                onChange={e => setTargetDate(e.target.value)}
+              />
+              
               <div className="flex gap-4 pt-4">
-                <button type="submit" disabled={isSubmitting} className="btn-primary flex-1">
+                <Button type="submit" variant="primary" disabled={isSubmitting} className="flex-1">
                   {isSubmitting ? 'Saving...' : 'Save Goal'}
-                </button>
-                <button type="button" onClick={closeModal} className="btn-outline flex-1">
+                </Button>
+                <Button type="button" onClick={closeModal} variant="secondary" className="flex-1">
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
-          </div>
+          </Card>
         </div>
       )}
     </div>
