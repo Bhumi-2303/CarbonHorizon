@@ -51,7 +51,7 @@ from app.schemas.auth import (
     RegisterResponse,
     TokenResponse,
 )
-from app.schemas.user import UpdateProfileRequest
+from app.schemas.user import UpdateProfileRequest, validate_age_occupation
 
 
 # ---------------------------------------------------------------------------
@@ -251,6 +251,14 @@ def update_profile(
 
     for field, value in update_data.items():
         setattr(current_user, field, value)
+
+    try:
+        validate_age_occupation(current_user.age, current_user.lifestyle_type)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e),
+        )
 
     db.commit()
     db.refresh(current_user)

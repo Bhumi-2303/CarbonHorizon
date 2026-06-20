@@ -34,7 +34,53 @@ You ONLY answer questions about:
 If the user asks about ANYTHING else (programming, medicine, law, relationships, homework, general trivia, politics, finance unrelated to sustainability), respond EXACTLY with:
 "That falls outside my area of expertise. I'm here to help you understand and reduce your carbon footprint. Is there a sustainability question I can help you with?"
 
-Do not apologize or explain further. Return immediately to sustainability topics."""
+Do not apologize or explain further. Return immediately to sustainability topics.
+IMPORTANT: Do NOT use emojis in your responses. Your responses must be text-only.
+
+CRITICAL INSTRUCTIONS FOR FORMATTING AND DEMOGRAPHICS:
+1. GENDER RELEVANCE: You will be provided with the user's gender. Use this STRICTLY for tone tuning or relevance if applicable, but NEVER let gender gate, restrict, or exclude any recommendations. All recommendations should be available to everyone.
+2. LOCALIZED CONTEXT: Leverage the provided city, state, and country to offer highly localized advice (e.g. referencing local transit systems, regional grid mix, local climate, or water scarcity issues).
+3. FOOTER TAGS: If your advice relies on specific local context, you MUST append a markdown blockquote at the very end of your response exactly formatted like this:
+> **Localized Context:** [City], [State], [Country]
+(If you are only given country, just list the country).
+4. SUMMARY CARDS: When recommending multiple actionable steps, present them as standard markdown unordered lists (bullet points) so the UI can format them as insight cards."""
+
+CHILD_SYSTEM_PROMPT = """You are the Nature Guide for Little Explorers. You are a friendly, encouraging AI helping kids ages 4-12 learn about nature.
+
+You ONLY answer questions about:
+- Helping animals and forests
+- Keeping rivers and oceans clean
+- Saving energy by turning off lights
+- Walking or biking instead of driving
+- Recycling and not wasting food or plastic
+- Exploring nature
+
+If the child asks about ANYTHING else, respond EXACTLY with:
+"I only know about helping nature! Would you like to hear a fun fact about animals or how we can save trees?"
+
+CRITICAL INSTRUCTIONS:
+1. Do NOT use emojis.
+2. Use extremely simple vocabulary.
+3. Tie every tip to a nature outcome (e.g. "Saves the rivers", "Helps the trees grow", "Keeps the air clean for birds").
+4. NEVER use the words: CO2, carbon, emissions, footprint, tons, percentages, kWh, or global warming. Use "pollution" or "waste" instead.
+5. End every response with one small, easy challenge for the child to do today (e.g. "Can you turn off the water while you brush your teeth tonight?")."""
+
+STUDENT_SYSTEM_PROMPT = """You are the Carbon Horizon Student Coach. You are a relatable, encouraging, and budget-conscious AI helping teenagers (ages 13-17) understand their carbon footprint.
+
+You focus on:
+- School/college commutes (bus, bike, carpooling)
+- Dorm or bedroom electricity (laptops, AC, leaving lights on)
+- Food choices (Meatless Mondays, reducing food waste)
+- Sustainable shopping (thrifted clothes, reducing fast fashion)
+- Peer-relevant activism and small daily habits
+
+CRITICAL INSTRUCTIONS:
+1. Do NOT use emojis.
+2. Use a peer-relevant, friendly tone. Avoid dense corporate or enterprise jargon like "Scope 3 emissions", "capital expenditure", or "carbon offsets".
+3. YOU CAN use real numbers, percentages, and terms like "CO2", "emissions", and "kWh" to educate them.
+4. Keep suggestions budget-friendly or free.
+5. Emphasize how small actions make a big collective impact.
+6. End with an actionable question or small goal for the week."""
 
 def get_largest_source(assessment: dict) -> str:
     if not assessment:
@@ -49,9 +95,9 @@ def get_largest_source(assessment: dict) -> str:
 
 def get_coach_context(user, assessment_dict, inputs, goals_context) -> str:
     age_val = user.age_group.value if user and hasattr(user.age_group, 'value') else (user.age_group if user else None)
-    if age_val == 'child':
-        age_str = "Audience: Child. Use simple language. Focus on: school transport, lunch food waste, home electricity habits. Avoid complex carbon finance terms."
-    elif age_val == 'student':
+    if age_val == 'child' or (user and hasattr(user, 'age') and user.age is not None and user.age <= 12):
+        age_str = "Audience: Child (Ages 4-12). Very simple language. Focus on: nature, animals, saving water/electricity."
+    elif age_val == 'student' or (user and hasattr(user, 'age') and user.age is not None and user.age <= 17):
         age_str = "Audience: Student. Focus on: daily commute, hostel electricity, food choices, academic travel. Mention budget-friendly sustainability."
     elif age_val == 'adult':
         age_str = "Audience: Adult. Full scope. Emphasize: home energy, vehicle type, family dietary choices, waste systems, long-term goal setting."
@@ -60,26 +106,45 @@ def get_coach_context(user, assessment_dict, inputs, goals_context) -> str:
     else:
         age_str = "Audience: General."
 
-    country = user.country if user else ""
-    country_lower = country.lower() if country else ""
-    eu_countries = {"germany", "france", "italy", "spain", "netherlands", "belgium", "sweden", "poland", "austria", "ireland", "denmark", "finland", "portugal", "greece", "czech republic"}
+    gender_str = "Unknown"
+    if user:
+        g = getattr(user, 'gender', None)
+        if g:
+            gender_str = str(getattr(g, 'value', g))
+
+    lifestyle_str = "Unknown"
+    if user:
+        ls = getattr(user, 'lifestyle_type', None)
+        if ls:
+            lifestyle_str = str(getattr(ls, 'value', ls))
+
+    city = getattr(inputs, 'assessment_city', '') if inputs else ""
+    if not city and user:
+        city = getattr(user, 'city', '')
+
+    state = getattr(inputs, 'assessment_state', '') if inputs else ""
+    if not state and user:
+        state = getattr(user, 'state_province', '')
+
+    country = getattr(inputs, 'assessment_country', '') if inputs else ""
+    if not country and user:
+        country = getattr(user, 'country', '')
     
-    if "india" in country_lower:
-        loc_str = "Location: India. Mention public transport (metro, buses), solar subsidies, LPG reduction, vegetarian diet advantage."
-    elif country_lower in eu_countries:
-        loc_str = "Location: EU. Mention carbon offset schemes, EV subsidies, district heating."
-    elif country_lower in ["us", "usa", "united states", "america"]:
-        loc_str = "Location: US. Mention EV tax credits, home insulation programs, recycling variability by state."
+    loc_parts = [p for p in [city, state, country] if p and str(p).strip()]
+    if loc_parts:
+        loc_str = f"Location: {', '.join(loc_parts)}. Use this specific geographic context to tailor advice (e.g., local weather, local transit, regional grid)."
     else:
         loc_str = "Location: Global. Provide globally applicable advice."
 
-    diet_type = inputs.diet_type if inputs else "Unknown"
-    transport_mode = inputs.transport_mode if inputs else "Unknown"
+    diet_type = getattr(inputs, 'diet_type', 'Unknown') if inputs else "Unknown"
+    transport_mode = getattr(inputs, 'transport_mode', 'Unknown') if inputs else "Unknown"
     total_emission = assessment_dict.get('total_emission', 0) if assessment_dict else 0
     largest_source = get_largest_source(assessment_dict)
 
     return f"""User context (use this to personalize your response):
 - {age_str}
+- Gender: {gender_str}
+- Occupation/Lifestyle: {lifestyle_str}
 - {loc_str}
 - Latest annual carbon footprint: {total_emission} tons CO₂e
 - Largest emission source: {largest_source}
@@ -113,6 +178,7 @@ def chat(db: Session, user_id: uuid.UUID, conversation_id: Optional[uuid.UUID], 
     user = db.get(User, user_id)
     
     assessment_dict = None
+    inputs = None
     diet_type = "Unknown"
     transport_mode = "Unknown"
     try:
@@ -150,8 +216,18 @@ def chat(db: Session, user_id: uuid.UUID, conversation_id: Optional[uuid.UUID], 
             types.Content(role=role, parts=[types.Part.from_text(text=msg.message)])
         )
 
+    is_child = user and hasattr(user, 'age') and user.age is not None and user.age <= 12
+    is_student = user and hasattr(user, 'age') and user.age is not None and user.age >= 13 and user.age <= 17
+    
+    if is_child:
+        prompt_to_use = CHILD_SYSTEM_PROMPT
+    elif is_student:
+        prompt_to_use = STUDENT_SYSTEM_PROMPT
+    else:
+        prompt_to_use = SYSTEM_PROMPT
+
     config = types.GenerateContentConfig(
-        system_instruction=SYSTEM_PROMPT,
+        system_instruction=prompt_to_use,
     )
 
     context_prompt = (
@@ -182,6 +258,15 @@ def chat(db: Session, user_id: uuid.UUID, conversation_id: Optional[uuid.UUID], 
             chat_session = client.chats.create(model=current_model, config=config, history=gemini_history)
             response = chat_session.send_message(context_prompt)
             ai_text = response.text
+            
+            # Post-processing filter for kids
+            if is_child:
+                bad_terms = ["CO2", "carbon footprint", "emissions", "carbon", "kWh"]
+                for term in bad_terms:
+                    # simple case-insensitive replacement
+                    import re
+                    ai_text = re.sub(f"(?i){term}", "pollution", ai_text)
+
             latency_ms = int((time.time() - start_time) * 1000)
             logger.info(f"AI Coach success. Model: {current_model}, Latency: {latency_ms}ms, Retry count: {attempt}")
             break

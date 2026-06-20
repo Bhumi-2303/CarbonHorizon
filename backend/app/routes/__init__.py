@@ -22,6 +22,7 @@ from app.routes.forecast import router as forecast_router
 from app.routes.goals import router as goals_router
 from app.routes.habits import router as habits_router
 from app.routes.coach import router as coach_router
+from app.routes.progression import router as progression_router
 
 api_router = APIRouter()
 
@@ -33,3 +34,4 @@ api_router.include_router(forecast_router,   prefix="/forecast",    tags=["Forec
 api_router.include_router(goals_router,      prefix="/goals",       tags=["Goals"])
 api_router.include_router(habits_router,     prefix="/habits",      tags=["Habits"])
 api_router.include_router(coach_router,      prefix="/coach",       tags=["Coach"])
+api_router.include_router(progression_router,prefix="/progression", tags=["Progression"])

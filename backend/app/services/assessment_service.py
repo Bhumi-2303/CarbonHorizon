@@ -36,6 +36,11 @@ def _map_to_dict(assessment: CarbonAssessment) -> dict:
         "energy": assessment.energy_emission,
         "food": assessment.food_emission,
         "waste": assessment.waste_emission,
+        "housing": assessment.housing_emission or 0.0,
+        "water": assessment.water_emission or 0.0,
+        "digital": assessment.digital_emission or 0.0,
+        "shopping": assessment.shopping_emission or 0.0,
+        "offsets": assessment.offsets_total or 0.0,
         "carbon_score": assessment.carbon_score,
         "assessment_period": assessment.assessment_period,
         "created_at": assessment.created_at,
@@ -67,6 +72,11 @@ class AssessmentService:
             energy_emission=results["energy_emission"],
             food_emission=results["food_emission"],
             waste_emission=results["waste_emission"],
+            housing_emission=results.get("housing_emission", 0.0),
+            water_emission=results.get("water_emission", 0.0),
+            digital_emission=results.get("digital_emission", 0.0),
+            shopping_emission=results.get("shopping_emission", 0.0),
+            offsets_total=results.get("offsets_total", 0.0),
             total_emission=results["total_emission"],
             carbon_score=results["carbon_score"],
             calculation_version=results["calculation_version"],
@@ -88,7 +98,51 @@ class AssessmentService:
             diet_type=_get_val(inputs, "diet_type"),
             recycling_score=_get_val(inputs, "recycling_score"),
             plastic_usage_score=_get_val(inputs, "plastic_usage_score"),
-            household_size=_get_val(inputs, "household_size")
+            household_size=_get_val(inputs, "household_size"),
+
+            vehicle_type=_get_val(inputs, "vehicle_type"),
+            fuel_type=_get_val(inputs, "fuel_type"),
+            trips_per_week=_get_val(inputs, "trips_per_week"),
+            public_transport_usage=_get_val(inputs, "public_transport_usage"),
+            carpooling_frequency=_get_val(inputs, "carpooling_frequency"),
+            air_travel_frequency=_get_val(inputs, "air_travel_frequency"),
+            train_travel_frequency=_get_val(inputs, "train_travel_frequency"),
+            walking_cycling_hours=_get_val(inputs, "walking_cycling_hours"),
+
+            energy_efficiency_rating=_get_val(inputs, "energy_efficiency_rating"),
+            heating_type=_get_val(inputs, "heating_type"),
+
+            local_food_frequency=_get_val(inputs, "local_food_frequency"),
+            food_waste_percentage=_get_val(inputs, "food_waste_percentage"),
+            composting_frequency=_get_val(inputs, "composting_frequency"),
+            ewaste_disposal_method=_get_val(inputs, "ewaste_disposal_method"),
+
+            daily_water_liters=_get_val(inputs, "daily_water_liters"),
+            shower_duration_minutes=_get_val(inputs, "shower_duration_minutes"),
+            water_heating_type=_get_val(inputs, "water_heating_type"),
+
+            house_size_sqm=_get_val(inputs, "house_size_sqm"),
+            home_insulation_level=_get_val(inputs, "home_insulation_level"),
+
+            screen_time_hours=_get_val(inputs, "screen_time_hours"),
+            streaming_hours=_get_val(inputs, "streaming_hours"),
+            gaming_hours=_get_val(inputs, "gaming_hours"),
+
+            new_clothes_monthly=_get_val(inputs, "new_clothes_monthly"),
+            second_hand_purchases=_get_val(inputs, "second_hand_purchases"),
+            electronics_purchases_yearly=_get_val(inputs, "electronics_purchases_yearly"),
+
+            commute_days_per_week=_get_val(inputs, "commute_days_per_week"),
+            remote_work_percentage=_get_val(inputs, "remote_work_percentage"),
+
+            assessment_country=_get_val(inputs, "assessment_country"),
+            assessment_state=_get_val(inputs, "assessment_state"),
+            assessment_city=_get_val(inputs, "assessment_city"),
+
+            composting_active=_get_val(inputs, "composting_active"),
+            tree_planting_count=_get_val(inputs, "tree_planting_count"),
+            reusable_products_usage=_get_val(inputs, "reusable_products_usage"),
+            green_transport_choices=_get_val(inputs, "green_transport_choices")
         )
         db.add(inputs_record)
         db.commit()

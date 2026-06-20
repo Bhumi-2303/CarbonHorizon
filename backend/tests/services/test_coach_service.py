@@ -31,6 +31,7 @@ def test_chat_with_coach(client, db, auth_headers, mock_gemini):
     }
     
     resp = client.post("/api/v1/coach/chat", json=payload, headers=auth_headers)
+    print(resp.json())
     assert resp.status_code == 200
     data = resp.json()["data"]
     

@@ -25,6 +25,16 @@ TRANSPORT_FALLBACK_FACTORS = {
     "bicycle": 0.00,       # kg CO₂e / km
 }
 
+COUNTRY_GRID_FACTORS = {
+    "India": 0.70,
+    "United States": 0.38,
+    "United Kingdom": 0.23,
+    "Germany": 0.35,
+    "France": 0.06,
+    "Australia": 0.65,
+    "Canada": 0.12,
+}
+
 
 def _get_val(obj, key, default=None):
     """
@@ -92,7 +102,16 @@ def calculate_transport(
 
     fallback = TRANSPORT_FALLBACK_FACTORS.get(mode_str, 0.10)
     factor_val = _get_factor(db, "transport", mode_str, fallback, version_tracker)
-    return float(distance_km * factor_val)
+    
+    base_emission = float(distance_km * factor_val)
+    
+    # Extensions (optional)
+    inp = version_tracker.get("_inp", {}) if version_tracker else {}
+    trips_per_week = _get_val(inp, "trips_per_week")
+    if trips_per_week:
+        base_emission *= max(1, trips_per_week / 5.0) # Scaling factor based on 5 commute days
+        
+    return base_emission
 
 
 def calculate_energy(
@@ -112,7 +131,14 @@ def calculate_energy(
     lpg = max(0.0, lpg_usage) if lpg_usage is not None else 0.0
     solar = bool(solar_usage)
 
-    electricity_factor = _get_factor(db, "energy", "electricity", 0.50, version_tracker)
+    electricity_factor = 0.50
+    # Geographic check
+    inp = version_tracker.get("_inp", {}) if version_tracker else {}
+    country = _get_val(inp, "assessment_country")
+    if country and country in COUNTRY_GRID_FACTORS:
+        electricity_factor = COUNTRY_GRID_FACTORS[country]
+        
+    electricity_factor = _get_factor(db, "energy", "electricity", electricity_factor, version_tracker)
     ac_factor = _get_factor(db, "energy", "ac", 0.80, version_tracker)
     lpg_factor = _get_factor(db, "energy", "lpg", 3.00, version_tracker)
 
@@ -191,6 +217,39 @@ def calculate_waste(
     waste_emissions = (p_score * plastic_factor) - (r_score * recycling_factor)
     return float(max(0.0, waste_emissions))
 
+def calculate_housing(inp: dict) -> float:
+    sqm = _get_val(inp, "house_size_sqm") or 0.0
+    # Average 0.5 kg CO2 per sqm per month
+    return float(sqm * 0.5)
+
+def calculate_water(inp: dict) -> float:
+    liters = _get_val(inp, "daily_water_liters") or 0.0
+    # Energy to treat/pump water: 0.001 kg per liter per day -> * 30 for monthly
+    return float((liters * 0.001) * 30.0)
+
+def calculate_digital(inp: dict) -> float:
+    screen = _get_val(inp, "screen_time_hours") or 0.0
+    stream = _get_val(inp, "streaming_hours") or 0.0
+    gaming = _get_val(inp, "gaming_hours") or 0.0
+    # Rough estimate: streaming/gaming takes more bandwidth/server energy (~0.05 kg/hr)
+    return float((screen * 0.01 + stream * 0.05 + gaming * 0.08) * 30.0)
+
+def calculate_shopping(inp: dict) -> float:
+    clothes = _get_val(inp, "new_clothes_monthly") or 0
+    electronics = _get_val(inp, "electronics_purchases_yearly") or 0
+    # Fast fashion avg 10 kg per item, electronics 50 kg per item (divided by 12 for monthly)
+    return float((clothes * 10.0) + (electronics * 50.0 / 12.0))
+
+def calculate_offsets(inp: dict) -> float:
+    total_offset = 0.0
+    if _get_val(inp, "composting_active"):
+        total_offset += 15.0 # saves 15 kg/mo
+    trees = _get_val(inp, "tree_planting_count") or 0
+    total_offset += trees * 2.0 # 2 kg per tree per month 
+    if _get_val(inp, "green_transport_choices"):
+        total_offset += 10.0
+    return float(total_offset)
+
 
 def calculate_total_emissions(
     db: Session | None,
@@ -222,8 +281,8 @@ def calculate_total_emissions(
     household_size = _get_val(inp, "household_size")
     assessment_period = _get_val(inp, "assessment_period", "monthly")
 
-    # Tracking factors database version
-    version_tracker = {"factor_version": DEFAULT_FACTOR_VERSION}
+    # Tracking factors database version + passing inputs to extensions
+    version_tracker = {"factor_version": DEFAULT_FACTOR_VERSION, "_inp": inp}
 
     # Calculations
     transport_emission = calculate_transport(
@@ -257,9 +316,17 @@ def calculate_total_emissions(
         version_tracker=version_tracker
     )
 
-    total_emission = float(
+    housing_emission = calculate_housing(inp)
+    water_emission = calculate_water(inp)
+    digital_emission = calculate_digital(inp)
+    shopping_emission = calculate_shopping(inp)
+    offsets_total = calculate_offsets(inp)
+
+    raw_total = (
         transport_emission + energy_emission + food_emission + waste_emission
+        + housing_emission + water_emission + digital_emission + shopping_emission
     )
+    total_emission = float(max(0.0, raw_total - offsets_total))
 
     # Score calculation
     normalized_impact = (total_emission / BASELINE_MONTHLY_EMISSION) * 100.0
@@ -271,6 +338,11 @@ def calculate_total_emissions(
         "energy_emission": energy_emission,
         "food_emission": food_emission,
         "waste_emission": waste_emission,
+        "housing_emission": housing_emission,
+        "water_emission": water_emission,
+        "digital_emission": digital_emission,
+        "shopping_emission": shopping_emission,
+        "offsets_total": offsets_total,
         "total_emission": total_emission,
         "carbon_score": carbon_score,
         "calculation_version": CALCULATION_VERSION,
