@@ -16,7 +16,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.mixins import TimestampMixin, SoftDeleteMixin
-from app.models.enums import AgeGroup, LifestyleType
+from app.models.enums import AgeGroup, LifestyleType, Gender
 
 
 class User(Base, TimestampMixin, SoftDeleteMixin):
@@ -44,8 +44,13 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
     lifestyle_type: Mapped[LifestyleType | None] = mapped_column(
         String(20), nullable=True
     )
-    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    age: Mapped[int | None] = mapped_column(nullable=True)
+    gender: Mapped[Gender | None] = mapped_column(
+        String(20), nullable=True
+    )
     country: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    state_province: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Auth state
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

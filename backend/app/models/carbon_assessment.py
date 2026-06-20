@@ -35,6 +35,11 @@ class CarbonAssessment(Base, TimestampMixin):
     energy_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
     food_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
     waste_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
+    housing_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
+    water_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
+    digital_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
+    shopping_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
+    offsets_total: Mapped[float | None] = mapped_column(Float, nullable=True)
     total_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Score and versioning

@@ -16,7 +16,18 @@ class LifestyleType(str, enum.Enum):
     student = "student"
     professional = "professional"
     homemaker = "homemaker"
+    house_helper = "house_helper"
     retired = "retired"
+    self_employed = "self_employed"
+    business_owner = "business_owner"
+    consultant = "consultant"
+
+
+class Gender(str, enum.Enum):
+    male = "Male"
+    female = "Female"
+    non_binary = "Non-Binary"
+    prefer_not_to_say = "Prefer Not to Say"
 
 
 class Theme(str, enum.Enum):
@@ -74,3 +85,11 @@ class HabitType(str, enum.Enum):
 class ConversationRole(str, enum.Enum):
     user = "user"
     assistant = "assistant"
+
+
+class UserLevel(str, enum.Enum):
+    seedling = "Seedling"
+    green_explorer = "Green Explorer"
+    earth_guardian = "Earth Guardian"
+    climate_champion = "Climate Champion"
+    planet_protector = "Planet Protector"
