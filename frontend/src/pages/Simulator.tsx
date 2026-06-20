@@ -74,7 +74,7 @@ function ToggleCard({
       className={`rounded-2xl border transition-all duration-200 overflow-hidden
         ${active
           ? 'border-earth-green/50 bg-earth-green/8 shadow-lg shadow-emerald-500/10'
-          : 'border-slate-700/50 bg-deep-ocean/40 hover:border-slate-600'
+          : 'border-slate-700/50 bg-white/5 hover:border-slate-600'
         }`}
     >
       <button
@@ -85,15 +85,15 @@ function ToggleCard({
       >
         <span className="flex-shrink-0" aria-hidden="true">{icon}</span>
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-semibold ${active ? 'text-emerald-300' : 'text-slate-200'}`}>
+          <p className={`text-sm font-semibold ${active ? 'text-emerald-300' : 'text-primary'}`}>
             {title}
           </p>
           <p className="text-xs text-muted mt-0.5 truncate">{subtitle}</p>
         </div>
         {/* Toggle pill */}
         <div className={`flex-shrink-0 w-9 h-5 rounded-full transition-colors duration-200 relative
-          ${active ? 'bg-earth-green' : 'bg-slate-700'}`}>
-          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-deep-ocean shadow transition-all duration-200
+          ${active ? 'bg-earth-green' : 'border-white/20'}`}>
+          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-bg-secondary shadow transition-all duration-200
             ${active ? 'left-[18px]' : 'left-0.5'}`} />
         </div>
       </button>
@@ -135,7 +135,7 @@ function SliderRow({
         step={step}
         value={value}
         onChange={e => onChange(Number(e.target.value))}
-        className="w-full h-1.5 bg-slate-700 rounded-full appearance-none cursor-pointer
+        className="w-full h-1.5 border-white/20 rounded-full appearance-none cursor-pointer
           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4
           [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full
           [&::-webkit-slider-thumb]:bg-earth-green [&::-webkit-slider-thumb]:cursor-pointer"
@@ -148,8 +148,8 @@ function SliderRow({
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-deep-ocean border border-slate-700 rounded-xl p-3 text-xs shadow-xl">
-      <p className="font-semibold text-slate-300 mb-2">{label}</p>
+    <div className="bg-bg-secondary border border-slate-700 rounded-xl p-3 text-xs shadow-xl">
+      <p className="font-semibold text-muted mb-2">{label}</p>
       {payload.map((p: any) => (
         <p key={p.name} className="flex justify-between gap-4" style={{ color: p.color }}>
           <span>{p.name}</span>
@@ -164,7 +164,7 @@ function CustomTooltip({ active, payload, label }: any) {
 function ResultsPlaceholder() {
   return (
     <div className="flex flex-col items-center justify-center h-64 gap-4 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-deep-ocean/60 border border-slate-700/50
+      <div className="w-16 h-16 rounded-2xl glass-panel border border-slate-700/50
         flex items-center justify-center">
         <svg className="w-8 h-8 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2}
@@ -423,7 +423,7 @@ export default function Simulator() {
   const annualSaved = result ? result.carbon_saved * 12 : 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-bg-primary p-4 sm:p-6 lg:p-8">
       {/* Background orbs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-earth-green/5 blur-3xl" />
@@ -437,7 +437,7 @@ export default function Simulator() {
           <div>
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-1.5 text-xs text-muted hover:text-slate-300 mb-3 transition-colors"
+              className="flex items-center gap-1.5 text-xs text-muted hover:text-muted mb-3 transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -453,7 +453,7 @@ export default function Simulator() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-100">What-If Simulator</h1>
+                <h1 className="text-xl font-bold text-primary">What-If Simulator</h1>
                 <p className="text-sm text-muted">
                   {baseline
                     ? `Baseline: ${baseline.total_emission.toFixed(1)} kg CO₂e / month`
@@ -469,7 +469,7 @@ export default function Simulator() {
             id="view-history-btn"
             onClick={() => navigate('/simulator/history')}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
-              text-slate-300 border border-slate-700 hover:border-slate-500 hover:text-white
+              text-muted border border-slate-700 hover:border-slate-500 hover:text-primary
               transition-all duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -485,8 +485,8 @@ export default function Simulator() {
 
           {/* ════════════════════ LEFT — Scenario Builder ════════════════════ */}
           <div className="space-y-4">
-            <div className="bg-deep-ocean/50 border border-slate-700/50 rounded-2xl p-5">
-              <h2 className="text-base font-semibold text-slate-100 mb-1">Scenario Builder</h2>
+            <div className="glass-panel border border-slate-700/50 rounded-2xl p-5">
+              <h2 className="text-base font-semibold text-primary mb-1">Scenario Builder</h2>
               <p className="text-xs text-muted mb-5">
                 Toggle changes and tune the knobs, then run the simulation.
               </p>
@@ -500,10 +500,10 @@ export default function Simulator() {
                   value={scenarioName}
                   onChange={e => setScenarioName(e.target.value)}
                   placeholder="e.g. Switch to public transport"
-                  className="w-full bg-deep-ocean/60 border border-slate-700 rounded-xl px-3 py-2
-                    text-sm text-slate-100 placeholder-slate-600
-                    focus:outline-none focus:ring-1 focus:ring-earth-green/60 focus:border-earth-green/60
-                    transition-colors"
+                  className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2
+                    text-sm text-primary placeholder-muted
+                    focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent
+                    transition-all duration-200"
                 />
               </div>
 
@@ -529,7 +529,7 @@ export default function Simulator() {
                           transition-all duration-150 border
                           ${sc.newMode === opt.value
                             ? 'bg-earth-green/20 border-earth-green/50 text-emerald-300'
-                            : 'bg-deep-ocean/60 border-slate-700 text-muted hover:border-slate-500'
+                            : 'glass-panel border-slate-700 text-muted hover:border-slate-500'
                           }`}
                       >
                         {opt.icon}
@@ -576,7 +576,7 @@ export default function Simulator() {
                       border transition-all duration-150
                       ${sc.reducedAc
                         ? 'bg-earth-green/20 border-earth-green/40 text-emerald-300'
-                        : 'bg-deep-ocean border-slate-700 text-muted hover:border-slate-500'
+                        : 'bg-bg-secondary border-slate-700 text-muted hover:border-slate-500'
                       }`}
                   >
                     <Snowflake className="w-4 h-4 inline-block mr-1 text-earth-green" aria-hidden="true" /> No AC
@@ -589,7 +589,7 @@ export default function Simulator() {
                       border transition-all duration-150
                       ${sc.solarAdoption
                         ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                        : 'bg-deep-ocean border-slate-700 text-muted hover:border-slate-500'
+                        : 'bg-bg-secondary border-slate-700 text-muted hover:border-slate-500'
                       }`}
                   >
                     <Sun className="w-4 h-4 inline-block mr-1 text-earth-green" aria-hidden="true" /> Solar panels
@@ -619,7 +619,7 @@ export default function Simulator() {
                         border transition-all duration-150
                         ${sc.newDietType === opt.value
                           ? 'bg-earth-green/20 border-earth-green/50 text-emerald-300'
-                          : 'bg-deep-ocean/60 border-slate-700 text-muted hover:border-slate-500'
+                          : 'glass-panel border-slate-700 text-muted hover:border-slate-500'
                         }`}
                     >
                       {opt.icon}
@@ -664,7 +664,7 @@ export default function Simulator() {
                 disabled={!anyActive || running}
                 onClick={handleRun}
                 className="mt-5 w-full flex items-center justify-center gap-2 py-3 rounded-xl
-                  text-sm font-semibold text-white transition-all duration-200
+                  text-sm font-semibold text-primary transition-all duration-200
                   disabled:opacity-40 disabled:cursor-not-allowed
                   bg-gradient-to-r from-emerald-500 to-emerald-600
                   hover:from-emerald-400 hover:to-emerald-500
@@ -694,9 +694,9 @@ export default function Simulator() {
 
           {/* ════════════════════ RIGHT — Results Panel ════════════════════ */}
           <div className="space-y-4">
-            <div className="bg-deep-ocean/50 border border-slate-700/50 rounded-2xl p-5">
+            <div className="glass-panel border border-slate-700/50 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-1">
-                <h2 className="text-base font-semibold text-slate-100">Simulation Results</h2>
+                <h2 className="text-base font-semibold text-primary">Simulation Results</h2>
                 {result && (
                   <span className="text-xs text-muted">{result.scenario_name}</span>
                 )}
@@ -713,9 +713,9 @@ export default function Simulator() {
                   {/* ── Headline stats ── */}
                   <div className="grid grid-cols-2 gap-3">
                     {/* Current */}
-                    <div className="bg-deep-ocean/50 border border-slate-700/50 rounded-xl p-4 text-center">
+                    <div className="glass-panel border border-slate-700/50 rounded-xl p-4 text-center">
                       <p className="text-xs text-muted mb-1">Current</p>
-                      <p className="text-2xl font-bold text-slate-100 tabular-nums">
+                      <p className="text-2xl font-bold text-primary tabular-nums">
                         {result.current_emission.toFixed(1)}
                       </p>
                       <p className="text-xs text-muted">kg CO₂e / mo</p>
@@ -732,7 +732,7 @@ export default function Simulator() {
 
                   {/* ── Reduction badges ── */}
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-deep-ocean/50 border border-slate-700/40 rounded-xl p-3 text-center">
+                    <div className="glass-panel border border-slate-700/40 rounded-xl p-3 text-center">
                       <p className={`text-xl font-bold tabular-nums ${col?.text}`}>
                         {result.carbon_saved >= 0 ? '−' : '+'}
                         {Math.abs(result.carbon_saved).toFixed(1)}
@@ -746,7 +746,7 @@ export default function Simulator() {
                       </p>
                       <p className="text-xs text-muted mt-0.5">reduction</p>
                     </div>
-                    <div className="bg-deep-ocean/50 border border-slate-700/40 rounded-xl p-3 text-center">
+                    <div className="glass-panel border border-slate-700/40 rounded-xl p-3 text-center">
                       <p className="text-xl font-bold tabular-nums text-earth-green">
                         {annualSaved >= 0 ? '−' : '+'}
                         {Math.abs(annualSaved).toFixed(0)}
@@ -811,12 +811,12 @@ export default function Simulator() {
                           <div
                             key={key}
                             className="flex items-center justify-between text-xs py-1.5 px-3
-                              bg-deep-ocean/50 border border-slate-700/40 rounded-lg"
+                              glass-panel border border-slate-700/40 rounded-lg"
                           >
                             <span className="text-muted capitalize">
                               {key.replace(/_/g, ' ')}
                             </span>
-                            <span className="text-slate-300 font-medium">{val}</span>
+                            <span className="text-muted font-medium">{val}</span>
                           </div>
                         ))}
                       </div>
@@ -856,7 +856,7 @@ export default function Simulator() {
                       type="button"
                       onClick={() => navigate('/simulator/history')}
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
-                        text-muted border border-slate-700 hover:border-slate-500 hover:text-slate-200
+                        text-muted border border-slate-700 hover:border-slate-500 hover:text-primary
                         transition-all duration-200"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

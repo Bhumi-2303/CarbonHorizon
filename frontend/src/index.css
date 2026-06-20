@@ -51,6 +51,34 @@
   --glass-shadow:            0 8px 32px rgba(0, 0, 0, 0.05);
 }
 
+/* ── Light Mode Form Inputs ── */
+.light input,
+.light select,
+.light textarea {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  color: var(--color-text-primary) !important;
+}
+.light input:focus,
+.light select:focus,
+.light textarea:focus {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+  border-color: var(--color-accent) !important;
+}
+.light input::placeholder,
+.light textarea::placeholder {
+  color: var(--color-text-muted) !important;
+}
+/* Light mode autofill */
+.light input:-webkit-autofill,
+.light input:-webkit-autofill:hover,
+.light input:-webkit-autofill:focus,
+.light textarea:-webkit-autofill,
+.light select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #F1F5F9 inset !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+}
+
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
   html { font-family: var(--font-body); -webkit-font-smoothing: antialiased; }

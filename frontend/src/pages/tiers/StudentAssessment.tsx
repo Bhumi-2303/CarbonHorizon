@@ -77,7 +77,7 @@ export default function StudentAssessment() {
     <div className="flex flex-col items-center justify-center min-h-[70vh] max-w-2xl mx-auto px-4">
       
       {/* Progress Bar */}
-      <div className="w-full bg-slate-800 rounded-full h-2 mb-8 overflow-hidden">
+      <div className="w-full bg-white/10 rounded-full h-2 mb-8 overflow-hidden">
         <div 
           className="bg-emerald-400 h-full transition-all duration-500"
           style={{ width: `${(step / 4) * 100}%` }}
@@ -88,7 +88,7 @@ export default function StudentAssessment() {
         
         {step === 1 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-white mb-2">How do you get to school or college?</h2>
+            <h2 className="text-2xl font-bold text-primary mb-2">How do you get to school or college?</h2>
             <p className="text-slate-400 mb-6">Transportation makes up a huge part of a student's carbon footprint.</p>
             
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -110,8 +110,8 @@ export default function StudentAssessment() {
             </div>
 
             {(answers.commute === 'car' || answers.commute === 'bus' || answers.commute === 'bicycle') && (
-              <div className="space-y-4 bg-slate-800/30 p-6 rounded-2xl border border-slate-700/50">
-                <label className="text-white font-medium block">Round trip distance (km)</label>
+              <div className="space-y-4 bg-white/10/30 p-6 rounded-2xl border border-slate-700/50">
+                <label className="text-primary font-medium block">Round trip distance (km)</label>
                 <input 
                   type="range" 
                   min="1" max="50" 
@@ -127,24 +127,24 @@ export default function StudentAssessment() {
 
         {step === 2 && (
           <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Dorm & Bedroom Energy</h2>
+            <h2 className="text-2xl font-bold text-primary mb-2">Dorm & Bedroom Energy</h2>
             <p className="text-slate-400 mb-6">Laptops, gaming consoles, and AC units use more energy than you think.</p>
             
             <div className="space-y-4">
-              <label className="text-white font-medium flex items-center gap-2"><Monitor className="w-5 h-5 text-sky-400"/> Daily Electronics & Light Usage</label>
-              <div className="flex bg-slate-800 rounded-xl p-1 border border-slate-700">
-                <button onClick={() => setAnswers(prev => ({...prev, electronics: 'low'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.electronics === 'low' ? 'bg-sky-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}>Low (Mostly offline)</button>
-                <button onClick={() => setAnswers(prev => ({...prev, electronics: 'medium'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.electronics === 'medium' ? 'bg-sky-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}>Medium (Average)</button>
-                <button onClick={() => setAnswers(prev => ({...prev, electronics: 'high'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.electronics === 'high' ? 'bg-sky-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}>High (Always plugged in)</button>
+              <label className="text-primary font-medium flex items-center gap-2"><Monitor className="w-5 h-5 text-sky-400"/> Daily Electronics & Light Usage</label>
+              <div className="flex bg-white/10 rounded-xl p-1 border border-slate-700">
+                <button onClick={() => setAnswers(prev => ({...prev, electronics: 'low'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.electronics === 'low' ? 'bg-sky-500 text-primary shadow-lg' : 'text-slate-400 hover:text-primary'}`}>Low (Mostly offline)</button>
+                <button onClick={() => setAnswers(prev => ({...prev, electronics: 'medium'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.electronics === 'medium' ? 'bg-sky-500 text-primary shadow-lg' : 'text-slate-400 hover:text-primary'}`}>Medium (Average)</button>
+                <button onClick={() => setAnswers(prev => ({...prev, electronics: 'high'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.electronics === 'high' ? 'bg-sky-500 text-primary shadow-lg' : 'text-slate-400 hover:text-primary'}`}>High (Always plugged in)</button>
               </div>
             </div>
 
             <div className="space-y-4">
-              <label className="text-white font-medium flex items-center gap-2"><Snowflake className="w-5 h-5 text-sky-400"/> Air Conditioning / Heating</label>
-              <div className="flex bg-slate-800 rounded-xl p-1 border border-slate-700">
-                <button onClick={() => setAnswers(prev => ({...prev, ac: 'rarely'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.ac === 'rarely' ? 'bg-sky-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}>Rarely</button>
-                <button onClick={() => setAnswers(prev => ({...prev, ac: 'sometimes'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.ac === 'sometimes' ? 'bg-sky-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}>A few hours</button>
-                <button onClick={() => setAnswers(prev => ({...prev, ac: 'frequently'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.ac === 'frequently' ? 'bg-sky-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}>Most of the day</button>
+              <label className="text-primary font-medium flex items-center gap-2"><Snowflake className="w-5 h-5 text-sky-400"/> Air Conditioning / Heating</label>
+              <div className="flex bg-white/10 rounded-xl p-1 border border-slate-700">
+                <button onClick={() => setAnswers(prev => ({...prev, ac: 'rarely'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.ac === 'rarely' ? 'bg-sky-500 text-primary shadow-lg' : 'text-slate-400 hover:text-primary'}`}>Rarely</button>
+                <button onClick={() => setAnswers(prev => ({...prev, ac: 'sometimes'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.ac === 'sometimes' ? 'bg-sky-500 text-primary shadow-lg' : 'text-slate-400 hover:text-primary'}`}>A few hours</button>
+                <button onClick={() => setAnswers(prev => ({...prev, ac: 'frequently'}))} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${answers.ac === 'frequently' ? 'bg-sky-500 text-primary shadow-lg' : 'text-slate-400 hover:text-primary'}`}>Most of the day</button>
               </div>
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function StudentAssessment() {
 
         {step === 3 && (
           <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Food & Diet</h2>
+            <h2 className="text-2xl font-bold text-primary mb-2">Food & Diet</h2>
             <p className="text-slate-400 mb-6">Meat and dairy production create significant greenhouse gases.</p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -176,26 +176,26 @@ export default function StudentAssessment() {
 
         {step === 4 && (
           <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Waste & Recycling</h2>
+            <h2 className="text-2xl font-bold text-primary mb-2">Waste & Recycling</h2>
             <p className="text-slate-400 mb-6">How often do you use reusable bottles and recycle paper/plastics?</p>
             
             <div className="space-y-4">
               <div className="flex flex-col gap-3">
-                <button onClick={() => setAnswers(prev => ({...prev, waste: 'great'}))} className={`p-4 rounded-xl border text-left flex items-center gap-4 transition-all ${answers.waste === 'great' ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400' : 'border-slate-700 text-slate-300 hover:border-slate-500 hover:bg-white/5'}`}>
+                <button onClick={() => setAnswers(prev => ({...prev, waste: 'great'}))} className={`p-4 rounded-xl border text-left flex items-center gap-4 transition-all ${answers.waste === 'great' ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400' : 'border-slate-700 text-muted hover:border-slate-500 hover:bg-white/5'}`}>
                   <Recycle className="w-6 h-6 flex-shrink-0" />
                   <div>
                     <div className="font-bold">Always</div>
                     <div className="text-sm opacity-70">I always use a reusable bottle and recycle my notes.</div>
                   </div>
                 </button>
-                <button onClick={() => setAnswers(prev => ({...prev, waste: 'some'}))} className={`p-4 rounded-xl border text-left flex items-center gap-4 transition-all ${answers.waste === 'some' ? 'border-amber-400 bg-amber-400/10 text-amber-400' : 'border-slate-700 text-slate-300 hover:border-slate-500 hover:bg-white/5'}`}>
+                <button onClick={() => setAnswers(prev => ({...prev, waste: 'some'}))} className={`p-4 rounded-xl border text-left flex items-center gap-4 transition-all ${answers.waste === 'some' ? 'border-amber-400 bg-amber-400/10 text-amber-400' : 'border-slate-700 text-muted hover:border-slate-500 hover:bg-white/5'}`}>
                   <Lightbulb className="w-6 h-6 flex-shrink-0" />
                   <div>
                     <div className="font-bold">Sometimes</div>
                     <div className="text-sm opacity-70">I try my best, but sometimes I forget.</div>
                   </div>
                 </button>
-                <button onClick={() => setAnswers(prev => ({...prev, waste: 'poor'}))} className={`p-4 rounded-xl border text-left flex items-center gap-4 transition-all ${answers.waste === 'poor' ? 'border-rose-400 bg-rose-400/10 text-rose-400' : 'border-slate-700 text-slate-300 hover:border-slate-500 hover:bg-white/5'}`}>
+                <button onClick={() => setAnswers(prev => ({...prev, waste: 'poor'}))} className={`p-4 rounded-xl border text-left flex items-center gap-4 transition-all ${answers.waste === 'poor' ? 'border-rose-400 bg-rose-400/10 text-rose-400' : 'border-slate-700 text-muted hover:border-slate-500 hover:bg-white/5'}`}>
                   <Trash2 className="w-6 h-6 flex-shrink-0" />
                   <div>
                     <div className="font-bold">Rarely</div>
@@ -210,7 +210,7 @@ export default function StudentAssessment() {
         {/* Navigation */}
         <div className="flex justify-between mt-10 pt-6 border-t border-slate-700/50">
           {step > 1 ? (
-            <button onClick={prevStep} className="px-6 py-2 text-slate-400 hover:text-white font-bold transition-colors">
+            <button onClick={prevStep} className="px-6 py-2 text-slate-400 hover:text-primary font-bold transition-colors">
               Back
             </button>
           ) : <div></div>}

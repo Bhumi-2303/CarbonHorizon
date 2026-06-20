@@ -56,15 +56,15 @@ const OrganizationPage = () => {
       <h1 className="text-3xl font-bold mb-8 text-gray-800">Organization Profile</h1>
       
       {!org ? (
-        <div className="bg-deep-ocean p-8 rounded-xl shadow-sm border border-gray-100 text-center">
+        <div className="bg-bg-secondary p-8 rounded-xl shadow-sm border border-gray-100 text-center">
           <h2 className="text-xl font-semibold text-gray-700 mb-2">No Organization Found</h2>
           <p className="text-gray-500 mb-6">You are not currently associated with an organization.</p>
-          <button className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+          <button className="bg-teal-600 hover:bg-teal-700 text-primary px-6 py-2 rounded-lg font-medium transition-colors">
             Create Organization
           </button>
         </div>
       ) : (
-        <div className="bg-deep-ocean p-8 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-bg-secondary p-8 rounded-xl shadow-sm border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Company Name</h3>

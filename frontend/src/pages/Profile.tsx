@@ -210,7 +210,7 @@ export default function Profile() {
           <span className="text-3xl font-bold text-bg-primary">{initials}</span>
         </div>
         <div className="z-10">
-          <h1 className="heading-lg text-white mb-1">{profile.full_name}</h1>
+          <h1 className="heading-lg text-primary mb-1">{profile.full_name}</h1>
           <p className="text-muted mb-2">{profile.email}</p>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-bg-primary border border-white/10 text-xs text-muted font-medium">
             <i className="ti ti-calendar"></i>
@@ -227,11 +227,11 @@ export default function Profile() {
         </Card>
         <Card className="text-center py-8">
           <p className="text-xs text-muted uppercase font-medium mb-2 tracking-wider">Assessments</p>
-          <p className="text-4xl font-[Montserrat] font-bold text-slate-200">{totalAssessments}</p>
+          <p className="text-4xl font-[Montserrat] font-bold text-primary">{totalAssessments}</p>
         </Card>
         <Card className="text-center py-8">
           <p className="text-xs text-muted uppercase font-medium mb-2 tracking-wider">Active Goals</p>
-          <p className="text-4xl font-[Montserrat] font-bold text-slate-200">{activeGoals}</p>
+          <p className="text-4xl font-[Montserrat] font-bold text-primary">{activeGoals}</p>
         </Card>
       </div>
 
@@ -239,7 +239,7 @@ export default function Profile() {
         
         {/* 3. Edit Profile Form */}
         <Card>
-          <h2 className="heading-md text-white mb-6 flex items-center gap-2">
+          <h2 className="heading-md text-primary mb-6 flex items-center gap-2">
             <i className="ti ti-user-edit text-accent"></i> Personal Details
           </h2>
           <form onSubmit={handleProfileSubmit} className="space-y-4">
@@ -362,7 +362,7 @@ export default function Profile() {
         <div className="space-y-8">
           
           <Card>
-            <h2 className="heading-md text-white mb-6 flex items-center gap-2">
+            <h2 className="heading-md text-primary mb-6 flex items-center gap-2">
               <i className="ti ti-settings text-accent"></i> Preferences
             </h2>
             <div className="space-y-5">
@@ -395,12 +395,12 @@ export default function Profile() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-white">Notifications</p>
+                  <p className="text-sm font-medium text-primary">Notifications</p>
                   <p className="text-xs text-muted">Weekly reports and goal reminders</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={notifications} onChange={e => setNotifications(e.target.checked)} />
-                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-bg-primary after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+                  <div className="w-11 h-6 border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-bg-primary after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
                 </label>
               </div>
               
@@ -434,7 +434,7 @@ export default function Profile() {
             <div className="flex items-center justify-center w-16 h-16 rounded-full bg-danger/10 text-danger mx-auto mb-6">
               <i className="ti ti-trash text-3xl"></i>
             </div>
-            <h3 className="heading-md text-white text-center mb-2">Delete Account?</h3>
+            <h3 className="heading-md text-primary text-center mb-2">Delete Account?</h3>
             
             {deleteStep === 1 ? (
               <>
@@ -451,14 +451,14 @@ export default function Profile() {
             ) : (
               <>
                 <p className="text-muted text-center text-sm mb-6">
-                  To confirm, type <span className="text-white font-mono bg-bg-secondary px-2 py-0.5 rounded border border-white/10">DELETE</span> below.
+                  To confirm, type <span className="text-primary font-mono bg-bg-secondary px-2 py-0.5 rounded border border-white/10">DELETE</span> below.
                 </p>
                 <input 
                   type="text" 
                   value={deleteConfirmText}
                   onChange={e => setDeleteConfirmText(e.target.value)}
                   placeholder="DELETE"
-                  className="w-full bg-white/5 border border-danger/50 rounded-xl px-4 py-3 text-center text-white mb-6 focus:outline-none focus:border-danger transition-colors"
+                  className="w-full bg-white/5 border border-danger/50 rounded-xl px-4 py-3 text-center text-primary mb-6 focus:outline-none focus:border-danger transition-colors"
                 />
                 <div className="flex gap-3">
                   <Button onClick={() => setShowDeleteModal(false)} variant="secondary" className="flex-1">Cancel</Button>

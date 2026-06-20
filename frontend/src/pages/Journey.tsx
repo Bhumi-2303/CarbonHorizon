@@ -81,16 +81,16 @@ const Journey: React.FC = () => {
           </div>
           
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
+            <h1 className="text-4xl font-bold text-primary mb-2 tracking-tight">
               {data.level}
             </h1>
-            <p className="text-slate-300">
+            <p className="text-muted">
               {data.points} / {data.next_level_points} Carbon Points
             </p>
           </div>
 
           <div className="w-full max-w-md mt-6">
-            <div className="h-4 bg-slate-800/80 rounded-full overflow-hidden border border-white/5">
+            <div className="h-4 bg-white/10/80 rounded-full overflow-hidden border border-white/5">
               <div 
                 className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${data.progress_percentage}%` }}
@@ -126,7 +126,7 @@ const Journey: React.FC = () => {
 
       {/* Badges Grid */}
       <section>
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-2">
           <Award className="text-emerald-400" />
           Missions & Badges
         </h2>
@@ -140,18 +140,18 @@ const Journey: React.FC = () => {
                   : 'opacity-60 grayscale hover:grayscale-0'
                 }`}
             >
-              <div className={`p-3 rounded-xl flex-shrink-0 ${badge.unlocked ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-slate-800/50 border border-white/5'}`}>
+              <div className={`p-3 rounded-xl flex-shrink-0 ${badge.unlocked ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-white/10/50 border border-white/5'}`}>
                 {getBadgeIcon(badge.icon, badge.unlocked)}
               </div>
               <div>
-                <h3 className={`font-semibold text-lg mb-1 ${badge.unlocked ? 'text-white' : 'text-slate-300'}`}>
+                <h3 className={`font-semibold text-lg mb-1 ${badge.unlocked ? 'text-primary' : 'text-muted'}`}>
                   {badge.name}
                 </h3>
                 <p className="text-sm text-slate-400 leading-relaxed">
                   {badge.description}
                 </p>
                 {!badge.unlocked && (
-                  <div className="mt-3 inline-flex items-center text-xs font-medium text-slate-500 bg-slate-800/80 px-2 py-1 rounded">
+                  <div className="mt-3 inline-flex items-center text-xs font-medium text-slate-500 bg-white/10/80 px-2 py-1 rounded">
                     Locked
                   </div>
                 )}

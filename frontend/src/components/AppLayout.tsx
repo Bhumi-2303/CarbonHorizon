@@ -83,7 +83,7 @@ export default function AppLayout() {
           <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-bg-primary shadow-sm" aria-hidden="true">
             <Leaf className="w-5 h-5" />
           </div>
-          <span className="font-poppins font-bold text-lg tracking-tight text-white hidden lg:block">
+          <span className="font-poppins font-bold text-lg tracking-tight text-primary hidden lg:block">
             Carbon Horizon
           </span>
         </div>
@@ -98,7 +98,7 @@ export default function AppLayout() {
                 `flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? 'bg-accent/10 text-accent nav-glow'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    : 'text-slate-400 hover:text-primary hover:bg-white/5'
                 }`
               }
             >
@@ -113,7 +113,7 @@ export default function AppLayout() {
               type="button"
               onClick={() => setMoreMenuOpen(!moreMenuOpen)}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                moreMenuOpen ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                moreMenuOpen ? 'bg-white/10 text-primary' : 'text-slate-400 hover:text-primary hover:bg-white/5'
               }`}
               aria-expanded={moreMenuOpen}
               aria-haspopup="true"
@@ -130,7 +130,7 @@ export default function AppLayout() {
                     to={item.path}
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive ? 'bg-accent/10 text-accent' : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                        isActive ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-white/5 hover:text-primary'
                       }`
                     }
                   >
@@ -146,7 +146,7 @@ export default function AppLayout() {
         {/* User Status & Logout */}
         <div className="flex items-center gap-4 pl-6 border-l border-slate-700/50">
           <div className="hidden lg:block text-right">
-            <p className="text-xs font-semibold text-white truncate max-w-[120px]">
+            <p className="text-xs font-semibold text-primary truncate max-w-[120px]">
               {user?.full_name}
             </p>
             <p className="text-[10px] text-slate-400">
@@ -171,13 +171,13 @@ export default function AppLayout() {
           <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-bg-primary" aria-hidden="true">
             <Leaf className="w-5 h-5" />
           </div>
-          <span className="font-poppins font-bold text-white">Carbon Horizon</span>
+          <span className="font-poppins font-bold text-primary">Carbon Horizon</span>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-slate-300 hover:text-white"
+            className="p-2 text-muted hover:text-primary"
             aria-label="Toggle mobile menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -196,7 +196,7 @@ export default function AppLayout() {
                 to={item.path}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-                    isActive ? 'bg-accent/10 text-accent nav-glow' : 'text-slate-300 hover:bg-white/5'
+                    isActive ? 'bg-accent/10 text-accent nav-glow' : 'text-muted hover:bg-white/5'
                   }`
                 }
               >
@@ -212,7 +212,7 @@ export default function AppLayout() {
                 to={item.path}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-                    isActive ? 'bg-accent/10 text-accent' : 'text-slate-300 hover:bg-white/5'
+                    isActive ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-white/5'
                   }`
                 }
               >
@@ -222,7 +222,7 @@ export default function AppLayout() {
             ))}
 
             <div className="mt-8 pt-6 border-t border-slate-700/50 px-2">
-              <p className="text-sm font-semibold text-white mb-1">{user?.full_name}</p>
+              <p className="text-sm font-semibold text-primary mb-1">{user?.full_name}</p>
               <p className="text-xs text-slate-400 mb-6">Latest Score: <span className="text-accent font-bold">{score}</span></p>
               <button
                 onClick={handleLogout}

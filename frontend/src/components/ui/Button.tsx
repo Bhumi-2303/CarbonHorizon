@@ -18,8 +18,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles: Record<ButtonVariant, string> = {
       primary: 'bg-accent text-bg-primary hover:bg-accent/90 focus-visible:ring-accent',
-      secondary: 'glass-panel border-white/20 text-white hover:bg-white/10 focus-visible:ring-accent',
-      ghost: 'bg-transparent text-white hover:bg-white/10 focus-visible:ring-white/20',
+      secondary: 'glass-panel border-white/20 text-primary hover:bg-white/10 focus-visible:ring-accent',
+      ghost: 'bg-transparent text-primary hover:bg-white/10 focus-visible:ring-white/20',
       danger: 'glass-panel border-danger text-danger hover:bg-danger/10 focus-visible:ring-danger',
     }
 

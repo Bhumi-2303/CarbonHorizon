@@ -198,7 +198,7 @@ export default function Register() {
   }
 
   const btnCls =
-    'w-full py-2.5 px-4 rounded-xl font-semibold text-sm text-white ' +
+    'w-full py-2.5 px-4 rounded-xl font-semibold text-sm text-primary ' +
     'bg-gradient-to-r from-emerald-500 to-emerald-600 ' +
     'hover:from-emerald-400 hover:to-emerald-500 ' +
     'disabled:opacity-60 disabled:cursor-not-allowed ' +
@@ -262,7 +262,7 @@ export default function Register() {
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-[34px] text-muted hover:text-slate-300 transition-colors"
+            className="absolute right-3 top-[34px] text-muted hover:text-muted transition-colors"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}

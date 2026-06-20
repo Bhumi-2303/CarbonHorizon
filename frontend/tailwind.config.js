@@ -22,8 +22,7 @@ export default {
         'eco-lime': 'var(--color-accent)',
         
         'muted': 'var(--color-text-muted)',
-        white: 'var(--color-text-primary)',
-        black: 'var(--color-bg-primary)',
+        primary: 'var(--color-text-primary)',
         
         success: '#22C55E',
         warning: '#F59E0B',

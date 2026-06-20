@@ -21,11 +21,11 @@ import { useAuth } from '@/context/AuthContext'
 
 function AuthLoadingScreen() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 flex flex-col items-center justify-center gap-4">
+    <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center gap-4">
       {/* Animated logo mark */}
       <div className="relative">
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-xl shadow-emerald-500/30 animate-pulse">
-          <svg viewBox="0 0 24 24" className="w-7 h-7 text-white fill-current">
+          <svg viewBox="0 0 24 24" className="w-7 h-7 text-primary fill-current">
             <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-8 2 0 0-4 0-4 8" />
           </svg>
         </div>
@@ -48,7 +48,7 @@ function AuthLoadingScreen() {
       </div>
 
       <div className="text-center space-y-1">
-        <p className="text-sm font-medium text-slate-300">Refreshing session…</p>
+        <p className="text-sm font-medium text-muted">Refreshing session…</p>
         <p className="text-xs text-muted">Please wait</p>
       </div>
     </div>

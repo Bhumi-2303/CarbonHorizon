@@ -83,7 +83,7 @@ export default function AssessmentResult() {
       <div className="p-8 flex flex-col items-center justify-center min-h-[60vh]">
         <Card className="text-center p-12 max-w-lg">
           <i className="ti ti-alert-triangle text-5xl text-danger mb-4"></i>
-          <h2 className="heading-md text-white mb-2">Assessment Not Found</h2>
+          <h2 className="heading-md text-primary mb-2">Assessment Not Found</h2>
           <p className="body text-muted mb-6">{error || 'Unable to load your results.'}</p>
           <Button onClick={() => navigate('/assessment')} variant="primary">Take New Assessment</Button>
         </Card>
@@ -105,7 +105,7 @@ export default function AssessmentResult() {
   let bandLabel = 'Needs Improvement'
   
   if (score >= 80) {
-    bandColor = 'text-[#2ECC71]'
+    bandColor = 'text-accent'
     bandRing = 'border-[#2ECC71]'
     bandLabel = 'Excellent'
   } else if (score >= 60) {
@@ -165,7 +165,7 @@ export default function AssessmentResult() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
         
-        <h1 className="heading-lg text-white mb-8 z-10">Your Carbon Score</h1>
+        <h1 className="heading-lg text-primary mb-8 z-10">Your Carbon Score</h1>
         
         <div className={`w-48 h-48 rounded-full border-8 ${bandRing} flex flex-col items-center justify-center z-10 bg-bg-primary`}>
           <span className={`text-6xl font-[Montserrat] font-semibold ${bandColor}`}>{Math.round(score)}</span>
@@ -182,7 +182,7 @@ export default function AssessmentResult() {
         
         {/* 2. Emission Breakdown Donut Chart */}
         <Card className="flex flex-col">
-          <h2 className="heading-md text-white mb-6">Emission Breakdown</h2>
+          <h2 className="heading-md text-primary mb-6">Emission Breakdown</h2>
           <div className="flex-1 min-h-[300px] relative">
             <Doughnut data={donutData} options={donutOptions} />
           </div>
@@ -211,7 +211,7 @@ export default function AssessmentResult() {
               <div>{largest.icon}</div>
               <div>
                 <h3 className="heading-md text-orange-400 mb-1">Top Emission Source: {largest.name}</h3>
-                <p className="body text-slate-300 text-sm">{largest.tip}</p>
+                <p className="body text-muted text-sm">{largest.tip}</p>
               </div>
             </div>
           </Card>

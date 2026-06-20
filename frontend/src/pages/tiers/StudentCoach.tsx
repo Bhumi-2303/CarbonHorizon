@@ -53,10 +53,10 @@ export default function StudentCoach() {
       {/* Header */}
       <div className="p-4 border-b border-indigo-500/20 bg-indigo-900/20 flex items-center gap-4">
         <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <Sparkles className="w-6 h-6 text-white" />
+          <Sparkles className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h2 className="text-xl font-black text-white font-poppins">Student Coach</h2>
+          <h2 className="text-xl font-black text-primary font-poppins">Student Coach</h2>
           <p className="text-sm text-indigo-200 font-medium">Your personal guide to low-cost, high-impact sustainability.</p>
         </div>
       </div>
@@ -76,8 +76,8 @@ export default function StudentCoach() {
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] rounded-2xl p-4 text-md ${
               msg.role === 'user' 
-                ? 'bg-indigo-500 text-white rounded-tr-sm' 
-                : 'bg-slate-800 border border-slate-700 text-slate-200 rounded-tl-sm'
+                ? 'bg-indigo-500 text-primary rounded-tr-sm' 
+                : 'bg-white/10 border border-slate-700 text-primary rounded-tl-sm'
             }`}>
               {msg.content}
             </div>
@@ -85,7 +85,7 @@ export default function StudentCoach() {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-slate-800 border border-slate-700 p-4 text-slate-400 flex items-center gap-2">
+            <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-white/10 border border-slate-700 p-4 text-slate-400 flex items-center gap-2">
               <Sparkles className="w-4 h-4 animate-spin text-indigo-400" /> Thinking...
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function StudentCoach() {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-slate-700/50 bg-slate-900/50">
+      <div className="p-4 border-t border-slate-700/50 bg-bg-secondary/50">
         <div className="relative">
           <input
             type="text"
@@ -101,13 +101,13 @@ export default function StudentCoach() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Ask me anything..."
-            className="w-full bg-[#08121E] border border-slate-700 rounded-xl pl-4 pr-14 py-4 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-[#08121E] border border-slate-700 rounded-xl pl-4 pr-14 py-4 text-primary focus:outline-none focus:border-indigo-500 transition-colors"
             disabled={loading}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || loading}
-            className="absolute right-2 top-2 bottom-2 aspect-square bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg flex items-center justify-center disabled:opacity-50 transition-colors"
+            className="absolute right-2 top-2 bottom-2 aspect-square bg-indigo-500 hover:bg-indigo-400 text-primary rounded-lg flex items-center justify-center disabled:opacity-50 transition-colors"
           >
             <Send className="w-5 h-5" />
           </button>

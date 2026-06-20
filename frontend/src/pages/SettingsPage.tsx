@@ -91,7 +91,7 @@ const SettingsPage = () => {
 
   return (
     <main className="max-w-4xl mx-auto p-6 animate-fade-in">
-      <h1 className="heading-xl text-white mb-8">Settings</h1>
+      <h1 className="heading-xl text-primary mb-8">Settings</h1>
 
       {message && (
         <div className={`p-4 mb-8 rounded-xl font-medium ${
@@ -109,7 +109,7 @@ const SettingsPage = () => {
             <button 
               onClick={() => { setActiveTab('profile'); setMessage(null) }}
               className={`px-4 py-3 text-left rounded-xl font-medium transition-all duration-200 ${
-                activeTab === 'profile' ? 'bg-accent/20 text-accent' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                activeTab === 'profile' ? 'bg-accent/20 text-accent' : 'text-slate-400 hover:text-primary hover:bg-white/5'
               }`}
             >
               Profile Settings
@@ -117,7 +117,7 @@ const SettingsPage = () => {
             <button 
               onClick={() => { setActiveTab('preferences'); setMessage(null) }}
               className={`px-4 py-3 text-left rounded-xl font-medium transition-all duration-200 ${
-                activeTab === 'preferences' ? 'bg-accent/20 text-accent' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                activeTab === 'preferences' ? 'bg-accent/20 text-accent' : 'text-slate-400 hover:text-primary hover:bg-white/5'
               }`}
             >
               Preferences
@@ -129,7 +129,7 @@ const SettingsPage = () => {
         <div className="p-8 flex-grow">
           {activeTab === 'profile' && (
             <form onSubmit={handleProfileSave} className="space-y-6">
-              <h2 className="heading-md text-white mb-6">Personal Information</h2>
+              <h2 className="heading-md text-primary mb-6">Personal Information</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
@@ -177,12 +177,12 @@ const SettingsPage = () => {
 
           {activeTab === 'preferences' && (
             <form onSubmit={handlePreferencesSave} className="space-y-6">
-              <h2 className="heading-md text-white mb-6">Application Preferences</h2>
+              <h2 className="heading-md text-primary mb-6">Application Preferences</h2>
               
               <div className="space-y-6">
                 <div className="flex items-center justify-between py-3 border-b border-white/5">
                   <div>
-                    <h3 className="text-base font-medium text-white">Email Notifications</h3>
+                    <h3 className="text-base font-medium text-primary">Email Notifications</h3>
                     <p className="text-sm text-muted">Receive updates and weekly report summaries.</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -192,13 +192,13 @@ const SettingsPage = () => {
                       checked={preferences.notifications}
                       onChange={(e) => setPreferences({...preferences, notifications: e.target.checked})}
                     />
-                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-bg-primary after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+                    <div className="w-11 h-6 border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-bg-primary after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
                   </label>
                 </div>
 
                 <div className="flex items-center justify-between py-3 border-b border-white/5">
                   <div>
-                    <h3 className="text-base font-medium text-white">Dark Mode</h3>
+                    <h3 className="text-base font-medium text-primary">Dark Mode</h3>
                     <p className="text-sm text-muted">Switch application theme to dark mode.</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -208,7 +208,7 @@ const SettingsPage = () => {
                       checked={preferences.dark_mode}
                       onChange={(e) => setPreferences({...preferences, dark_mode: e.target.checked})}
                     />
-                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-bg-primary after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+                    <div className="w-11 h-6 border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-bg-primary after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
                   </label>
                 </div>
 

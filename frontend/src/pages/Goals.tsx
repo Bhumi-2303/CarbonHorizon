@@ -121,9 +121,9 @@ export default function Goals() {
         <div className="flex justify-between items-start mb-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h3 className="heading-md text-white m-0">{goal.goal_name}</h3>
+              <h3 className="heading-md text-primary m-0">{goal.goal_name}</h3>
               {isCompleted && <span className="bg-accent/20 text-accent px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Completed</span>}
-              {isExpired && <span className="bg-slate-700/50 text-slate-300 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Expired</span>}
+              {isExpired && <span className="border-white/20/50 text-muted px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Expired</span>}
               {goal.status === 'active' && <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Active</span>}
             </div>
             {goal.goal_description && <p className="body text-muted text-sm mt-1">{goal.goal_description}</p>}
@@ -137,7 +137,7 @@ export default function Goals() {
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-muted">Progress</span>
-            <span className="font-bold text-white">{goal.current_progress.toFixed(1)}%</span>
+            <span className="font-bold text-primary">{goal.current_progress.toFixed(1)}%</span>
           </div>
           <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden border border-white/5">
             <div 
@@ -151,7 +151,7 @@ export default function Goals() {
           {goal.target_reduction_percentage && (
             <div className="flex items-center gap-1.5">
               <i className="ti ti-trending-down text-accent"></i>
-              <span className="text-slate-300 font-medium">{goal.target_reduction_percentage}% Target</span>
+              <span className="text-muted font-medium">{goal.target_reduction_percentage}% Target</span>
             </div>
           )}
           {goal.target_date && (
@@ -159,7 +159,7 @@ export default function Goals() {
               <i className="ti ti-calendar text-accent"></i>
               <span>{new Date(goal.target_date).toLocaleDateString()}</span>
               {daysRemaining !== null && goal.status === 'active' && (
-                <span className={`ml-1 font-medium ${daysRemaining < 7 ? 'text-orange-400' : 'text-slate-300'}`}>
+                <span className={`ml-1 font-medium ${daysRemaining < 7 ? 'text-orange-400' : 'text-muted'}`}>
                   ({daysRemaining >= 0 ? `${daysRemaining} days left` : `${Math.abs(daysRemaining)} days overdue`})
                 </span>
               )}
@@ -174,7 +174,7 @@ export default function Goals() {
     <div className="p-6 md:p-8 animate-fade-in max-w-5xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="heading-xl text-white m-0">Goals</h1>
+          <h1 className="heading-xl text-primary m-0">Goals</h1>
           <p className="body text-muted mt-1">Set, track, and crush your sustainability targets.</p>
         </div>
         <Button onClick={() => openModal()} variant="primary" className="flex items-center gap-2 self-start md:self-auto">
@@ -195,7 +195,7 @@ export default function Goals() {
       ) : goals.length === 0 ? (
         <Card className="text-center p-12 flex flex-col items-center">
           <i className="ti ti-target text-6xl text-accent mb-6"></i>
-          <h2 className="heading-lg text-white mb-2">No goals set yet</h2>
+          <h2 className="heading-lg text-primary mb-2">No goals set yet</h2>
           <p className="body text-muted max-w-md mb-8">
             Setting goals is the first step towards a greener lifestyle. Challenge yourself to reduce emissions!
           </p>
@@ -206,7 +206,7 @@ export default function Goals() {
       ) : (
         <div className="space-y-8">
           <section>
-            <h2 className="heading-md text-white mb-4">Active & Expired Goals</h2>
+            <h2 className="heading-md text-primary mb-4">Active & Expired Goals</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {activeGoals.map(renderGoalCard)}
               {expiredGoals.map(renderGoalCard)}
@@ -220,7 +220,7 @@ export default function Goals() {
             <section>
               <button 
                 onClick={() => setShowCompleted(!showCompleted)} 
-                className="flex items-center gap-2 text-muted hover:text-white transition-colors heading-md mb-4"
+                className="flex items-center gap-2 text-muted hover:text-primary transition-colors heading-md mb-4"
               >
                 <i className={`ti ti-chevron-${showCompleted ? 'down' : 'right'}`}></i>
                 Completed Goals ({completedGoals.length})
@@ -239,10 +239,10 @@ export default function Goals() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-primary/80 backdrop-blur-sm">
           <Card className="w-full max-w-lg animate-fade-in relative max-h-[90vh] overflow-y-auto">
-            <button onClick={closeModal} className="absolute top-4 right-4 text-muted hover:text-white">
+            <button onClick={closeModal} className="absolute top-4 right-4 text-muted hover:text-primary">
               <i className="ti ti-x text-2xl"></i>
             </button>
-            <h2 className="heading-lg text-white mb-6">
+            <h2 className="heading-lg text-primary mb-6">
               {editingId ? 'Edit Goal' : 'Create Goal'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-5">

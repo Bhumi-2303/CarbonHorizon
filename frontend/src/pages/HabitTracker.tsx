@@ -84,11 +84,11 @@ export default function HabitTracker() {
   const totalCarbonSaved = habits.reduce((acc, h) => acc + (h.carbon_saved || 0), 0)
 
   return (
-    <div className="min-h-screen bg-space-black p-4 lg:p-8 font-inter">
+    <div className="min-h-screen bg-bg-primary p-4 lg:p-8 font-inter">
       <div className="max-w-5xl mx-auto space-y-10 mt-16 lg:mt-0">
         
         <header>
-          <h1 className="font-poppins text-3xl font-bold tracking-tight text-white">Habit Tracker</h1>
+          <h1 className="font-poppins text-3xl font-bold tracking-tight text-primary">Habit Tracker</h1>
           <p className="mt-2 text-muted">Build sustainable routines and track your daily impact.</p>
         </header>
 
@@ -107,7 +107,7 @@ export default function HabitTracker() {
             
             {/* 1. Habit Streak Cards (Horizontal Scroll) */}
             <section>
-              <h2 className="font-poppins text-xl font-bold text-white mb-4">Habit Streaks</h2>
+              <h2 className="font-poppins text-xl font-bold text-primary mb-4">Habit Streaks</h2>
               <div className="flex overflow-x-auto gap-4 snap-x pb-4 custom-scrollbar">
                 {HABIT_DEFINITIONS.map(def => {
                   const past7 = past35Days.slice(-7)
@@ -122,10 +122,10 @@ export default function HabitTracker() {
                     <div key={def.id} className="glass-card snap-start min-w-[240px] p-5 flex flex-col justify-between shrink-0 hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <div className="p-2 bg-deep-ocean rounded-lg inline-block border border-forest-green/30 mb-2">
+                          <div className="p-2 bg-bg-secondary rounded-lg inline-block border border-forest-green/30 mb-2">
                             <Icon className="w-5 h-5 text-earth-green" />
                           </div>
-                          <p className="text-sm font-semibold text-white">{def.label}</p>
+                          <p className="text-sm font-semibold text-primary">{def.label}</p>
                         </div>
                         <div className="relative w-12 h-12">
                           <svg className="w-12 h-12 transform -rotate-90">
@@ -133,7 +133,7 @@ export default function HabitTracker() {
                             <circle cx="24" cy="24" r="16" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray="100.5" strokeDashoffset={strokeOffset} className="text-earth-green transition-all duration-1000 ease-out" strokeLinecap="round" />
                           </svg>
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="font-montserrat font-bold text-xs text-white">{completedDays}/7</span>
+                            <span className="font-montserrat font-bold text-xs text-primary">{completedDays}/7</span>
                           </div>
                         </div>
                       </div>
@@ -150,7 +150,7 @@ export default function HabitTracker() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* 4. Mark Daily Completion */}
               <section>
-                <h2 className="font-poppins text-xl font-bold text-white mb-4">Today's Habits</h2>
+                <h2 className="font-poppins text-xl font-bold text-primary mb-4">Today's Habits</h2>
                 <div className="space-y-3">
                   {HABIT_DEFINITIONS.map(def => {
                     const isCompleted = habits.some(h => h.activity_date === todayStr && h.habit_type === def.id && h.completed)
@@ -165,15 +165,15 @@ export default function HabitTracker() {
                         className={`w-full text-left relative overflow-hidden rounded-2xl border p-4 transition-all duration-200 flex items-center justify-between ${
                           isCompleted 
                             ? 'bg-earth-green/20 border-earth-green' 
-                            : 'bg-deep-ocean border-forest-green/30 hover:border-earth-green/60'
+                            : 'bg-bg-secondary border-forest-green/30 hover:border-earth-green/60'
                         } ${isToggling ? 'opacity-50 cursor-wait' : ''}`}
                       >
                         <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isCompleted ? 'bg-earth-green text-deep-ocean' : 'bg-space-black text-earth-green'}`}>
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isCompleted ? 'bg-earth-green text-deep-ocean' : 'bg-bg-primary text-earth-green'}`}>
                             <Icon className="w-5 h-5" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-white">{def.label}</h3>
+                            <h3 className="font-semibold text-primary">{def.label}</h3>
                             <p className="text-xs text-muted mt-0.5">Saves ~{def.factor} kg CO₂e</p>
                           </div>
                         </div>
@@ -195,7 +195,7 @@ export default function HabitTracker() {
 
               {/* 2. Weekly Activity Grid */}
               <section>
-                <h2 className="font-poppins text-xl font-bold text-white mb-4">Activity Map</h2>
+                <h2 className="font-poppins text-xl font-bold text-primary mb-4">Activity Map</h2>
                 <div className="glass-card p-6">
                   <div className="grid grid-cols-7 gap-2 mb-2">
                     {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
@@ -216,7 +216,7 @@ export default function HabitTracker() {
                               className={`w-full aspect-square rounded-[4px] sm:rounded-md transition-colors duration-200 cursor-pointer ${
                                 isLogged 
                                   ? 'bg-earth-green shadow-[0_0_8px_rgba(46,204,113,0.3)]' 
-                                  : 'bg-deep-ocean border border-forest-green/30 hover:border-earth-green/50'
+                                  : 'bg-bg-secondary border border-forest-green/30 hover:border-earth-green/50'
                               }`}
                             ></div>
                           )
@@ -226,7 +226,7 @@ export default function HabitTracker() {
                   </div>
                   <div className="mt-4 flex items-center justify-end gap-2 text-xs text-muted">
                     <span>Less</span>
-                    <div className="w-3 h-3 rounded-[4px] bg-deep-ocean border border-forest-green/30"></div>
+                    <div className="w-3 h-3 rounded-[4px] bg-bg-secondary border border-forest-green/30"></div>
                     <div className="w-3 h-3 rounded-[4px] bg-earth-green/40"></div>
                     <div className="w-3 h-3 rounded-[4px] bg-earth-green/70"></div>
                     <div className="w-3 h-3 rounded-[4px] bg-earth-green shadow-[0_0_4px_rgba(46,204,113,0.5)]"></div>
@@ -238,34 +238,34 @@ export default function HabitTracker() {
 
             {/* 3. Achievement Milestones */}
             <section>
-              <h2 className="font-poppins text-xl font-bold text-white mb-4">Milestones</h2>
+              <h2 className="font-poppins text-xl font-bold text-primary mb-4">Milestones</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 
                 <div className={`glass-card p-5 relative overflow-hidden ${streak >= 7 ? 'border-earth-green/50' : 'opacity-40'}`}>
                   {streak < 7 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
                   <Flame className={`w-8 h-8 mb-3 ${streak >= 7 ? 'text-earth-green' : 'text-muted'}`} />
-                  <h3 className="font-semibold text-white">7-Day Streak</h3>
+                  <h3 className="font-semibold text-primary">7-Day Streak</h3>
                   <p className="text-xs text-muted mt-1">{streak >= 7 ? 'Unlocked' : 'Keep going'}</p>
                 </div>
 
                 <div className={`glass-card p-5 relative overflow-hidden ${streak >= 30 ? 'border-earth-green/50' : 'opacity-40'}`}>
                   {streak < 30 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
                   <Shield className={`w-8 h-8 mb-3 ${streak >= 30 ? 'text-earth-green' : 'text-muted'}`} />
-                  <h3 className="font-semibold text-white">30-Day Streak</h3>
+                  <h3 className="font-semibold text-primary">30-Day Streak</h3>
                   <p className="text-xs text-muted mt-1">{streak >= 30 ? 'Unlocked' : 'Requires 30 days'}</p>
                 </div>
 
                 <div className={`glass-card p-5 relative overflow-hidden ${totalCarbonSaved >= 100 ? 'border-earth-green/50' : 'opacity-40'}`}>
                   {totalCarbonSaved < 100 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
                   <Target className={`w-8 h-8 mb-3 ${totalCarbonSaved >= 100 ? 'text-earth-green' : 'text-muted'}`} />
-                  <h3 className="font-semibold text-white">100kg CO₂ Saved</h3>
+                  <h3 className="font-semibold text-primary">100kg CO₂ Saved</h3>
                   <p className="text-xs text-muted mt-1">{totalCarbonSaved >= 100 ? 'Unlocked' : `${(100 - totalCarbonSaved).toFixed(0)}kg remaining`}</p>
                 </div>
 
                 <div className={`glass-card p-5 relative overflow-hidden ${habits.length > 0 ? 'border-earth-green/50' : 'opacity-40'}`}>
                   {habits.length === 0 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
                   <Award className={`w-8 h-8 mb-3 ${habits.length > 0 ? 'text-earth-green' : 'text-muted'}`} />
-                  <h3 className="font-semibold text-white">First Habit</h3>
+                  <h3 className="font-semibold text-primary">First Habit</h3>
                   <p className="text-xs text-muted mt-1">{habits.length > 0 ? 'Unlocked' : 'Log a habit'}</p>
                 </div>
 

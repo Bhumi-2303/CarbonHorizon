@@ -62,7 +62,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="p-8 space-y-6">
-        <div className="h-8 w-48 bg-deep-ocean rounded animate-pulse" />
+        <div className="h-8 w-48 bg-bg-secondary rounded animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="glass-card h-32 animate-pulse" />
@@ -83,7 +83,7 @@ export default function DashboardPage() {
       <div className="p-8 flex flex-col items-center justify-center min-h-[80vh]">
         <div className="glass-card w-full max-w-2xl text-center p-12">
           <i className="ti ti-leaf text-6xl text-earth-green mb-6 inline-block"></i>
-          <h2 className="heading-xl mb-4 text-white">Welcome to Carbon Horizon</h2>
+          <h2 className="heading-xl mb-4 text-primary">Welcome to Carbon Horizon</h2>
           <p className="body text-muted mb-8">
             You haven't completed a carbon assessment yet. Calculate your footprint to unlock your dashboard, AI coach, and personalized goals.
           </p>
@@ -196,7 +196,7 @@ export default function DashboardPage() {
     <div className="p-6 md:p-8 space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="heading-xl text-white m-0">Dashboard</h1>
+          <h1 className="heading-xl text-primary m-0">Dashboard</h1>
           <p className="body text-muted mt-1">Your sustainability overview at a glance.</p>
         </div>
         <Link to="/assessment" className="btn-primary flex items-center gap-2 self-start md:self-auto">
@@ -276,7 +276,7 @@ export default function DashboardPage() {
         
         {/* 2. Emission Breakdown */}
         <div className="glass-card lg:col-span-1 flex flex-col">
-          <h3 className="heading-md text-white mb-6">Footprint Breakdown</h3>
+          <h3 className="heading-md text-primary mb-6">Footprint Breakdown</h3>
           <div className="flex-1 relative min-h-[250px]">
             <Doughnut data={donutData} options={donutOptions} />
           </div>
@@ -284,7 +284,7 @@ export default function DashboardPage() {
 
         {/* 3. Assessment History */}
         <div className="glass-card lg:col-span-2 flex flex-col">
-          <h3 className="heading-md text-white mb-6">Emissions Trend</h3>
+          <h3 className="heading-md text-primary mb-6">Emissions Trend</h3>
           <div className="flex-1 relative min-h-[250px]">
             {sortedHist.length > 1 ? (
               <Line data={lineData} options={lineOptions} />
@@ -303,10 +303,10 @@ export default function DashboardPage() {
         {/* 4. Habit Streak & Goals */}
         <div className="glass-card space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="heading-md text-white">Current Progress</h3>
-            <div className="bg-deep-ocean rounded-full px-3 py-1 flex items-center gap-2">
+            <h3 className="heading-md text-primary">Current Progress</h3>
+            <div className="bg-bg-secondary rounded-full px-3 py-1 flex items-center gap-2">
               <i className="ti ti-flame text-orange-500"></i>
-              <span className="text-sm font-bold text-white">{dashboard?.current_habit_streak || 0} Day Streak</span>
+              <span className="text-sm font-bold text-primary">{dashboard?.current_habit_streak || 0} Day Streak</span>
             </div>
           </div>
           
@@ -318,10 +318,10 @@ export default function DashboardPage() {
               goals.slice(0, 3).map(goal => (
                 <div key={goal.id} className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-white truncate">{goal.goal_name}</span>
+                    <span className="text-primary truncate">{goal.goal_name}</span>
                     <span className="text-earth-green">{Math.round(goal.current_progress)}%</span>
                   </div>
-                  <div className="h-2 w-full bg-deep-ocean rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-bg-secondary rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-earth-green rounded-full"
                       style={{ width: `${Math.min(goal.current_progress, 100)}%` }}
@@ -344,7 +344,7 @@ export default function DashboardPage() {
           
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="heading-md text-white">3-Month Forecast</h3>
+              <h3 className="heading-md text-primary">3-Month Forecast</h3>
               <i className="ti ti-stars text-earth-green text-xl"></i>
             </div>
             <p className="body text-muted mb-6">Based on your current habits and baseline, here is your projected emission in 3 months.</p>

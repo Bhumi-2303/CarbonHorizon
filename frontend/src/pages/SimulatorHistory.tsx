@@ -53,7 +53,7 @@ export default function SimulatorHistory() {
     <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="heading-xl text-white m-0">Saved Simulations</h1>
+          <h1 className="heading-xl text-primary m-0">Saved Simulations</h1>
           <p className="body text-muted mt-1">Review and re-run your what-if scenarios.</p>
         </div>
         <Button onClick={() => navigate('/simulator')} variant="primary" className="flex items-center gap-2 self-start md:self-auto">
@@ -70,7 +70,7 @@ export default function SimulatorHistory() {
       {history.length === 0 ? (
         <Card className="text-center p-12 flex flex-col items-center">
           <i className="ti ti-flask text-6xl text-accent mb-6"></i>
-          <h2 className="heading-lg text-white mb-2">No saved simulations</h2>
+          <h2 className="heading-lg text-primary mb-2">No saved simulations</h2>
           <p className="body text-muted max-w-md mb-8">
             You haven't saved any simulations yet. Run a what-if scenario to see how small changes can reduce your carbon footprint!
           </p>
@@ -89,7 +89,7 @@ export default function SimulatorHistory() {
                 <div>
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="heading-md text-white mb-1">{sim.scenario_name}</h3>
+                      <h3 className="heading-md text-primary mb-1">{sim.scenario_name}</h3>
                       <p className="text-xs text-muted">
                         {new Date(sim.created_at).toLocaleDateString(undefined, {
                           year: 'numeric', month: 'short', day: 'numeric',
@@ -113,7 +113,7 @@ export default function SimulatorHistory() {
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="bg-bg-primary border border-white/10 rounded-xl p-3 text-center">
                       <p className="text-xs text-muted uppercase font-medium mb-1">Current</p>
-                      <p className="text-xl font-bold text-slate-300">
+                      <p className="text-xl font-bold text-muted">
                         {sim.current_emission?.toFixed(1) || '0'} <span className="text-sm font-normal text-muted">kg</span>
                       </p>
                     </div>
@@ -134,7 +134,7 @@ export default function SimulatorHistory() {
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted mb-1">Est. Savings</p>
-                      <p className="text-xl font-bold text-slate-300">
+                      <p className="text-xl font-bold text-muted">
                         {sim.estimated_carbon_saved?.toFixed(1) || '0'} <span className="text-sm font-normal text-muted">kg CO2e</span>
                       </p>
                     </div>

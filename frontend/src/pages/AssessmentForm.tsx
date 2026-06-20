@@ -90,18 +90,18 @@ const DEFAULT_VALUES: Partial<FullFormData> = {
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 const STEPS = [
-  { id: 1, label: 'Transport', icon: <Car className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 2, label: 'Energy',    icon: <Zap className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 3, label: 'Food',      icon: <Salad className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 4, label: 'Water',     icon: <Droplets className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 5, label: 'Waste',     icon: <Trash2 className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 6, label: 'Housing',   icon: <Home className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 7, label: 'Digital',   icon: <Laptop className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 8, label: 'Shopping',  icon: <ShoppingBag className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 9, label: 'Lifestyle', icon: <Briefcase className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 10, label: 'Location', icon: <MapPin className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 11, label: 'Offsets',  icon: <Leaf className="w-4 h-4 text-[#2ECC71]" /> },
-  { id: 12, label: 'Review',   icon: <CheckCircle className="w-4 h-4 text-[#2ECC71]" /> },
+  { id: 1, label: 'Transport', icon: <Car className="w-4 h-4 text-accent" /> },
+  { id: 2, label: 'Energy',    icon: <Zap className="w-4 h-4 text-accent" /> },
+  { id: 3, label: 'Food',      icon: <Salad className="w-4 h-4 text-accent" /> },
+  { id: 4, label: 'Water',     icon: <Droplets className="w-4 h-4 text-accent" /> },
+  { id: 5, label: 'Waste',     icon: <Trash2 className="w-4 h-4 text-accent" /> },
+  { id: 6, label: 'Housing',   icon: <Home className="w-4 h-4 text-accent" /> },
+  { id: 7, label: 'Digital',   icon: <Laptop className="w-4 h-4 text-accent" /> },
+  { id: 8, label: 'Shopping',  icon: <ShoppingBag className="w-4 h-4 text-accent" /> },
+  { id: 9, label: 'Lifestyle', icon: <Briefcase className="w-4 h-4 text-accent" /> },
+  { id: 10, label: 'Location', icon: <MapPin className="w-4 h-4 text-accent" /> },
+  { id: 11, label: 'Offsets',  icon: <Leaf className="w-4 h-4 text-accent" /> },
+  { id: 12, label: 'Review',   icon: <CheckCircle className="w-4 h-4 text-accent" /> },
 ]
 
 const COUNTRIES = ['India', 'United States', 'United Kingdom', 'Germany', 'France', 'Australia', 'Canada']
@@ -110,7 +110,7 @@ const COUNTRIES = ['India', 'United States', 'United Kingdom', 'Germany', 'Franc
 
 function FieldLabel({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
-    <label className="block text-sm font-medium text-slate-300 mb-1.5">
+    <label className="block text-sm font-medium text-muted mb-1.5">
       {children}
       {hint && <span className="ml-1.5 text-xs text-muted font-normal">{hint}</span>}
     </label>
@@ -127,7 +127,7 @@ function NumberInput({ id, value, onChange, min = 0, max, step = 1, placeholder 
         if (!isNaN(n)) onChange(n)
         else if (e.target.value === '') onChange(undefined)
       }}
-      className="w-full px-4 py-2.5 rounded-xl bg-deep-ocean/60 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-earth-green/70 focus:border-earth-green"
+      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/20 text-primary placeholder-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
     />
   )
 }
@@ -138,7 +138,7 @@ function TextInput({ id, value, onChange, placeholder, 'aria-label': ariaLabel }
       id={id} type="text" placeholder={placeholder} value={value || ''}
       onChange={(e) => onChange(e.target.value)}
       aria-label={ariaLabel || placeholder}
-      className="w-full px-4 py-2.5 rounded-xl bg-deep-ocean/60 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-earth-green/70 focus:border-earth-green"
+      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/20 text-primary placeholder-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
     />
   )
 }
@@ -152,10 +152,10 @@ function SelectCard({ options, value, onChange }: any) {
           <button
             key={opt.value} type="button" onClick={() => onChange(opt.value)}
             className={`flex flex-col items-start p-3 rounded-xl border-2 text-left transition-all ${
-              active ? 'border-earth-green bg-earth-green/10' : 'border-slate-700 bg-deep-ocean/40'
+              active ? 'border-earth-green bg-earth-green/10' : 'border-slate-700 bg-white/5'
             }`}
           >
-            <span className={`text-sm font-medium ${active ? 'text-emerald-300' : 'text-slate-200'}`}>
+            <span className={`text-sm font-medium ${active ? 'text-emerald-300' : 'text-primary'}`}>
               {opt.label}
             </span>
           </button>
@@ -169,14 +169,14 @@ function Toggle({ checked, onChange, label, description }: any) {
   return (
     <button
       type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-      className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${checked ? 'border-earth-green bg-earth-green/10' : 'border-slate-700 bg-deep-ocean/40'}`}
+      className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${checked ? 'border-earth-green bg-earth-green/10' : 'border-slate-700 bg-white/5'}`}
     >
       <div className="text-left">
-        <p className={`text-sm font-medium ${checked ? 'text-emerald-300' : 'text-slate-200'}`}>{label}</p>
+        <p className={`text-sm font-medium ${checked ? 'text-emerald-300' : 'text-primary'}`}>{label}</p>
         {description && <p className="text-xs text-muted mt-0.5">{description}</p>}
       </div>
       <div className={`relative w-11 h-6 rounded-full flex-shrink-0 ${checked ? 'bg-earth-green' : 'bg-slate-600'}`}>
-        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-deep-ocean rounded-full transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
+        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-bg-secondary rounded-full transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
       </div>
     </button>
   )
@@ -228,14 +228,14 @@ export default function AssessmentForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 flex items-center justify-center p-4 py-10">
+    <div className="min-h-screen bg-bg-primary flex items-center justify-center p-4 py-10">
       <div className="relative w-full max-w-2xl">
         {/* Progress Header */}
         <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {STEPS.map((s) => (
             <div key={s.id} className="flex flex-col items-center min-w-[60px] gap-1 opacity-80" style={s.id === step ? { opacity: 1 } : {}}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                s.id < step ? 'bg-earth-green text-white' : s.id === step ? 'bg-earth-green/20 ring-2 ring-earth-green text-earth-green' : 'bg-deep-ocean text-muted'
+                s.id < step ? 'bg-earth-green text-primary' : s.id === step ? 'bg-earth-green/20 ring-2 ring-earth-green text-earth-green' : 'bg-bg-secondary text-muted'
               }`}>
                 {s.icon}
               </div>
@@ -244,12 +244,12 @@ export default function AssessmentForm() {
           ))}
         </div>
 
-        <div className="bg-deep-ocean/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl p-6 md:p-8">
+        <div className="glass-panel backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl p-6 md:p-8">
           
           {/* STEP 1 */}
           {step === 1 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Transport</h2>
+              <h2 className="text-xl font-bold text-primary">Transport</h2>
               <div>
                 <FieldLabel>Primary mode</FieldLabel>
                 <Controller name="transport_mode" control={control} render={({ field }) => (
@@ -280,7 +280,7 @@ export default function AssessmentForm() {
           {/* STEP 2 */}
           {step === 2 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Energy Usage</h2>
+              <h2 className="text-xl font-bold text-primary">Energy Usage</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <FieldLabel hint="kWh/month">Electricity</FieldLabel>
@@ -310,7 +310,7 @@ export default function AssessmentForm() {
           {/* STEP 3 */}
           {step === 3 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Food & Diet</h2>
+              <h2 className="text-xl font-bold text-primary">Food & Diet</h2>
               <div>
                 <FieldLabel>Diet type</FieldLabel>
                 <Controller name="diet_type" control={control} render={({ field }) => (
@@ -341,7 +341,7 @@ export default function AssessmentForm() {
           {/* STEP 4 */}
           {step === 4 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Water Consumption</h2>
+              <h2 className="text-xl font-bold text-primary">Water Consumption</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <FieldLabel hint="liters/day">Daily water usage</FieldLabel>
@@ -362,7 +362,7 @@ export default function AssessmentForm() {
           {/* STEP 5 */}
           {step === 5 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Waste Generation</h2>
+              <h2 className="text-xl font-bold text-primary">Waste Generation</h2>
               <div>
                 <FieldLabel hint="1=Never, 5=Always">Recycling Score</FieldLabel>
                 <Controller name="recycling_score" control={control} render={({ field }) => (
@@ -381,7 +381,7 @@ export default function AssessmentForm() {
           {/* STEP 6 */}
           {step === 6 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Housing Characteristics</h2>
+              <h2 className="text-xl font-bold text-primary">Housing Characteristics</h2>
               <div>
                 <FieldLabel hint="sq meters">House size</FieldLabel>
                 <Controller name="house_size_sqm" control={control} render={({ field }) => (
@@ -394,7 +394,7 @@ export default function AssessmentForm() {
           {/* STEP 7 */}
           {step === 7 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Digital Footprint</h2>
+              <h2 className="text-xl font-bold text-primary">Digital Footprint</h2>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <FieldLabel hint="hrs/day">Screen time</FieldLabel>
@@ -421,7 +421,7 @@ export default function AssessmentForm() {
           {/* STEP 8 */}
           {step === 8 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Shopping Behavior</h2>
+              <h2 className="text-xl font-bold text-primary">Shopping Behavior</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <FieldLabel hint="items/month">New clothes</FieldLabel>
@@ -442,7 +442,7 @@ export default function AssessmentForm() {
           {/* STEP 9 */}
           {step === 9 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Occupation / Lifestyle</h2>
+              <h2 className="text-xl font-bold text-primary">Occupation / Lifestyle</h2>
               <p className="text-sm text-muted">Your profile says you are: <span className="font-medium text-emerald-400 capitalize">{user?.lifestyle_type?.replace('_', ' ') || 'Unknown'}</span></p>
               
               {user?.lifestyle_type === 'professional' || user?.lifestyle_type === 'business_owner' ? (
@@ -461,7 +461,7 @@ export default function AssessmentForm() {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-slate-300">No specific questions for your role. Proceed to next step.</p>
+                <p className="text-sm text-muted">No specific questions for your role. Proceed to next step.</p>
               )}
             </div>
           )}
@@ -469,7 +469,7 @@ export default function AssessmentForm() {
           {/* STEP 10 */}
           {step === 10 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Geographic Location</h2>
+              <h2 className="text-xl font-bold text-primary">Geographic Location</h2>
               <p className="text-sm text-muted">Helps calculate local grid energy intensity.</p>
               <div>
                 <FieldLabel>Country</FieldLabel>
@@ -477,7 +477,7 @@ export default function AssessmentForm() {
                   <select
                     {...field}
                     aria-label="Country"
-                    className="w-full px-4 py-2.5 rounded-xl bg-deep-ocean/60 border border-slate-700 text-slate-100"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/20 text-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
                   >
                     <option value="">Select country...</option>
                     {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -504,7 +504,7 @@ export default function AssessmentForm() {
           {/* STEP 11 */}
           {step === 11 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Sustainability Practices</h2>
+              <h2 className="text-xl font-bold text-primary">Sustainability Practices</h2>
               <p className="text-sm text-muted">Tell us about your green actions to apply carbon offsets.</p>
               <Controller name="composting_active" control={control} render={({ field }) => (
                 <Toggle checked={field.value || false} onChange={field.onChange} label="Active Composting" />
@@ -524,7 +524,7 @@ export default function AssessmentForm() {
           {/* STEP 12 */}
           {step === 12 && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-bold text-slate-100">Review & Submit</h2>
+              <h2 className="text-xl font-bold text-primary">Review & Submit</h2>
               <p className="text-sm text-muted mb-4">You have completed all sections. Ready to view your footprint?</p>
               
               {apiError && (
@@ -538,16 +538,16 @@ export default function AssessmentForm() {
           {/* Navigation Buttons */}
           <div className={`flex gap-3 mt-8 ${step === 1 ? 'justify-end' : 'justify-between'}`}>
             {step > 1 && (
-              <button type="button" onClick={goBack} disabled={isSubmitting} className="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 transition-colors">
+              <button type="button" onClick={goBack} disabled={isSubmitting} className="px-5 py-2.5 rounded-xl border border-slate-700 text-muted hover:bg-white/10 transition-colors">
                 Back
               </button>
             )}
             {step < STEPS.length ? (
-              <button type="button" onClick={goNext} className="px-6 py-2.5 rounded-xl bg-earth-green text-white font-semibold hover:bg-emerald-500 transition-colors">
+              <button type="button" onClick={goNext} className="px-6 py-2.5 rounded-xl bg-earth-green text-primary font-semibold hover:bg-emerald-500 transition-colors">
                 Next
               </button>
             ) : (
-              <button type="button" onClick={onSubmit} disabled={isSubmitting} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all">
+              <button type="button" onClick={onSubmit} disabled={isSubmitting} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-primary font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all">
                 {isSubmitting ? 'Calculating...' : 'Submit Assessment'}
               </button>
             )}

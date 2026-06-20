@@ -7,13 +7,13 @@ import { ChevronUp, ChevronDown } from 'lucide-react'
 
 // ─── Common classes ───────────────────────────────────────────────────────────
 
-const labelCls = 'block text-sm font-medium text-white mb-1.5'
+const labelCls = 'block text-sm font-medium text-primary mb-1.5'
 
-// Using glass background, visible border, accent focus ring, near-white text (text-white)
+// Using glass background, visible border, accent focus ring, near-white text (text-primary)
 // Disabled state matches Button.tsx
 const inputCls =
   'w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/20 ' +
-  'text-white placeholder-muted text-sm ' +
+  'text-primary placeholder-muted text-sm ' +
   'focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white/10 ' +
   'disabled:opacity-50 disabled:cursor-not-allowed disabled:border-slate-600 disabled:text-slate-400 ' +
   'transition-all duration-200'
@@ -101,7 +101,7 @@ export const FormField = React.forwardRef<
               <option 
                 key={o.value} 
                 value={o.value} 
-                className="bg-bg-primary text-white disabled:text-slate-500"
+                className="bg-bg-primary text-primary disabled:text-slate-500"
                 disabled={o.disabled}
                 title={o.title}
               >

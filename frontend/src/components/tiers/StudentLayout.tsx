@@ -13,13 +13,13 @@ export default function StudentLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-space-black flex flex-col font-sans">
+    <div className="min-h-screen bg-bg-primary flex flex-col font-sans">
       <header className="fixed top-4 left-4 right-4 z-50 flex items-center justify-between glass-card px-4 py-2 border-sky-500/20">
         <div className="flex items-center gap-3 pr-6 border-r border-slate-700/50">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center shadow-sm">
             <Leaf className="w-5 h-5 text-slate-900" />
           </div>
-          <span className="font-poppins font-bold text-lg text-white hidden sm:block">
+          <span className="font-poppins font-bold text-lg text-primary hidden sm:block">
             Student Space
           </span>
         </div>
@@ -27,13 +27,13 @@ export default function StudentLayout() {
         <nav className="flex-1 px-4 flex items-center gap-2">
           <NavLink 
             to="/dashboard" 
-            className={({ isActive }) => `px-4 py-2 rounded-xl font-bold transition-all ${isActive ? 'bg-sky-400/20 text-sky-400' : 'text-slate-400 hover:text-white'}`}
+            className={({ isActive }) => `px-4 py-2 rounded-xl font-bold transition-all ${isActive ? 'bg-sky-400/20 text-sky-400' : 'text-slate-400 hover:text-primary'}`}
           >
             Dashboard
           </NavLink>
           <NavLink 
             to="/coach" 
-            className={({ isActive }) => `px-4 py-2 rounded-xl font-bold transition-all ${isActive ? 'bg-indigo-400/20 text-indigo-400' : 'text-slate-400 hover:text-white'}`}
+            className={({ isActive }) => `px-4 py-2 rounded-xl font-bold transition-all ${isActive ? 'bg-indigo-400/20 text-indigo-400' : 'text-slate-400 hover:text-primary'}`}
           >
             AI Coach
           </NavLink>

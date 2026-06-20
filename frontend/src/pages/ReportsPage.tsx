@@ -45,7 +45,7 @@ const ReportsPage = () => {
     <main className="max-w-6xl mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Sustainability Reports</h1>
-        <button className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+        <button className="bg-teal-600 hover:bg-teal-700 text-primary px-4 py-2 rounded-lg font-medium transition-colors">
           Generate New
         </button>
       </div>
@@ -57,7 +57,7 @@ const ReportsPage = () => {
       ) : error ? (
         <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg">{error}</div>
       ) : reports.length === 0 ? (
-        <div className="bg-deep-ocean p-12 rounded-xl shadow-sm border border-gray-100 text-center">
+        <div className="bg-bg-secondary p-12 rounded-xl shadow-sm border border-gray-100 text-center">
           <svg className="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
@@ -65,7 +65,7 @@ const ReportsPage = () => {
           <p className="text-gray-500 mb-6">You haven't generated any sustainability reports yet.</p>
         </div>
       ) : (
-        <div className="bg-deep-ocean rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-bg-secondary rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">

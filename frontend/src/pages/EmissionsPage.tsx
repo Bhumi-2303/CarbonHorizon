@@ -172,10 +172,10 @@ const EmissionsPage = () => {
     <main className="max-w-7xl mx-auto p-4 md:p-6 space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Emissions Analytics</h1>
+          <h1 className="text-3xl font-bold text-primary tracking-tight">Emissions Analytics</h1>
           <p className="text-slate-400 mt-1">Detailed breakdown and comparative benchmarking</p>
         </div>
-        <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-lg shadow-emerald-900/20">
+        <button className="bg-emerald-600 hover:bg-emerald-500 text-primary px-5 py-2.5 rounded-xl font-medium transition-colors shadow-lg shadow-emerald-900/20">
           Export Report
         </button>
       </div>
@@ -192,7 +192,7 @@ const EmissionsPage = () => {
       ) : data.length === 0 ? (
         <div className="glass-card p-12 text-center border-white/5">
           <Leaf className="mx-auto h-12 w-12 text-emerald-500/50 mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">No Emissions Data</h2>
+          <h2 className="text-xl font-semibold text-primary mb-2">No Emissions Data</h2>
           <p className="text-slate-400">Complete your first carbon assessment to see your analytics.</p>
         </div>
       ) : (
@@ -202,7 +202,7 @@ const EmissionsPage = () => {
             <div className="glass-card p-6 border-white/5 transition-transform hover:-translate-y-1 duration-300">
               <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Latest Period Total</h3>
               <div className="flex items-baseline">
-                <span className="text-4xl font-bold text-white">{currentTotal.toFixed(1)}</span>
+                <span className="text-4xl font-bold text-primary">{currentTotal.toFixed(1)}</span>
                 <span className="ml-2 text-sm text-slate-500 font-medium">kg CO₂e</span>
               </div>
             </div>
@@ -210,7 +210,7 @@ const EmissionsPage = () => {
             <div className="glass-card p-6 border-white/5 transition-transform hover:-translate-y-1 duration-300">
               <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Trend vs Previous</h3>
               <div className="flex items-baseline">
-                <span className={`text-4xl font-bold ${trend === 'down' ? 'text-emerald-400' : trend === 'up' ? 'text-red-400' : 'text-slate-300'}`}>
+                <span className={`text-4xl font-bold ${trend === 'down' ? 'text-emerald-400' : trend === 'up' ? 'text-red-400' : 'text-muted'}`}>
                   {trend === 'up' ? '+' : ''}{percentChange.toFixed(1)}%
                 </span>
                 <span className="ml-2 text-sm text-slate-500 font-medium">
@@ -222,7 +222,7 @@ const EmissionsPage = () => {
             <div className="glass-card p-6 border-white/5 transition-transform hover:-translate-y-1 duration-300">
               <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Largest Scope</h3>
               <div className="flex items-baseline">
-                <span className="text-4xl font-bold text-white">
+                <span className="text-4xl font-bold text-primary">
                   {
                     Object.entries({
                       'Scope 1': data[data.length - 1].Scope1,
@@ -241,7 +241,7 @@ const EmissionsPage = () => {
             {/* Category Breakdown */}
             <div className="glass-card p-6 border-white/5 flex flex-col relative overflow-hidden group">
               <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-teal-500/5 rounded-full blur-3xl transition-transform group-hover:scale-110"></div>
-              <h3 className="text-lg font-bold text-white mb-6 relative z-10">Emission Breakdown</h3>
+              <h3 className="text-lg font-bold text-primary mb-6 relative z-10">Emission Breakdown</h3>
               <div className="flex-1 min-h-[300px] relative z-10 flex items-center justify-center">
                 {latestAssessment ? (
                   <Doughnut data={doughnutData} options={doughnutOptions} />
@@ -254,7 +254,7 @@ const EmissionsPage = () => {
             {/* Comparative Benchmarking */}
             <div className="glass-card p-6 border-white/5 flex flex-col relative overflow-hidden group">
               <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl transition-transform group-hover:scale-110"></div>
-              <h3 className="text-lg font-bold text-white mb-6 relative z-10">Comparative Analytics</h3>
+              <h3 className="text-lg font-bold text-primary mb-6 relative z-10">Comparative Analytics</h3>
               <div className="flex-1 min-h-[300px] relative z-10">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={benchmarkData} margin={{ top: 20, right: 10, left: -20, bottom: 5 }}>
@@ -281,8 +281,8 @@ const EmissionsPage = () => {
           <div className="glass-card p-6 border-white/5 relative overflow-hidden">
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-32 bg-emerald-500/5 blur-[100px] pointer-events-none"></div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4 relative z-10">
-              <h3 className="text-lg font-bold text-white">Progress Tracking</h3>
-              <div className="flex items-center bg-slate-800/80 rounded-lg p-1 border border-white/5">
+              <h3 className="text-lg font-bold text-primary">Progress Tracking</h3>
+              <div className="flex items-center bg-white/10/80 rounded-lg p-1 border border-white/5">
                 {(['weekly', 'monthly', 'yearly'] as const).map(view => (
                   <button
                     key={view}
@@ -290,7 +290,7 @@ const EmissionsPage = () => {
                     className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 capitalize ${
                       timeView === view 
                         ? 'bg-emerald-500/20 text-emerald-400 shadow-sm' 
-                        : 'text-slate-400 hover:text-slate-200'
+                        : 'text-slate-400 hover:text-primary'
                     }`}
                   >
                     {view}
@@ -332,7 +332,7 @@ const EmissionsPage = () => {
 
           {/* Existing Chart: Historical Scopes */}
           <div className="glass-card p-6 border-white/5">
-            <h3 className="text-lg font-bold text-white mb-6">Historical Emissions by Scope</h3>
+            <h3 className="text-lg font-bold text-primary mb-6">Historical Emissions by Scope</h3>
             <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>

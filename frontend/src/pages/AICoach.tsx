@@ -154,7 +154,7 @@ export default function AICoach() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 flex flex-col pt-16 lg:pt-0">
+    <div className="min-h-screen bg-bg-primary flex flex-col pt-16 lg:pt-0">
       
       {/* Background orbs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
@@ -168,7 +168,7 @@ export default function AICoach() {
         <div className="w-full lg:w-80 flex-shrink-0 flex flex-col gap-4">
           <button
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-1.5 text-xs text-muted hover:text-slate-300 transition-colors self-start"
+            className="flex items-center gap-1.5 text-xs text-muted hover:text-muted transition-colors self-start"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -176,14 +176,14 @@ export default function AICoach() {
             Back to Dashboard
           </button>
           
-          <div className="bg-deep-ocean/50 border border-slate-700/50 rounded-2xl p-5 shadow-lg backdrop-blur-md">
+          <div className="glass-panel border border-slate-700/50 rounded-2xl p-5 shadow-lg backdrop-blur-md">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10
                 border border-earth-green/30 flex items-center justify-center">
-                <Leaf className="w-5 h-5 text-[#2ECC71]" />
+                <Leaf className="w-5 h-5 text-accent" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-slate-100">AI Coach</h1>
+                <h1 className="text-lg font-bold text-primary">AI Coach</h1>
                 <p className="text-xs text-muted">Your sustainability guide</p>
               </div>
             </div>
@@ -195,16 +195,16 @@ export default function AICoach() {
                 </p>
                 {contextLoading ? (
                   <div className="animate-pulse space-y-2">
-                    <div className="h-10 bg-slate-700/50 rounded-xl" />
-                    <div className="h-10 bg-slate-700/50 rounded-xl" />
+                    <div className="h-10 border-white/20/50 rounded-xl" />
+                    <div className="h-10 border-white/20/50 rounded-xl" />
                   </div>
                 ) : baseline ? (
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center bg-deep-ocean/50 border border-slate-700/40 p-3 rounded-xl">
+                    <div className="flex justify-between items-center glass-panel border border-slate-700/40 p-3 rounded-xl">
                       <span className="text-sm text-muted">Carbon Score</span>
                       <span className="text-lg font-bold text-earth-green">{baseline.carbon_score.toFixed(0)}</span>
                     </div>
-                    <div className="flex justify-between items-center bg-deep-ocean/50 border border-slate-700/40 p-3 rounded-xl">
+                    <div className="flex justify-between items-center glass-panel border border-slate-700/40 p-3 rounded-xl">
                       <span className="text-sm text-muted">Top Source</span>
                       <div className="text-right">
                         <p className="text-sm font-bold text-rose-400">{getTopSource(baseline).name}</p>
@@ -213,7 +213,7 @@ export default function AICoach() {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-deep-ocean/50 border border-slate-700/40 p-4 rounded-xl text-center">
+                  <div className="glass-panel border border-slate-700/40 p-4 rounded-xl text-center">
                     <p className="text-sm text-muted mb-2">No assessment found.</p>
                     <button
                       onClick={() => navigate('/assessment/new')}
@@ -229,12 +229,12 @@ export default function AICoach() {
         </div>
 
         {/* ── Chat Interface (Right side / Main) ── */}
-        <div className="flex-1 flex flex-col bg-deep-ocean/40 border border-slate-700/50 rounded-2xl shadow-xl backdrop-blur-md overflow-hidden h-full min-h-0">
+        <div className="flex-1 flex flex-col bg-white/5 border border-slate-700/50 rounded-2xl shadow-xl backdrop-blur-md overflow-hidden h-full min-h-0">
           
           {/* Chat Header */}
-          <div className="px-6 py-4 border-b border-slate-700/50 bg-deep-ocean/60 flex justify-between items-center shrink-0">
+          <div className="px-6 py-4 border-b border-slate-700/50 glass-panel flex justify-between items-center shrink-0">
             <div>
-              <h2 className="text-sm font-semibold text-slate-200">Conversation</h2>
+              <h2 className="text-sm font-semibold text-primary">Conversation</h2>
               <p className="text-xs text-muted">Ask me anything about your footprint or habits</p>
             </div>
             {isTyping && (
@@ -249,8 +249,8 @@ export default function AICoach() {
             {messages.length === 0 && !isTyping && (
               <div className="h-full flex flex-col items-center justify-center text-center opacity-70">
                 <MessageCircle className="w-10 h-10 mb-4 text-muted" />
-                <p className="text-slate-300 font-medium">No messages yet</p>
-                <p className="text-sm text-muted mt-2 max-w-sm">
+                <p className="text-muted font-medium">No messages yet</p>
+                <p className="text-sm text-muted mt-2 max-w-lg">
                   Try asking how you can reduce your top emission source or ask for an eco-friendly recipe!
                 </p>
               </div>
@@ -265,13 +265,13 @@ export default function AICoach() {
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div className={`
-                    ${msg.role === 'user' ? 'bg-forest-green/90 backdrop-blur-sm text-white rounded-2xl rounded-br-sm px-4 py-3 max-w-xs ml-auto shadow-md' : ''}
-                    ${msg.role === 'assistant' && !isOutOfScope ? 'bg-deep-ocean/70 backdrop-blur-md border border-earth-green/30 text-white rounded-2xl rounded-bl-sm px-5 py-4 max-w-[85%] shadow-lg' : ''}
-                    ${msg.role === 'assistant' && isOutOfScope ? 'bg-deep-ocean/50 border-earth-green/20 border-l-4 border-warning text-muted italic rounded-2xl rounded-bl-sm px-4 py-3 max-w-sm' : ''}
+                    ${msg.role === 'user' ? 'bg-forest-green/90 backdrop-blur-sm text-primary rounded-2xl rounded-br-sm px-4 py-3 max-w-md ml-auto shadow-md' : ''}
+                    ${msg.role === 'assistant' && !isOutOfScope ? 'glass-panel backdrop-blur-md border border-earth-green/30 text-primary rounded-2xl rounded-bl-sm px-5 py-4 max-w-2xl w-full shadow-lg' : ''}
+                    ${msg.role === 'assistant' && isOutOfScope ? 'glass-panel border-earth-green/20 border-l-4 border-warning text-muted italic rounded-2xl rounded-bl-sm px-4 py-3 max-w-lg' : ''}
                   `} aria-label={msg.role === 'user' ? 'You said' : 'Coach said'}>
                     {msg.role === 'assistant' ? (
                       <div className="text-sm leading-relaxed whitespace-pre-wrap 
-                          prose prose-invert prose-p:my-2 prose-strong:text-white prose-a:text-earth-green max-w-none">
+                          prose prose-invert prose-p:my-2 prose-strong:text-primary prose-a:text-earth-green max-w-none">
                         <ReactMarkdown
                           components={{
                             blockquote: ({ children }) => (
@@ -283,12 +283,12 @@ export default function AICoach() {
                               </blockquote>
                             ),
                             ul: ({ node, children, ...props }) => (
-                              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-4 pl-0" {...props}>
+                              <ul className="grid grid-cols-1 gap-3 my-4 pl-0" {...props}>
                                 {children}
                               </ul>
                             ),
                             li: ({ node, children, ...props }) => (
-                              <li className="bg-slate-800/40 border border-slate-700/50 p-3.5 rounded-xl shadow-sm text-slate-200 list-none m-0" {...props}>
+                              <li className="bg-white/10 border border-white/10 p-3.5 rounded-xl shadow-sm text-primary list-none m-0" {...props}>
                                 {children}
                               </li>
                             )
@@ -307,7 +307,7 @@ export default function AICoach() {
               {/* Typing indicator */}
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className="bg-deep-ocean border border-earth-green/20 text-white rounded-2xl rounded-bl-sm px-4 py-3 max-w-sm flex items-center gap-1.5 h-[52px]" aria-label="Coach is typing">
+                  <div className="bg-bg-secondary border border-earth-green/20 text-primary rounded-2xl rounded-bl-sm px-4 py-3 max-w-lg flex items-center gap-1.5 h-[52px]" aria-label="Coach is typing">
                     <span className="w-1.5 h-1.5 bg-earth-green rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                     <span className="w-1.5 h-1.5 bg-earth-green rounded-full animate-bounce [animation-delay:-0.15s]"></span>
                     <span className="w-1.5 h-1.5 bg-earth-green rounded-full animate-bounce"></span>
@@ -319,7 +319,7 @@ export default function AICoach() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 bg-deep-ocean/80 border-t border-slate-700/50 shrink-0">
+          <div className="p-4 glass-panel border-t border-slate-700/50 shrink-0">
             <form onSubmit={handleSend} className="relative flex items-end gap-2 max-w-4xl mx-auto" aria-label="Send message to Coach">
               <textarea
                 value={input}
@@ -327,7 +327,7 @@ export default function AICoach() {
                 onKeyDown={handleKeyDown}
                 placeholder="Ask your coach..."
                 aria-label="Ask your coach"
-                className="w-full bg-space-black border border-earth-green/30 text-white rounded-xl px-4 py-3 focus:border-earth-green focus:outline-none resize-none min-h-[52px] max-h-32"
+                className="w-full bg-white/5 border border-white/20 text-primary rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent resize-none min-h-[52px] max-h-32 placeholder-muted transition-all duration-200"
                 rows={1}
                 style={{ height: 'auto', minHeight: '52px' }}
                 onInput={(e) => {

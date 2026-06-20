@@ -36,7 +36,7 @@ export default function StudentDashboard() {
         </div>
         
         <div className="flex-1 z-10">
-          <h1 className="text-3xl font-black text-white mb-2 font-poppins">Student Sustainability</h1>
+          <h1 className="text-3xl font-black text-primary mb-2 font-poppins">Student Sustainability</h1>
           <p className="text-slate-400 mb-6 max-w-lg">
             Track your impact, complete weekly goals, and learn how small changes to your commute and habits make a massive difference.
           </p>
@@ -48,7 +48,7 @@ export default function StudentDashboard() {
         </div>
 
         {assessment && (
-          <div className="relative flex flex-col items-center justify-center z-10 bg-slate-900/80 rounded-3xl p-8 border border-slate-700/50 min-w-[200px]">
+          <div className="relative flex flex-col items-center justify-center z-10 bg-bg-secondary/80 rounded-3xl p-8 border border-slate-700/50 min-w-[200px]">
             <span className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Eco Score</span>
             <div className="flex items-baseline gap-1">
               <span className="text-6xl font-black text-emerald-400 font-poppins">{score}</span>
@@ -70,7 +70,7 @@ export default function StudentDashboard() {
               <Bus className="w-5 h-5 text-sky-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Impact Breakdown</h2>
+              <h2 className="text-xl font-bold text-primary">Impact Breakdown</h2>
               <p className="text-sm text-slate-400">Where do your emissions come from?</p>
             </div>
           </div>
@@ -101,7 +101,7 @@ export default function StudentDashboard() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute flex flex-col items-center pointer-events-none">
-                <span className="text-2xl font-bold text-white">{assessment.total_emission.toFixed(1)}</span>
+                <span className="text-2xl font-bold text-primary">{assessment.total_emission.toFixed(1)}</span>
                 <span className="text-xs text-slate-400 uppercase">kg CO2</span>
               </div>
             </div>
@@ -117,7 +117,7 @@ export default function StudentDashboard() {
               {pieData.map((entry, index) => (
                 <div key={entry.name} className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index] }} />
-                  <span className="text-sm text-slate-300">{entry.name}</span>
+                  <span className="text-sm text-muted">{entry.name}</span>
                 </div>
               ))}
             </div>
@@ -131,13 +131,13 @@ export default function StudentDashboard() {
               <div className="w-10 h-10 rounded-xl bg-amber-400/20 flex items-center justify-center">
                 <Flame className="w-5 h-5 text-amber-400" />
               </div>
-              <h2 className="text-xl font-bold text-white">Weekly Streak</h2>
+              <h2 className="text-xl font-bold text-primary">Weekly Streak</h2>
             </div>
-            <div className="flex justify-between items-center bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
+            <div className="flex justify-between items-center bg-white/10/50 p-4 rounded-2xl border border-slate-700">
               {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
                 <div key={i} className="flex flex-col items-center gap-2">
                   <span className="text-xs font-bold text-slate-500">{day}</span>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${streak[i] ? 'bg-amber-400/20 border-amber-400 text-amber-400' : 'bg-slate-800 border-slate-700 text-slate-700'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${streak[i] ? 'bg-amber-400/20 border-amber-400 text-amber-400' : 'bg-white/10 border-slate-700 text-slate-700'}`}>
                     {streak[i] ? <Flame className="w-4 h-4" /> : null}
                   </div>
                 </div>
@@ -150,7 +150,7 @@ export default function StudentDashboard() {
               <div className="w-10 h-10 rounded-xl bg-rose-400/20 flex items-center justify-center">
                 <Target className="w-5 h-5 text-rose-400" />
               </div>
-              <h2 className="text-xl font-bold text-white">This Week's Goal</h2>
+              <h2 className="text-xl font-bold text-primary">This Week's Goal</h2>
             </div>
             <div className="bg-gradient-to-br from-rose-900/30 to-slate-900 p-5 rounded-2xl border border-rose-500/30 flex flex-col gap-3">
               <h3 className="font-bold text-rose-300">Meatless Monday</h3>
