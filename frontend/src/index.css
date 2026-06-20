@@ -1,146 +1,185 @@
-/* Carbon Horizon — Global Styles */
+/* Carbon Horizon — Global Styles & Design Tokens */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@600&family=Nunito:wght@400;500;600;700;800&family=Poppins:wght@400;600;700&display=swap');
 
-/* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@600&family=Poppins:wght@400;600;700&display=swap');
-
-/* Tailwind directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light Mode (Default :root) ── */
 :root {
-  --color-bg-primary: #08121E;
-  --color-bg-card: #0F172A;
-  --color-green-primary: #2ECC71;
-  --color-green-forest: #1B5E20;
-  --color-green-accent: #A3E635;
-  --color-success: #22C55E;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
+  /* Core Palette */
+  --color-forest-green:      #1B5E20;
+  --color-leaf-green:        #4CAF50;
+  --color-leaf-green-light:  #66BB6A;
+  --color-ocean-blue:        #0288D1;
+  --color-earth-brown:       #795548;
+  --color-sky-white:         #F8FAFC;
+
+  /* Theme Tokens (Light) */
+  --color-bg-primary:        #F8FAFC;
+  --color-bg-card:           rgba(255, 255, 255, 0.8);
+  --color-bg-card-solid:     #FFFFFF;
+  --color-accent:            #2ECC71;
+  --color-text-primary:      #0F172A;
+  --color-text-muted:        #64748B;
+  --color-border:            rgba(0, 0, 0, 0.1);
+
+  /* Glass Card */
+  --glass-bg:                rgba(255, 255, 255, 0.7);
+  --glass-bg-fallback:       #FFFFFF;
+  --glass-blur:              20px;
+  --glass-border-color:      rgba(0, 0, 0, 0.1);
+  --glass-radius:            24px;
+  --glass-shadow:            0 8px 32px rgba(0, 0, 0, 0.05);
+
+  /* Typography */
+  --font-body:               'Nunito', 'Inter', system-ui, sans-serif;
+  --font-heading:            'Poppins', 'Nunito', sans-serif;
+  --font-metric:             'Montserrat', 'Nunito', sans-serif;
+
+  /* Semantic */
+  --color-success:           #4CAF50;
+  --color-warning:           #F59E0B;
+  --color-danger:            #EF4444;
+}
+
+/* ── Dark Mode ── */
+.dark {
+  --color-bg-primary:        #0B1215;
+  --color-bg-card:           rgba(20, 30, 25, 0.65);
+  --color-bg-card-solid:     #141E19;
+  --color-accent:            #1B5E20; /* Forest green accents per prompt */
+  --color-text-primary:      #E8F5E9;
+  --color-text-muted:        #90A4A0;
+  --color-border:            rgba(255, 255, 255, 0.1);
+
+  --glass-bg:                rgba(255, 255, 255, 0.05);
+  --glass-bg-fallback:       #141E19;
+  --glass-border-color:      rgba(255, 255, 255, 0.1);
+  --glass-shadow:            0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* ── High Contrast Mode (WCAG AA/AAA) ── */
+.high-contrast {
+  --color-bg-primary:        #000000;
+  --color-bg-card:           #000000;
+  --color-bg-card-solid:     #000000;
+  --color-accent:            #00FF00;
+  --color-text-primary:      #FFFFFF;
+  --color-text-muted:        #FFFF00;
+  --color-border:            #FFFFFF;
+
+  --glass-bg:                #000000;
+  --glass-bg-fallback:       #000000;
+  --glass-border-color:      #FFFFFF;
+  --glass-shadow:            none;
 }
 
 @layer base {
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-
-  html {
-    font-family: 'Inter', system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
+  *, *::before, *::after { box-sizing: border-box; }
+  html { font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
   body {
-    @apply bg-space-black text-white font-sans;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
     margin: 0;
     min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
-
-  h1, h2, h3 {
-    @apply font-poppins font-bold;
+  h1, h2, h3 { font-family: var(--font-heading); font-weight: 700; color: var(--color-text-primary); }
+  input[type='number']::-webkit-inner-spin-button, input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-bg-card-solid) inset;
+    -webkit-text-fill-color: var(--color-text-primary);
+    caret-color: var(--color-text-primary);
   }
-
-  /* Remove number input arrows */
-  input[type='number']::-webkit-inner-spin-button,
-  input[type='number']::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-  }
-
-  /* Autofill styling for dark backgrounds */
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 1000px hsl(220, 18%, 14%) inset;
-    -webkit-text-fill-color: hsl(220, 20%, 95%);
-    caret-color: hsl(220, 20%, 95%);
-    transition: background-color 9999s ease-in-out 0s;
-  }
-
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    @apply bg-slate-900;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-slate-700 rounded-full;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-600;
-  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--color-bg-primary); }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
 }
 
 @layer components {
-  /* Reusable glassmorphism surface */
-  .glass-surface {
-    @apply bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl;
-  }
-
-  /* Gradient text */
-  .gradient-text {
-    @apply bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent;
-  }
-
-  /* Typography */
-  .heading-xl {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 2.5rem;
-  }
-  .heading-lg {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 1.75rem;
-  }
-  .heading-md {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 1.25rem;
-  }
-  .metric {
-    @apply font-montserrat font-semibold text-earth-green text-3xl;
-  }
-  .body {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400;
-    font-size: 1rem;
-  }
-
   .glass-card {
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(46, 204, 113, 0.15);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    background: var(--glass-bg-fallback);
+    border: 1px solid var(--glass-border-color);
+    border-radius: var(--glass-radius);
+    box-shadow: var(--glass-shadow);
+    color: var(--color-text-primary);
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    /* Don't blur in high contrast mode */
+    :root:not(.high-contrast) .glass-card {
+      background: var(--glass-bg);
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      backdrop-filter: blur(var(--glass-blur));
+    }
+  }
+
+  .glass-surface {
+    background-color: var(--glass-bg-fallback);
+    border: 1px solid var(--glass-border-color);
+    border-radius: 1rem;
+  }
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    :root:not(.high-contrast) .glass-surface {
+      background-color: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+    }
+  }
+
+  .gradient-text {
+    background-image: linear-gradient(to right, var(--color-accent), var(--color-leaf-green));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .heading-xl { font-family: var(--font-heading); font-weight: 700; font-size: 2.5rem; }
+  .heading-lg { font-family: var(--font-heading); font-weight: 600; font-size: 1.75rem; }
+  .heading-md { font-family: var(--font-heading); font-weight: 600; font-size: 1.25rem; }
+  .metric { font-family: var(--font-montserrat); font-weight: 600; color: var(--color-accent); font-size: 1.875rem; }
+  .body { font-family: var(--font-body); font-weight: 400; font-size: 1rem; color: var(--color-text-muted); }
 
   .btn-primary {
-    @apply bg-earth-green text-space-black hover:bg-eco-lime font-semibold rounded-xl px-6 py-3 transition-colors duration-200;
+    background-color: var(--color-accent);
+    color: var(--color-bg-primary);
+    font-weight: 600;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s;
   }
+  .btn-primary:hover { opacity: 0.9; }
 
   .btn-outline {
-    @apply bg-transparent border border-earth-green text-earth-green hover:bg-forest-green/20 font-semibold rounded-xl px-6 py-3 transition-colors duration-200;
+    background-color: transparent;
+    border: 1px solid var(--color-accent);
+    color: var(--color-accent);
+    font-weight: 600;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s;
   }
+  .btn-outline:hover { background-color: var(--color-accent); color: var(--color-bg-primary); }
 }
 
 @layer utilities {
-  /* Wizard step fade-in animation */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .animate-fade-in {
-    animation: fadeIn 0.22s ease-out both;
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-fade-in { animation: fadeIn 0.22s ease-out both; }
+  @keyframes fadeShiftUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-fade-shift-up { animation: fadeShiftUp 0.3s ease-out forwards; }
+  
+  .nav-glow {
+    text-shadow: 0 0 10px var(--color-accent);
+    box-shadow: inset 0 -2px 10px -2px var(--color-accent);
   }
 
-  /* Skip to content link styled for WCAG AA */
   .skip-to-content {
     position: absolute;
     top: -100px;
     left: 1rem;
-    background-color: var(--color-green-primary);
+    background-color: var(--color-accent);
     color: var(--color-bg-primary);
     padding: 0.75rem 1.5rem;
     font-weight: 600;
@@ -149,16 +188,7 @@
     transition: top 0.2s ease;
     text-decoration: none;
   }
-  .skip-to-content:focus {
-    top: 1rem;
-    outline: 3px solid var(--color-green-accent);
-    outline-offset: 2px;
-  }
+  .skip-to-content:focus { top: 1rem; outline: 3px solid var(--color-text-primary); outline-offset: 2px; }
 
-  /* Keyboard-only focus visible ring */
-  *:focus-visible {
-    outline: 2px solid var(--color-green-accent) !important;
-    outline-offset: 2px !important;
-  }
+  *:focus-visible { outline: 2px solid var(--color-accent) !important; outline-offset: 2px !important; }
 }
-

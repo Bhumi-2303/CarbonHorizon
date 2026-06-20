@@ -33,10 +33,54 @@ export interface AssessmentPayload {
   diet_type: DietType
   recycling_score: number
   plastic_usage_score: number
-  household_size: number
+  household_size?: number
+  assessment_period?: 'daily' | 'monthly' | 'annual'
 
-  // Period — always monthly from the wizard
-  assessment_period?: string
+  // Extensions
+  vehicle_type?: string
+  fuel_type?: string
+  trips_per_week?: number
+  public_transport_usage?: string
+  carpooling_frequency?: string
+  air_travel_frequency?: string
+  train_travel_frequency?: string
+  walking_cycling_hours?: number
+
+  energy_efficiency_rating?: string
+  heating_type?: string
+
+  local_food_frequency?: string
+  food_waste_percentage?: number
+
+  daily_water_liters?: number
+  shower_duration_minutes?: number
+  water_heating_type?: string
+
+  composting_frequency?: string
+  ewaste_disposal_method?: string
+
+  house_size_sqm?: number
+  home_insulation_level?: string
+
+  screen_time_hours?: number
+  streaming_hours?: number
+  gaming_hours?: number
+
+  new_clothes_monthly?: number
+  second_hand_purchases?: string
+  electronics_purchases_yearly?: number
+
+  commute_days_per_week?: number
+  remote_work_percentage?: number
+
+  assessment_country?: string
+  assessment_state?: string
+  assessment_city?: string
+
+  composting_active?: boolean
+  tree_planting_count?: number
+  reusable_products_usage?: string
+  green_transport_choices?: boolean
 }
 
 export interface AssessmentResult {
@@ -46,6 +90,11 @@ export interface AssessmentResult {
   energy: number
   food: number
   waste: number
+  housing?: number
+  water?: number
+  digital?: number
+  shopping?: number
+  offsets?: number
   carbon_score: number
   assessment_period: string
   created_at: string

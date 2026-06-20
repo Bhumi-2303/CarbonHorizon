@@ -8,12 +8,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        'space-black': '#08121E',
-        'deep-ocean': '#0F172A',
-        'earth-green': '#2ECC71',
-        'forest-green': '#1B5E20',
-        'eco-lime': '#A3E635',
-        'muted': '#94A3B8',
+        'space-black': 'var(--color-bg-primary)',
+        'deep-ocean': 'var(--color-bg-card-solid)',
+        'earth-green': 'var(--color-accent)',
+        'forest-green': 'var(--color-forest-green)',
+        'eco-lime': 'var(--color-leaf-green-light)',
+        'muted': 'var(--color-text-muted)',
+        white: 'var(--color-text-primary)',
+        black: 'var(--color-bg-primary)',
         success: '#22C55E',
         warning: '#F59E0B',
         danger: '#EF4444',

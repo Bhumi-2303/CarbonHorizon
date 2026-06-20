@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
-export type Theme = 'light' | 'dark' | 'system'
+export type Theme = 'light' | 'dark' | 'system' | 'high-contrast'
 
 interface ThemeContextType {
   theme: Theme
@@ -13,14 +13,14 @@ const STORAGE_KEY = 'ch_theme'
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    return (localStorage.getItem(STORAGE_KEY) as Theme) || 'dark'
+    return (localStorage.getItem(STORAGE_KEY) as Theme) || 'light'
   })
 
   useEffect(() => {
     const root = window.document.documentElement
 
     const applyTheme = () => {
-      root.classList.remove('light', 'dark')
+      root.classList.remove('light', 'dark', 'high-contrast')
 
       if (theme === 'system') {
         const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches

@@ -10,16 +10,20 @@ import apiClient from './client'
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export type AgeGroup = 'child' | 'student' | 'adult' | 'senior'
-export type LifestyleType = 'student' | 'professional' | 'homemaker' | 'retired'
+export type LifestyleType = 'student' | 'professional' | 'homemaker' | 'house_helper' | 'retired' | 'self_employed' | 'business_owner' | 'consultant'
+export type Gender = 'Male' | 'Female' | 'Non-Binary' | 'Prefer Not to Say'
 
 export interface RegisterPayload {
   full_name: string
   email: string
   password: string
+  age: number
+  gender: Gender
   age_group?: AgeGroup
   lifestyle_type?: LifestyleType
-  city?: string
-  country?: string
+  country: string
+  state_province: string
+  city: string
 }
 
 export interface LoginPayload {
@@ -38,10 +42,13 @@ export interface UserProfile {
   id: string
   full_name: string
   email: string
+  age: number | null
+  gender: Gender | null
   age_group: AgeGroup | null
   lifestyle_type: LifestyleType | null
-  city: string | null
   country: string | null
+  state_province: string | null
+  city: string | null
   email_verified: boolean
   last_login: string | null
   created_at: string
