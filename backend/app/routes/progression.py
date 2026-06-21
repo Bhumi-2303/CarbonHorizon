@@ -25,4 +25,6 @@ def get_user_progression(
         progression_data = ProgressionService.calculate_progression(db, current_user.id)
         return {"success": True, "data": progression_data}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import logging
+        logging.error(f"Error in get_user_progression: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")

@@ -20,7 +20,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from freezegun import freeze_time
-from jose import JWTError, jwt
+from app.core.security import JWTError
+import jwt
 
 from app.core.config import settings
 from app.core.security import (

@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from fastapi import HTTPException
 from freezegun import freeze_time
-from jose import jwt
+import jwt
 from sqlalchemy.orm import Session
 
 from app.core.config import settings

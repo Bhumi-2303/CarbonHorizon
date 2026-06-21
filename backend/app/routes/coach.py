@@ -36,7 +36,8 @@ def chat_with_coach(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Error in chat_with_coach: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
 
 @router.get("/history", response_model=APIResponse[ConversationHistoryResponse])
 def get_chat_history(

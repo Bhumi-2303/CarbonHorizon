@@ -6,7 +6,7 @@ from typing import Generator
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError
+from app.core.security import JWTError
 from sqlalchemy.orm import Session
 
 from app.core.security import decode_token

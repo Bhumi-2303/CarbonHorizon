@@ -42,7 +42,7 @@ class TestAssessmentService:
         assert result["total_emission"] > 0
         assert result["transport"] == 150.0 * 0.18  # car default fallback
         assert result["energy"] == (200.0 * 0.5) + (12.0 * 0.8) + (4.0 * 3.0)
-        assert result["food"] == (1.7 * 30.0) / 3.0
+        assert result["food"] == (1.7 * 30.0)
         assert result["waste"] == (4 * 15.0) - (2 * 5.0)
         assert result["carbon_score"] > 0
         assert result["assessment_period"] == AssessmentPeriod.monthly

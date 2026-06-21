@@ -57,6 +57,14 @@ def _get_factor(
     """
     Query the database for an active carbon factor. Fallback if not found or DB is unavailable.
     """
+    if version_tracker and "_factors" in version_tracker:
+        factor = version_tracker["_factors"].get((category, sub_category))
+        if factor is not None:
+            if factor.version:
+                version_tracker["factor_version"] = factor.version
+            return float(factor.factor_value)
+        return fallback_value
+
     if db is None:
         return fallback_value
     try:
@@ -104,13 +112,6 @@ def calculate_transport(
     factor_val = _get_factor(db, "transport", mode_str, fallback, version_tracker)
     
     base_emission = float(distance_km * factor_val)
-    
-    # Extensions (optional)
-    inp = version_tracker.get("_inp", {}) if version_tracker else {}
-    trips_per_week = _get_val(inp, "trips_per_week")
-    if trips_per_week:
-        base_emission *= max(1, trips_per_week / 5.0) # Scaling factor based on 5 commute days
-        
     return base_emission
 
 
@@ -177,7 +178,6 @@ def calculate_food(
         fallback = 2.5  # mixed or other
 
     diet_factor = _get_factor(db, "food", diet_str, fallback, version_tracker)
-    h_size = household_size if household_size is not None and household_size > 0 else 1
 
     # Scale daily factor to period
     period_str = (
@@ -193,7 +193,7 @@ def calculate_food(
     else:
         days = 30.0  # default monthly
 
-    return float((diet_factor * days) / h_size)
+    return float(diet_factor * days)
 
 
 def calculate_waste(
@@ -283,6 +283,13 @@ def calculate_total_emissions(
 
     # Tracking factors database version + passing inputs to extensions
     version_tracker = {"factor_version": DEFAULT_FACTOR_VERSION, "_inp": inp}
+    
+    if db is not None:
+        try:
+            factors = db.query(CarbonFactor).all()
+            version_tracker["_factors"] = {(f.category, f.sub_category): f for f in factors}
+        except Exception as e:
+            logger.warning(f"Failed to prefetch carbon factors: {e}")
 
     # Calculations
     transport_emission = calculate_transport(

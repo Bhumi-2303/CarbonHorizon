@@ -166,11 +166,11 @@ class TestCalculateFood:
         assert calculation_engine.calculate_food("non_vegetarian", None) == 99.0
 
     def test_food_household_division(self):
-        """calculate_food divides diet emissions by household size."""
-        # Non-vegetarian = 3.3 * 30 = 99.0, size = 4 -> 24.75
-        assert calculation_engine.calculate_food("non_vegetarian", 4) == 24.75
-        # Mixed = 2.5 * 30 = 75.0, size = 2 -> 37.5
-        assert calculation_engine.calculate_food(DietType.mixed, 2) == 37.5
+        """calculate_food does not divide diet emissions by household size."""
+        # Non-vegetarian = 3.3 * 30 = 99.0
+        assert calculation_engine.calculate_food("non_vegetarian", 4) == 99.0
+        # Mixed = 2.5 * 30 = 75.0
+        assert calculation_engine.calculate_food(DietType.mixed, 2) == 75.0
 
     def test_food_invalid_household_size(self):
         """calculate_food defaults household_size to 1 if <= 0 or None."""
@@ -183,8 +183,8 @@ class TestCalculateFood:
         db.flush()
 
         result = calculation_engine.calculate_food("vegetarian", 3, db=db)
-        # 1.5 * 30 / 3 = 15.0
-        assert result == 15.0
+        # 1.5 * 30 = 45.0
+        assert result == 45.0
 
     def test_food_assessment_periods(self):
         """calculate_food scales daily diet factors based on assessment period (daily/monthly/annual)."""
@@ -247,21 +247,21 @@ class TestCalculateTotalEmissions:
             "ac_hours": 10.0,              # 8.0
             "lpg_usage": 5.0,              # 15.0
             "solar_usage": False,
-            "diet_type": "vegetarian",     # 1.7 * 30 / 2 = 25.5
+            "diet_type": "vegetarian",     # 1.7 * 30 = 51.0
             "household_size": 2,
             "recycling_score": 1,          # 3 * 15 - 1 * 5 = 40.0
             "plastic_usage_score": 3,
         }
-        # Total: 18.0 + (50.0 + 8.0 + 15.0) + 25.5 + 40.0 = 18 + 73 + 25.5 + 40 = 156.5
-        # Score: 100 - (156.5 / 1000.0) * 100 = 100 - 15.65 = 84.35 -> round to 84.
+        # Total: 18.0 + (50.0 + 8.0 + 15.0) + 51.0 + 40.0 = 18 + 73 + 51.0 + 40 = 182.0
+        # Score: 100 - (182.0 / 1000.0) * 100 = 100 - 18.2 = 81.8 -> round to 82.
         result = calculation_engine.calculate_total_emissions(db=None, emission_input=payload)
 
         assert result["transport_emission"] == 18.0
         assert result["energy_emission"] == 73.0
-        assert result["food_emission"] == 25.5
+        assert result["food_emission"] == 51.0
         assert result["waste_emission"] == 40.0
-        assert result["total_emission"] == 156.5
-        assert result["carbon_score"] == 84
+        assert result["total_emission"] == 182.0
+        assert result["carbon_score"] == 82
         assert result["calculation_version"] == "1.0.0"
         assert result["factor_version"] == "IPCC-2024"
 
@@ -280,7 +280,7 @@ class TestCalculateTotalEmissions:
             plastic_usage_score=3,
         )
         result = calculation_engine.calculate_total_emissions(db=None, emission_input=payload)
-        assert result["total_emission"] == 156.5
+        assert result["total_emission"] == 182.0
 
     def test_signature_overloads(self):
         """calculate_total_emissions supports running with and without DB parameters."""

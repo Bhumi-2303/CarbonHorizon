@@ -2,7 +2,7 @@ import pytest
 from fastapi import HTTPException
 from app.core.dependencies import get_db, get_current_user
 from unittest.mock import patch
-from jose import JWTError
+from app.core.security import JWTError
 
 def test_get_db():
     gen = get_db()

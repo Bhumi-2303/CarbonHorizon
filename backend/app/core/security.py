@@ -29,7 +29,8 @@ from typing import Any, Generator, Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError as JWTError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -104,7 +105,10 @@ def decode_token(token: str) -> dict:
     Raises:
         jose.JWTError: If the token is expired, malformed, or has an invalid signature.
     """
-    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    try:
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError, jwt.DecodeError, jwt.InvalidTokenError) as e:
+        raise JWTError(str(e)) from e
 
 
 # ---------------------------------------------------------------------------

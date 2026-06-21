@@ -31,7 +31,7 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
-from jose import JWTError
+from app.core.security import JWTError
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
