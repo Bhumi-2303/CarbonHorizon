@@ -56,8 +56,9 @@ export const Forecast: React.FC = () => {
         setRecommendedPathPoints([...recommended.forecast_points].sort(sortByOffset));
         setCustomPathPoints([...custom.forecast_points].sort(sortByOffset));
 
-      } catch (err: any) {
-        if (err.response?.status === 422) {
+      } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
+        if ((err as any).response?.status === 422) {
           setError("No carbon assessment found. Please complete an assessment first.");
         } else {
           setError(err.message || "Failed to generate forecasts.");

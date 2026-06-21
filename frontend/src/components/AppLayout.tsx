@@ -8,6 +8,7 @@ import {
   FlaskConical, TrendingUp, Building2, Compass
 } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
+import { ErrorBoundary } from './ErrorBoundary'
 
 const PRIMARY_NAV = [
   { path: '/dashboard', label: 'Home', icon: Home },
@@ -49,7 +50,7 @@ export default function AppLayout() {
     // Close mobile menu on route change
     setMobileMenuOpen(false)
     setMoreMenuOpen(false)
-  }, [location.pathname])
+  }, [])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -244,7 +245,9 @@ export default function AppLayout() {
           key={location.pathname}
           className="flex-1 outline-none animate-fade-shift-up w-full"
         >
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
 

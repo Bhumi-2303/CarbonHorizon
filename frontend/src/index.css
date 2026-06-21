@@ -14,7 +14,7 @@
   
   --color-accent:            #4CAF50; /* Leaf Green */
   --color-text-primary:      #F5F7F6; /* Near white */
-  --color-text-muted:        #A0AAB2; /* 4.5:1 contrast against dark */
+  --color-text-muted:        #CBD5E1; /* High contrast against dark */
   --color-danger:            #EF4444; /* Red/Coral */
   --color-border:            rgba(255, 255, 255, 0.12);
 
@@ -41,7 +41,7 @@
   
   --color-accent:            #4CAF50; 
   --color-text-primary:      #0F172A;
-  --color-text-muted:        #64748B;
+  --color-text-muted:        #475569; /* Increased contrast for light mode */
   --color-danger:            #EF4444;
   --color-border:            rgba(0, 0, 0, 0.1);
 

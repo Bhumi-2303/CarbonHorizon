@@ -1,42 +1,41 @@
+import React, { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/AppLayout'
 
-// Public pages
+// Public pages (Keep static for fast initial paint)
 import LandingPage from '@/pages/LandingPage'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
-
-// Protected pages
-import DashboardPage from '@/pages/DashboardPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
-// Lazy-loaded protected pages (kept as stubs for now)
-import AICoach from '@/pages/AICoach'
-import Goals from '@/pages/Goals'
-import HabitTracker from '@/pages/HabitTracker'
-import EmissionsPage from '@/pages/EmissionsPage'
-import ReportsPage from '@/pages/ReportsPage'
-import OrganizationPage from '@/pages/OrganizationPage'
-import SettingsPage from '@/pages/SettingsPage'
-import AssessmentForm from '@/pages/AssessmentForm'
-import AssessmentHistory from '@/pages/AssessmentHistory'
-import AssessmentResult from '@/pages/AssessmentResult'
-import Simulator from '@/pages/Simulator'
-import SimulatorHistory from '@/pages/SimulatorHistory'
-import { Forecast } from '@/pages/Forecast'
-import Profile from '@/pages/Profile'
-import Journey from '@/pages/Journey'
+// Lazy-loaded protected pages
+const DashboardPage = React.lazy(() => import('@/pages/DashboardPage'))
+const AICoach = React.lazy(() => import('@/pages/AICoach'))
+const Goals = React.lazy(() => import('@/pages/Goals'))
+const HabitTracker = React.lazy(() => import('@/pages/HabitTracker'))
+const EmissionsPage = React.lazy(() => import('@/pages/EmissionsPage'))
+const ReportsPage = React.lazy(() => import('@/pages/ReportsPage'))
+const OrganizationPage = React.lazy(() => import('@/pages/OrganizationPage'))
+const SettingsPage = React.lazy(() => import('@/pages/SettingsPage'))
+const AssessmentForm = React.lazy(() => import('@/pages/AssessmentForm'))
+const AssessmentHistory = React.lazy(() => import('@/pages/AssessmentHistory'))
+const AssessmentResult = React.lazy(() => import('@/pages/AssessmentResult'))
+const Simulator = React.lazy(() => import('@/pages/Simulator'))
+const SimulatorHistory = React.lazy(() => import('@/pages/SimulatorHistory'))
+const Forecast = React.lazy(() => import('@/pages/Forecast').then(m => ({ default: m.Forecast })))
+const Profile = React.lazy(() => import('@/pages/Profile'))
+const Journey = React.lazy(() => import('@/pages/Journey'))
 
 // Tier Components
-import LittleExplorerLayout from '@/components/tiers/LittleExplorerLayout'
-import LittleExplorerDashboard from '@/pages/tiers/LittleExplorerDashboard'
-import LittleExplorerAssessment from '@/pages/tiers/LittleExplorerAssessment'
-import LittleExplorerCoach from '@/pages/tiers/LittleExplorerCoach'
-import StudentLayout from '@/components/tiers/StudentLayout'
-import StudentDashboard from '@/pages/tiers/StudentDashboard'
-import StudentAssessment from '@/pages/tiers/StudentAssessment'
-import StudentCoach from '@/pages/tiers/StudentCoach'
+const LittleExplorerLayout = React.lazy(() => import('@/components/tiers/LittleExplorerLayout'))
+const LittleExplorerDashboard = React.lazy(() => import('@/pages/tiers/LittleExplorerDashboard'))
+const LittleExplorerAssessment = React.lazy(() => import('@/pages/tiers/LittleExplorerAssessment'))
+const LittleExplorerCoach = React.lazy(() => import('@/pages/tiers/LittleExplorerCoach'))
+const StudentLayout = React.lazy(() => import('@/components/tiers/StudentLayout'))
+const StudentDashboard = React.lazy(() => import('@/pages/tiers/StudentDashboard'))
+const StudentAssessment = React.lazy(() => import('@/pages/tiers/StudentAssessment'))
+const StudentCoach = React.lazy(() => import('@/pages/tiers/StudentCoach'))
 
 import { useAuth } from '@/context/AuthContext'
 
@@ -47,9 +46,12 @@ function App() {
   const isLittleExplorer = age >= 4 && age <= 12
   const isStudent = age >= 13 && age <= 17
 
+  const fallback = <div className="flex justify-center p-20"><i className="ti ti-loader animate-spin text-4xl text-accent"></i></div>
+
   return (
-    <Routes>
-      {/* Public routes */}
+    <Suspense fallback={fallback}>
+      <Routes>
+        {/* Public routes */}
       <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />
 
@@ -100,7 +102,8 @@ function App() {
 
       {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   )
 }
 

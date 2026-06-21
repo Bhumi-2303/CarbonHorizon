@@ -103,11 +103,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshToken: null,
     expiresAt: null,
   })
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Refs — stable across renders, safe to read inside callbacks/interceptors
   const accessTokenRef  = useRef<string | null>(null)
-  const refreshTokenRef = useRef<string | null>(null)
+  const refreshTokenRef = useRef<string | null>(localStorage.getItem('refreshToken'))
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Clear the pending refresh timer ────────────────────────────────────
@@ -118,9 +118,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // ── Axios request interceptor (registered once) ─────────────────────────
+  // ── Axios interceptors (registered once) ────────────────────────────────
   useEffect(() => {
-    const id = apiClient.interceptors.request.use((config) => {
+    const reqId = apiClient.interceptors.request.use((config) => {
       const token = accessTokenRef.current
       if (token) {
         config.headers = config.headers ?? {}
@@ -128,8 +128,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return config
     })
+
+    const resId = apiClient.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true
+          try {
+            await refreshTokenFnRef.current()
+            // Token is updated, retry the original request
+            if (accessTokenRef.current) {
+              originalRequest.headers.Authorization = `Bearer ${accessTokenRef.current}`
+            }
+            return apiClient(originalRequest)
+          } catch (refreshError) {
+            return Promise.reject(refreshError)
+          }
+        }
+        return Promise.reject(error)
+      }
+    )
+
     return () => {
-      apiClient.interceptors.request.eject(id)
+      apiClient.interceptors.request.eject(reqId)
+      apiClient.interceptors.response.eject(resId)
     }
   }, [])
 
@@ -158,6 +181,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const expiresAt = expiresAtFromTTL(tokens.expires_in)
       accessTokenRef.current  = tokens.access_token
       refreshTokenRef.current = tokens.refresh_token
+      if (tokens.refresh_token) {
+        localStorage.setItem('refreshToken', tokens.refresh_token)
+      }
       setAuth((prev) => ({
         user: profile ?? prev.user,
         accessToken: tokens.access_token,
@@ -212,6 +238,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearRefreshTimer()
     accessTokenRef.current  = null
     refreshTokenRef.current = null
+    localStorage.removeItem('refreshToken')
 
     setAuth({
       user: null,
@@ -240,6 +267,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     [applyTokens, scheduleRefresh],
   )
+
+  // ── Initial Mount Hydration ─────────────────────────────────────────────
+  useEffect(() => {
+    if (refreshTokenRef.current && !accessTokenRef.current) {
+      refreshTokenFnRef.current().catch(() => {
+        // failed to refresh, state is cleared
+      }).finally(() => {
+        setIsLoading(false)
+      })
+    } else {
+      setIsLoading(false)
+    }
+  }, [])
 
   // ── setUser ─────────────────────────────────────────────────────────────
   const setUser = useCallback((profile: UserProfile) => {

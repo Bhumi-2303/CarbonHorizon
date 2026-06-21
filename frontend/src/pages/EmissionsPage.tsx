@@ -67,7 +67,8 @@ const EmissionsPage = () => {
         // Sort newest first to get latest, but reverse for charts (left to right)
         chartData.sort((a: ChartData, b: ChartData) => b.date.getTime() - a.date.getTime())
         setData(chartData.reverse())
-      } catch (err: any) {
+      } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
         if (err.message?.includes('404')) {
           setData([])
         } else {
@@ -264,7 +265,7 @@ const EmissionsPage = () => {
                     <RechartsTooltip 
                       cursor={{ fill: 'rgba(255,255,255,0.02)' }}
                       contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '0.5rem', color: '#fff' }}
-                      formatter={(val: number) => [`${val} kg CO₂e`, 'Emissions']}
+                      formatter={(val: any) => [`${val} kg CO₂e`, 'Emissions']}
                     />
                     <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={true}>
                       {benchmarkData.map((entry, index) => (

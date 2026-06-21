@@ -21,7 +21,8 @@ const OrganizationPage = () => {
         // Adjust endpoint based on your actual API if different
         const response = await apiClient.get('/organization/me')
         setOrg(response.data)
-      } catch (err: any) {
+      } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
         // Fallback to empty state if 404 or just show error
         if (err.message?.includes('404')) {
           setOrg(null)

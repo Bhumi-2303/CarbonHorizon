@@ -38,7 +38,8 @@ const SettingsPage = () => {
             setTheme(response.data.preferences.dark_mode ? 'dark' : 'light')
           }
         }
-      } catch (err: any) {
+      } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
         // If 404, we might just be showing default empty forms
         if (!err.message?.includes('404')) {
           setMessage({ type: 'error', text: 'Failed to load settings data' })
@@ -58,7 +59,8 @@ const SettingsPage = () => {
       // Mock update call
       await apiClient.put('/users/me', profile)
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setMessage({ type: 'error', text: err.message || 'Failed to update profile' })
     } finally {
       setSaving(false)
@@ -74,7 +76,8 @@ const SettingsPage = () => {
       await apiClient.put('/users/me/preferences', preferences)
       setTheme(preferences.dark_mode ? 'dark' : 'light')
       setMessage({ type: 'success', text: 'Preferences saved successfully!' })
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setMessage({ type: 'error', text: err.message || 'Failed to save preferences' })
     } finally {
       setSaving(false)

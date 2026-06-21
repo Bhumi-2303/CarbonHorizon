@@ -16,7 +16,8 @@ export default function SimulatorHistory() {
       const data = await simulatorApi.history()
       setHistory(data)
       setError(null)
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setError(err.message || 'Failed to load simulation history')
     } finally {
       setLoading(false)
@@ -32,7 +33,8 @@ export default function SimulatorHistory() {
     try {
       await simulatorApi.delete(id)
       setHistory(prev => prev.filter(sim => sim.id !== id))
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setError(err.message || 'Failed to delete simulation')
     }
   }

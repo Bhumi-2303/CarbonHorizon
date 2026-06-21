@@ -96,7 +96,7 @@ export default function StudentDashboard() {
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#0B1215', borderColor: '#334155', borderRadius: '12px' }}
                     itemStyle={{ color: '#e2e8f0' }}
-                    formatter={(val: number) => [`${val.toFixed(1)} kg CO2`, '']}
+                    formatter={(val: any) => [`${val.toFixed(1)} kg CO2`, '']}
                   />
                 </PieChart>
               </ResponsiveContainer>

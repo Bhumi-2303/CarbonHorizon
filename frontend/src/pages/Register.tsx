@@ -6,7 +6,7 @@
  * Submission: POST /api/v1/auth/register → login → store tokens in AuthContext
  * On success: redirect to /dashboard
  */
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -15,7 +15,6 @@ import { AuthLayout } from '@/components/ui/AuthLayout'
 import { FormField } from '@/components/ui/FormField'
 import { useAuth } from '@/context/AuthContext'
 import { authApi } from '@/api/auth'
-import { Country, State, City } from 'country-state-city'
 import { OCCUPATIONS, isOccupationValidForAge, getOccupationLockReason } from '@/config/occupations'
 
 // ─── Zod schema ──────────────────────────────────────────────────────────────
@@ -104,6 +103,15 @@ export default function Register() {
   const [apiError, setApiError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
+  const [geoData, setGeoData] = useState<{ Country: any, State: any, City: any } | null>(null)
+
+  // Load huge country data dynamically
+  useEffect(() => {
+    import('country-state-city').then((mod) => {
+      setGeoData({ Country: mod.Country, State: mod.State, City: mod.City })
+    })
+  }, [])
+
   const {
     register,
     handleSubmit,
@@ -145,34 +153,35 @@ export default function Register() {
   }, [currentAge])
 
   const countryOptions = useMemo(() => {
-    return Country.getAllCountries().map(c => ({
+    if (!geoData) return []
+    return geoData.Country.getAllCountries().map((c: any) => ({
       value: c.isoCode,
       label: c.name
     }))
-  }, [])
+  }, [geoData])
 
   const stateOptions = useMemo(() => {
-    if (!selectedCountryCode) return []
-    return State.getStatesOfCountry(selectedCountryCode).map(s => ({
+    if (!selectedCountryCode || !geoData) return []
+    return geoData.State.getStatesOfCountry(selectedCountryCode).map((s: any) => ({
       value: s.isoCode,
       label: s.name
     }))
-  }, [selectedCountryCode])
+  }, [selectedCountryCode, geoData])
 
   const cityOptions = useMemo(() => {
-    if (!selectedCountryCode || !selectedStateCode) return []
-    return City.getCitiesOfState(selectedCountryCode, selectedStateCode).map(c => ({
+    if (!selectedCountryCode || !selectedStateCode || !geoData) return []
+    return geoData.City.getCitiesOfState(selectedCountryCode, selectedStateCode).map((c: any) => ({
       value: c.name, // City usually doesn't have an ISO code, we store name
       label: c.name
     }))
-  }, [selectedCountryCode, selectedStateCode])
+  }, [selectedCountryCode, selectedStateCode, geoData])
 
   const onSubmit = async (data: RegisterFormData) => {
     setApiError(null)
     try {
       // Resolve names for backend instead of ISO codes
-      const countryObj = Country.getCountryByCode(data.country)
-      const stateObj = State.getStateByCodeAndCountry(data.state_province, data.country)
+      const countryObj = geoData ? geoData.Country.getCountryByCode(data.country) : null
+      const stateObj = geoData ? geoData.State.getStateByCodeAndCountry(data.state_province, data.country) : null
 
       const payload = {
         full_name: data.full_name,

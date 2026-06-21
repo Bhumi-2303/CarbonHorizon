@@ -35,7 +35,8 @@ export default function HabitTracker() {
       setHabits(habitsData)
       setStreak(streakData.streak)
       setError(null)
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setError(err.message || 'Failed to load habit tracker data')
     } finally {
       setLoading(false)
@@ -55,7 +56,8 @@ export default function HabitTracker() {
         activity_date: todayStr
       })
       await fetchDashboard()
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setError(err.message || 'Failed to log habit')
     } finally {
       setToggling(null)

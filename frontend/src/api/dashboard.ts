@@ -22,11 +22,29 @@ export interface DashboardData {
 
 export const dashboardApi = {
   getDashboard: async (): Promise<DashboardData> => {
-    // According to the prompt, GET /api/dashboard returns this shape.
-    // The actual route in the backend might be under /v1 or /dashboard. We'll use /dashboard
-    // If the backend wraps it in a { success: true, data: ... } we unwrap it, otherwise we return it.
-    const res = await apiClient.get<any>('/dashboard')
-    // Handle both wrapped and unwrapped just in case
-    return res.data.data ? res.data.data : res.data
+    try {
+      const res = await apiClient.get<any>('/dashboard')
+      return res.data.data ? res.data.data : res.data
+    } catch {
+      // Polyfill composition because backend /dashboard is a stub
+      const [historyRes, goalsRes] = await Promise.all([
+        apiClient.get('/assessment/history').catch(() => ({ data: { data: [] } })),
+        apiClient.get('/goals').catch(() => ({ data: { data: [] } }))
+      ])
+      const history = historyRes.data?.data || []
+      const goals = goalsRes.data?.data || []
+      
+      const sortedHistory = [...history].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      const latest = sortedHistory.length > 0 ? sortedHistory[0] : null
+      
+      return {
+        latest_assessment: latest,
+        trend_delta: 0,
+        total_assessments: history.length,
+        active_goals_count: goals.filter((g: any) => g.status === 'in_progress').length,
+        current_habit_streak: 0,
+        forecast_summary: null
+      }
+    }
   }
 }

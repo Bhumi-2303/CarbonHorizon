@@ -4,7 +4,6 @@ import { authApi, type UserProfile, type AgeGroup, type LifestyleType, type Gend
 import { dashboardApi, type DashboardData } from '@/api/dashboard'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
-import { Country, State, City } from 'country-state-city'
 import { OCCUPATIONS, isOccupationValidForAge, getOccupationLockReason } from '@/config/occupations'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -41,6 +40,14 @@ export default function Profile() {
     localStorage.getItem('ch_notifications') !== 'false'
   )
 
+  const [geoData, setGeoData] = useState<{ Country: any, State: any, City: any } | null>(null)
+
+  useEffect(() => {
+    import('country-state-city').then((mod) => {
+      setGeoData({ Country: mod.Country, State: mod.State, City: mod.City })
+    })
+  }, [])
+
   // Delete Modal State
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteStep, setDeleteStep] = useState(1)
@@ -64,12 +71,12 @@ export default function Profile() {
         setAgeGroup(profRes.age_group || '')
         setLifestyle(profRes.lifestyle_type || '')
         
-        if (profRes.country) {
-          const c = Country.getAllCountries().find(x => x.name === profRes.country)
+        if (profRes.country && geoData) {
+          const c = geoData.Country.getAllCountries().find((x: any) => x.name === profRes.country)
           if (c) {
             setSelectedCountryCode(c.isoCode)
             if (profRes.state_province) {
-              const s = State.getStatesOfCountry(c.isoCode).find(x => x.name === profRes.state_province)
+              const s = geoData.State.getStatesOfCountry(c.isoCode).find((x: any) => x.name === profRes.state_province)
               if (s) {
                 setSelectedStateCode(s.isoCode)
               }
@@ -79,7 +86,7 @@ export default function Profile() {
         if (profRes.city) {
           setSelectedCityName(profRes.city)
         }
-      } catch (err: any) {
+      } catch (_err: unknown) {
         setMessage({ type: 'error', text: 'Failed to load profile data.' })
       } finally {
         setLoading(false)
@@ -89,27 +96,28 @@ export default function Profile() {
   }, [])
 
   const countryOptions = useMemo(() => {
-    return Country.getAllCountries().map(c => ({
+    if (!geoData) return []
+    return geoData.Country.getAllCountries().map((c: any) => ({
       value: c.isoCode,
       label: c.name
     }))
-  }, [])
+  }, [geoData])
 
   const stateOptions = useMemo(() => {
-    if (!selectedCountryCode) return []
-    return State.getStatesOfCountry(selectedCountryCode).map(s => ({
+    if (!selectedCountryCode || !geoData) return []
+    return geoData.State.getStatesOfCountry(selectedCountryCode).map((s: any) => ({
       value: s.isoCode,
       label: s.name
     }))
-  }, [selectedCountryCode])
+  }, [selectedCountryCode, geoData])
 
   const cityOptions = useMemo(() => {
-    if (!selectedCountryCode || !selectedStateCode) return []
-    return City.getCitiesOfState(selectedCountryCode, selectedStateCode).map(c => ({
+    if (!selectedCountryCode || !selectedStateCode || !geoData) return []
+    return geoData.City.getCitiesOfState(selectedCountryCode, selectedStateCode).map((c: any) => ({
       value: c.name,
       label: c.name
     }))
-  }, [selectedCountryCode, selectedStateCode])
+  }, [selectedCountryCode, selectedStateCode, geoData])
 
   const lifestyleOptions = useMemo(() => {
     return OCCUPATIONS.map((occ) => {
@@ -128,9 +136,9 @@ export default function Profile() {
     setSaving(true)
     setMessage(null)
     try {
-      const countryObj = selectedCountryCode ? Country.getCountryByCode(selectedCountryCode) : null
-      const stateObj = (selectedCountryCode && selectedStateCode) 
-        ? State.getStateByCodeAndCountry(selectedStateCode, selectedCountryCode) 
+      const countryObj = (selectedCountryCode && geoData) ? geoData.Country.getCountryByCode(selectedCountryCode) : null
+      const stateObj = (selectedCountryCode && selectedStateCode && geoData) 
+        ? geoData.State.getStateByCodeAndCountry(selectedStateCode, selectedCountryCode) 
         : null
 
       const updated = await authApi.updateProfile({
@@ -146,7 +154,8 @@ export default function Profile() {
       setProfile(updated)
       setUser(updated)
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setMessage({ type: 'error', text: err.message || 'Failed to update profile.' })
     } finally {
       setSaving(false)
@@ -166,7 +175,8 @@ export default function Profile() {
       await authApi.deleteAccount()
       await logout()
       navigate('/login')
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setMessage({ type: 'error', text: err.message || 'Failed to delete account.' })
       setShowDeleteModal(false)
     } finally {

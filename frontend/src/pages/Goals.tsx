@@ -27,7 +27,8 @@ export default function Goals() {
       const data = await goalsApi.list()
       setGoals(data)
       setError(null)
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setError(err.message || 'Failed to load goals')
     } finally {
       setLoading(false)
@@ -81,7 +82,8 @@ export default function Goals() {
       }
       closeModal()
       await fetchGoals()
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setError(err.message || 'Failed to save goal')
     } finally {
       setIsSubmitting(false)
@@ -93,7 +95,8 @@ export default function Goals() {
     try {
       await goalsApi.delete(id)
       setGoals(prev => prev.filter(g => g.id !== id))
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
       setError(err.message || 'Failed to delete goal')
     }
   }

@@ -22,7 +22,8 @@ const ReportsPage = () => {
         const response = await apiClient.get('/reports')
         // Assume API returns an array or paginated object
         setReports(Array.isArray(response.data) ? response.data : response.data.items || [])
-      } catch (err: any) {
+      } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(String(_err));
         if (err.message?.includes('404')) {
           setReports([])
         } else {

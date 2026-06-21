@@ -781,7 +781,7 @@ export default function Simulator() {
                             tick={{ fill: '#64748b', fontSize: 11 }}
                             axisLine={false}
                             tickLine={false}
-                            tickFormatter={v => `${v}`}
+                            tickFormatter={(v: any) => `${v}`}
                           />
                           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
                           <Legend
