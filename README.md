@@ -43,12 +43,16 @@ All calculations are version-tracked (calculation_version + factor_version store
 ## How It Works
 1. **Registration**: Create an account and set your baseline profile.
 2. **Assessment**: Complete a dynamic questionnaire detailing your energy usage, diet, and travel habits.
+   <br>![Assessment](docs/screenshots/assessment.png)
 3. **Dashboard**: View your calculated carbon footprint, historical trends, and top emission sources in a beautifully visualized interface.
+   <br>![Dashboard](docs/screenshots/dashboard.png)
 4. **AI Coach**: Chat with the personalized sustainability coach to get actionable, context-aware advice on reducing your impact.
+   <br>![AI Coach](docs/screenshots/ai_coach.png)
 5. **Simulator**: Adjust variables (e.g., changing diet or transport) to see how your footprint would change.
 6. **Forecast**: View projections of your emissions based on current trends versus recommended changes.
 7. **Habit Tracker**: Log daily eco-friendly actions (like taking public transit or recycling) and track your streak and carbon savings.
-8. **Progress**: Monitor your achievements, streak milestones, and overall impact reduction over time.
+8. **Reports**: Monitor your achievements, streak milestones, and overall impact reduction over time.
+   <br>![Reports](docs/screenshots/reports.png)
 
 ## Assumptions
 - Carbon factors are sourced from IPCC/EPA and versioned
@@ -64,14 +68,34 @@ All calculations are version-tracked (calculation_version + factor_version store
 - Gemini API key
 
 ### Local Development
+
+For the easiest setup, use the provided [docker-compose.yml](docker-compose.yml):
 ```bash
-# Backend
+docker-compose up -d
+```
+
+Otherwise, for manual setup:
+
+#### Database Setup & Migrations
+```bash
+# Start PostgreSQL (if not using docker-compose)
+docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=password -e POSTGRES_DB=carbonhorizon postgres:15
+
+# Run Alembic Migrations
 cd backend
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # fill in your keys
+cp .env.example .env
+alembic upgrade head
+```
+
+#### Backend API
+```bash
+cd backend
+source venv/bin/activate
 uvicorn main:app --reload
+```
 
 # Frontend
 cd frontend

@@ -95,6 +95,10 @@ jobs:
           docker build -f Dockerfile.backend -t ${{ env.BACKEND_IMAGE }} .
           docker push ${{ env.BACKEND_IMAGE }}
 
+      - name: Run DB Migrations
+        run: |
+          docker run --rm -e DATABASE_URL=${{ env.DB_URL }} ${{ env.BACKEND_IMAGE }} alembic upgrade head
+
       - name: Deploy Backend to Cloud Run
         run: |
           gcloud run deploy carbon-horizon-backend${{ env.SERVICE_SUFFIX }} \
@@ -103,6 +107,11 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --set-env-vars="GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},DATABASE_URL=${{ env.DB_URL }},SECRET_KEY=${{ secrets.JWT_SECRET_KEY }},ENVIRONMENT=${{ env.ENV_SUFFIX == 'prod' && 'production' || 'staging' }}"
+
+      - name: Get Backend URL
+        run: |
+          BACKEND_URL=$(gcloud run services describe carbon-horizon-backend${{ env.SERVICE_SUFFIX }} --region ${{ env.REGION }} --format 'value(status.url)')
+          echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
 
       - name: Build and Push Frontend Image
         run: |
@@ -115,4 +124,5 @@ jobs:
             --image ${{ env.FRONTEND_IMAGE }} \
             --region ${{ env.REGION }} \
             --platform managed \
-            --allow-unauthenticated
+            --allow-unauthenticated \
+            --set-env-vars="BACKEND_URL=${{ env.BACKEND_URL }}"
