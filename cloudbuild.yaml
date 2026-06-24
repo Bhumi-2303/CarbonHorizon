@@ -62,6 +62,8 @@ steps:
       'asia-south1',
       '--platform',
       'managed',
+      '--set-secrets',
+      'DATABASE_URL=DATABASE_URL:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,SECRET_KEY=SECRET_KEY:latest',
       '--quiet'
     ]
 
