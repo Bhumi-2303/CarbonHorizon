@@ -82,16 +82,32 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
 
     @model_validator(mode="after")
-    def assemble_secret_key(self) -> "Settings":
-        default_keys = [
+    def validate_secrets(self) -> "Settings":
+        insecure_placeholders = [
+            "",
+            "password",
+            "changeme",
+            "secret",
             "change-me-in-production-use-32-char-minimum",
-            "change-me-use-a-32-char-random-hex-string"
+            "change-me-use-a-32-char-random-hex-string",
+            "changeme_use_strong_password",
+            "replace_with_openssl_rand_hex_32"
         ]
+        
         if self.ENVIRONMENT == "production":
-            if not self.SECRET_KEY or self.SECRET_KEY in default_keys:
-                self.SECRET_KEY = ""
+            if self.SECRET_KEY in insecure_placeholders:
+                raise ValueError("SECRET_KEY must be properly configured in production environment.")
+            
+            # Check for insecure database passwords
+            if any(p in self.DATABASE_URL for p in ["postgres:password@", "postgres:changeme@"]):
+                raise ValueError("DATABASE_URL contains an insecure default password in production.")
+                
+            if not self.GEMINI_API_KEY or self.GEMINI_API_KEY in ["", "your_gemini_api_key_here"]:
+                 raise ValueError("GEMINI_API_KEY must be properly configured in production environment.")
         else:
-            if not self.SECRET_KEY or self.SECRET_KEY in default_keys:
+            if not self.SECRET_KEY or self.SECRET_KEY in insecure_placeholders:
+                import logging
+                logging.warning("Using ephemeral SECRET_KEY. This is not safe for production.")
                 self.SECRET_KEY = secrets.token_hex(32)
         return self
 
