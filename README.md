@@ -69,8 +69,10 @@ All calculations are version-tracked (calculation_version + factor_version store
 
 ### Local Development
 
-For the easiest setup, use the provided [docker-compose.yml](docker-compose.yml):
+For the easiest setup, use the provided [docker-compose.yml](docker-compose.yml). First, configure your secrets:
 ```bash
+cp .env.example .env
+# IMPORTANT: Open .env and fill in real values. Never commit .env to version control!
 docker-compose up -d
 ```
 
@@ -124,7 +126,24 @@ gcloud run deploy carbon-horizon-frontend \
   --platform managed \
   --allow-unauthenticated
 ```
-*Note: For production, use Google Secret Manager to securely mount `GEMINI_API_KEY` and `DATABASE_URL` directly into the container instance.*
+*Note: For production, use Google Secret Manager to securely mount `GEMINI_API_KEY`, `SECRET_KEY`, and `DATABASE_URL` directly into the container instance.*
+
+## Secrets Management
+Production deployments **must** use a managed secret store (e.g., Google Secret Manager, AWS Secrets Manager, HashiCorp Vault). Never bake environment variables into compose files or CI YAML. `cloudbuild.yaml` in this repository demonstrates how to bind Google Cloud Secret Manager values via `--set-secrets`.
+
+## Remediation & Migration (For existing deployments)
+If you previously deployed using the hardcoded credentials, take these steps immediately:
+1. **Rotate PostgreSQL Password:** In your production database, rotate the password. Then update Secret Manager with the new password.
+2. **Rotate SECRET_KEY:** Update your `SECRET_KEY` in Secret Manager. This will invalidate all currently issued JWT tokens, logging out active users. It's recommended to do this during a low-traffic window and communicate the change to users.
+3. **Clean Git History (Optional but Recommended):** If this repository was ever public, scrub the "password" string from git history using BFG Repo-Cleaner:
+   ```bash
+   # Make sure you have backed up your repository first
+   echo "password" > passwords.txt
+   bfg --replace-text passwords.txt
+   git reflog expire --expire=now --all && git gc --prune=now --aggressive
+   git push --force
+   ```
+   *Note: This rewrites history. All collaborators must re-clone the repository.*
 
 ## Tests
 ```bash
