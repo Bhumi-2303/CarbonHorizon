@@ -66,7 +66,9 @@ class Settings(BaseSettings):
 
     # ── CORS ────────────────────────────────────────────────────────────────
     ALLOWED_ORIGINS: List[str] = [
-        "https://carbonhorizon-frontend-tvxxkekeuq-el.a.run.app"
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://carbonhorizon-frontend-tvxxkekeuq-el.a.run.app",
     ]
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
