@@ -1,5 +1,73 @@
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/carbonhorizon-frontend', '-f', 'Dockerfile.frontend', '.']
+# Build frontend
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    [
+      'build',
+      '-t',
+      'gcr.io/$PROJECT_ID/carbonhorizon-frontend',
+      '-f',
+      'Dockerfile.frontend',
+      '.'
+    ]
+
+# Build backend
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    [
+      'build',
+      '-t',
+      'gcr.io/$PROJECT_ID/carbonhorizon-backend',
+      '-f',
+      'Dockerfile.backend',
+      '.'
+    ]
+
+# Push frontend
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/carbonhorizon-frontend']
+
+# Push backend
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/carbonhorizon-backend']
+
+# Deploy frontend
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+    [
+      'run',
+      'deploy',
+      'carbonhorizon-frontend',
+      '--image',
+      'gcr.io/$PROJECT_ID/carbonhorizon-frontend',
+      '--region',
+      'asia-south1',
+      '--platform',
+      'managed',
+      '--quiet'
+    ]
+
+# Deploy backend
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+    [
+      'run',
+      'deploy',
+      'carbonhorizon-backend',
+      '--image',
+      'gcr.io/$PROJECT_ID/carbonhorizon-backend',
+      '--region',
+      'asia-south1',
+      '--platform',
+      'managed',
+      '--quiet'
+    ]
+
 images:
   - 'gcr.io/$PROJECT_ID/carbonhorizon-frontend'
+  - 'gcr.io/$PROJECT_ID/carbonhorizon-backend'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
