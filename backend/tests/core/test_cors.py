@@ -33,7 +33,8 @@ def test_production_cors_validation_fails_with_wildcard():
             ENVIRONMENT="production",
             ALLOWED_ORIGINS=["*"],
             SECRET_KEY="supersecretproductionkeythats32chars",
-            DATABASE_URL="sqlite:///./test.db"
+            DATABASE_URL="sqlite:///./test.db",
+            GEMINI_API_KEY="test-key"
         )
 
 def test_production_cors_validation_fails_with_localhost():
@@ -42,7 +43,8 @@ def test_production_cors_validation_fails_with_localhost():
             ENVIRONMENT="production",
             ALLOWED_ORIGINS=["http://localhost:3000"],
             SECRET_KEY="supersecretproductionkeythats32chars",
-            DATABASE_URL="sqlite:///./test.db"
+            DATABASE_URL="sqlite:///./test.db",
+            GEMINI_API_KEY="test-key"
         )
 
 def test_production_cors_validation_passes_with_valid_origins():
@@ -50,7 +52,8 @@ def test_production_cors_validation_passes_with_valid_origins():
         ENVIRONMENT="production",
         ALLOWED_ORIGINS=["https://my-frontend.com"],
         SECRET_KEY="supersecretproductionkeythats32chars",
-        DATABASE_URL="sqlite:///./test.db"
+        DATABASE_URL="sqlite:///./test.db",
+        GEMINI_API_KEY="test-key"
     )
     assert settings.ALLOWED_ORIGINS == ["https://my-frontend.com"]
 
