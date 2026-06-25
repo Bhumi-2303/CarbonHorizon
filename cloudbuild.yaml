@@ -52,20 +52,16 @@ steps:
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
   args:
-    [
-      'run',
-      'deploy',
-      'carbonhorizon-backend',
-      '--image',
-      'gcr.io/$PROJECT_ID/carbonhorizon-backend',
-      '--region',
-      'asia-south1',
-      '--platform',
-      'managed',
-      '--set-secrets',
-      'DATABASE_URL=DATABASE_URL:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,SECRET_KEY=SECRET_KEY:latest',
-      '--quiet'
-    ]
+    - run
+    - deploy
+    - carbonhorizon-backend
+    - --image
+    - gcr.io/$PROJECT_ID/carbonhorizon-backend
+    - --region
+    - asia-south1
+    - --platform
+    - managed
+    - --quiet
 
 images:
   - 'gcr.io/$PROJECT_ID/carbonhorizon-frontend'
