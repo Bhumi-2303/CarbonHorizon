@@ -7,7 +7,7 @@ from app.core.sanitizer import sanitize_text
 
 class ChatRequest(BaseModel):
     conversation_id: Optional[uuid.UUID] = None
-    message: str = Field(..., min_length=1, max_length=2000)
+    message: str = Field(..., min_length=1, max_length=1000)
 
     @field_validator('message')
     @classmethod

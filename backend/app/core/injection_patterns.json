@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "Prompt injection detection patterns for the AI Coach. Each pattern is a Python regex matched case-insensitively. Update this file and restart the server to pick up new patterns."
+  },
+  "categories": {
+    "instruction_override": {
+      "description": "Attempts to override or ignore the system instructions",
+      "patterns": [
+        "ignore\\s+(all\\s+|your\\s+|the\\s+|my\\s+)?(previous|prior|above|earlier|original|system|initial)\\s+(instructions|prompts?|rules|directives|guidelines|context)",
+        "ignore\\s+the\\s+above",
+        "disregard\\s+(all\\s+|your\\s+|the\\s+)?(previous|prior|above|earlier|original|system|initial)?\\s*(instructions|prompts?|rules|directives|guidelines)",
+        "forget\\s+(all\\s+|your\\s+|the\\s+)?(previous|prior|above|earlier|original)?\\s*(instructions|prompts?|rules|directives|guidelines|context)",
+        "override\\s+(all\\s+|your\\s+|the\\s+)?(previous|prior|system|safety)?\\s*(instructions|prompts?|rules|directives|guidelines|restrictions|filters)",
+        "do\\s+not\\s+follow\\s+(your|the|any)\\s+(previous|prior|above|system)?\\s*(instructions|rules|guidelines|directives)"
+      ]
+    },
+    "role_hijacking": {
+      "description": "Attempts to reassign the model's role or persona",
+      "patterns": [
+        "you\\s+are\\s+now\\s+(?!helping|going\\s+to\\s+help|assisting|tracking|calculating|showing|providing|looking)(a\\s+|an\\s+)?\\w",
+        "pretend\\s+(you\\s+are|to\\s+be|you'?re)\\s+",
+        "roleplay\\s+(as|that)",
+        "from\\s+now\\s+on\\s+(you\\s+are|act\\s+as|behave\\s+as|respond\\s+as)",
+        "switch\\s+to\\s+(?:developer|unrestricted|unfiltered|admin|debug|testing|DAN|jailbreak|root|sudo|god|maximum|override|no.?restriction)\\s*mode",
+        "enter\\s+(?:developer|unrestricted|unfiltered|admin|debug|testing|DAN|jailbreak|root|sudo|god|maximum|override|no.?restriction)\\s*mode",
+        "activate\\s+(?:developer|unrestricted|unfiltered|admin|debug|testing|DAN|jailbreak|root|sudo|god|maximum|override|no.?restriction)\\s*mode",
+        "new\\s+persona",
+        "new\\s+identity"
+      ]
+    },
+    "system_prompt_extraction": {
+      "description": "Attempts to extract the system prompt or internal configuration",
+      "patterns": [
+        "(?:what\\s+is|show|reveal|display|print|output|repeat|echo|tell)\\s+(?:me\\s+)?(?:your|the)\\s+(?:system\\s+|original\\s+|initial\\s+)?(?:prompt|instructions|rules|guidelines|configuration|directives)",
+        "system\\s*prompt",
+        "what\\s+(?:are|were)\\s+your\\s+(?:original|initial|system)?\\s*(?:instructions|rules|directives)",
+        "repeat\\s+(?:the|your)\\s+(?:(?:above|system|initial|original)\\s*)+(?:text|prompt|instructions|message)",
+        "dump\\s+(?:your|the)\\s+(?:config|configuration|instructions|prompt|rules)",
+        "(?:beginning|start)\\s+of\\s+(?:the\\s+)?(?:system|prompt|conversation)"
+      ]
+    },
+    "jailbreak": {
+      "description": "Known jailbreak techniques and keywords",
+      "patterns": [
+        "developer\\s+mode",
+        "(?:^|\\W)jailbreak(?:$|\\W)",
+        "\\bDAN\\b",
+        "do\\s+anything\\s+now",
+        "(?:^|\\W)DUDE(?:$|\\W)\\s+mode",
+        "maximum\\s+mode",
+        "god\\s*mode",
+        "unrestricted\\s+mode",
+        "no\\s+restrictions?\\s+mode",
+        "unfiltered\\s+mode"
+      ]
+    },
+    "delimiter_injection": {
+      "description": "Attempts to inject structural delimiters or special tokens",
+      "patterns": [
+        "</?system>",
+        "<\\|im_start\\|>",
+        "<\\|im_end\\|>",
+        "###\\s*(?:instruction|system|human|assistant|user)",
+        "</?user_message>",
+        "\\[INST\\]",
+        "\\[/INST\\]",
+        "<\\|(?:user|assistant|system)\\|>",
+        "<<SYS>>",
+        "<</SYS>>",
+        "\\[SYSTEM\\]",
+        "SYSTEM\\s*:",
+        "ASSISTANT\\s*:",
+        "Human\\s*:",
+        "Assistant\\s*:"
+      ]
+    }
+  }
+}
