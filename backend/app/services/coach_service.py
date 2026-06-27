@@ -14,6 +14,21 @@ from app.models.habit import Habit
 from app.models.enums import GoalStatus, ConversationRole
 from app.schemas.coach import ChatMessage
 from app.services.assessment_service import AssessmentService
+from app.services.prompt_templates import (
+    build_generation_config,
+    build_user_turn,
+    INJECTION_DEFLECTION_MESSAGE,
+    OUTPUT_VALIDATION_FALLBACK,
+    SYSTEM_PROMPT_FRAGMENTS,
+)
+from app.core.sanitizer import (
+    normalize_text,
+    validate_length,
+    detect_injection,
+    validate_output,
+    InputTooLongError,
+    OutputValidationError,
+)
 
 from app.models.user import User
 from app.models.emission_inputs import EmissionInputs
@@ -155,6 +170,83 @@ def get_coach_context(user, assessment_dict, inputs, goals_context) -> str:
 CRITICAL: When citing carbon_saved estimates, ALWAYS use the numbers provided in this context or derived directly from it. Never invent or calculate your own raw numbers."""
 
 def chat(db: Session, user_id: uuid.UUID, conversation_id: Optional[uuid.UUID], user_message: str) -> dict:
+    import time
+    import logging
+    from google.genai import errors
+
+    logger = logging.getLogger(__name__)
+    security_logger = logging.getLogger("security.prompt_injection")
+
+    # -----------------------------------------------------------------
+    # Layer 1 — Input validation & normalization
+    # -----------------------------------------------------------------
+    # Normalize unicode, strip zero-width chars and control characters
+    sanitized_message = normalize_text(user_message)
+
+    # Reject empty messages after normalization
+    if not sanitized_message or not sanitized_message.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Message cannot be empty."
+        )
+
+    # Enforce length limit
+    try:
+        validate_length(sanitized_message)
+    except InputTooLongError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Message is too long. Please keep your message under "
+                   f"1000 characters."
+        )
+
+    # -----------------------------------------------------------------
+    # Layer 2 — Injection detection
+    # -----------------------------------------------------------------
+    is_injection, category, pattern = detect_injection(
+        sanitized_message, user_id=str(user_id)
+    )
+    if is_injection:
+        # Do NOT call Gemini — save cost and return a safe deflection
+        security_logger.warning(
+            "Coach injection blocked | user_id=%s | category=%s | "
+            "action=deflected_without_api_call",
+            user_id, category,
+        )
+
+        if not conversation_id:
+            conversation_id = uuid.uuid4()
+
+        # Still save the user message so conversation history is consistent
+        user_conv = AIConversation(
+            conversation_id=conversation_id,
+            user_id=user_id,
+            role=ConversationRole.user,
+            message=sanitized_message,
+        )
+        db.add(user_conv)
+
+        # Save the deflection as the assistant response
+        ai_conv = AIConversation(
+            conversation_id=conversation_id,
+            user_id=user_id,
+            role=ConversationRole.assistant,
+            message=INJECTION_DEFLECTION_MESSAGE,
+        )
+        db.add(ai_conv)
+        db.commit()
+
+        return {
+            "conversation_id": conversation_id,
+            "message": INJECTION_DEFLECTION_MESSAGE,
+            "ai_message_id": ai_conv.id,
+        }
+
+    # -----------------------------------------------------------------
+    # Normal flow — everything below is unchanged except for prompt
+    # construction (Layer 3) and output validation (Layer 4)
+    # -----------------------------------------------------------------
+
     if not conversation_id:
         conversation_id = uuid.uuid4()
         
@@ -164,12 +256,12 @@ def chat(db: Session, user_id: uuid.UUID, conversation_id: Optional[uuid.UUID], 
     api_key = settings.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY")
     client = genai.Client(api_key=api_key)
 
-    # Save User message
+    # Save User message (using the sanitized version)
     user_conv = AIConversation(
         conversation_id=conversation_id,
         user_id=user_id,
         role=ConversationRole.user,
-        message=user_message,
+        message=sanitized_message,
     )
     db.add(user_conv)
     db.commit()
@@ -226,20 +318,17 @@ def chat(db: Session, user_id: uuid.UUID, conversation_id: Optional[uuid.UUID], 
     else:
         prompt_to_use = SYSTEM_PROMPT
 
-    config = types.GenerateContentConfig(
-        system_instruction=prompt_to_use,
-    )
+    # -----------------------------------------------------------------
+    # Layer 3 — Structural isolation in the Gemini prompt
+    # -----------------------------------------------------------------
+    # System instruction is set via the API's dedicated parameter (not
+    # concatenated with user text).  Anti-injection suffix is appended.
+    config = build_generation_config(prompt_to_use)
 
-    context_prompt = (
-        f"{get_coach_context(user, assessment_dict, inputs, goals_context)}\n\n"
-        f"User Message: {user_message}"
-    )
-
-    import time
-    import logging
-    from google.genai import errors
-    
-    logger = logging.getLogger(__name__)
+    # User content is wrapped in <user_message> delimiters with a
+    # defensive instruction block.
+    coach_context = get_coach_context(user, assessment_dict, inputs, goals_context)
+    context_prompt = build_user_turn(sanitized_message, coach_context)
 
     MAX_RETRIES = 3
     RETRY_DELAYS = [0, 2, 5]
@@ -299,6 +388,23 @@ def chat(db: Session, user_id: uuid.UUID, conversation_id: Optional[uuid.UUID], 
             logger.exception(f"AI Coach unexpected error. Model: {current_model}, Latency: {latency_ms}ms, Attempt: {attempt + 1}")
             if attempt == MAX_RETRIES - 1:
                 raise HTTPException(status_code=500, detail="The AI Coach is temporarily unavailable.")
+
+    # -----------------------------------------------------------------
+    # Layer 4 — Output validation
+    # -----------------------------------------------------------------
+    try:
+        validate_output(
+            ai_text,
+            system_prompt_fragments=SYSTEM_PROMPT_FRAGMENTS,
+            user_id=str(user_id),
+        )
+    except OutputValidationError:
+        logger.warning(
+            "Output validation failed for user %s — returning fallback",
+            user_id,
+        )
+        ai_text = OUTPUT_VALIDATION_FALLBACK
+
     # Save AI message
     ai_conv = AIConversation(
         conversation_id=conversation_id,
