@@ -12,7 +12,7 @@ from app.core.rate_limit import limiter
 router = APIRouter()
 
 @router.post("/chat", response_model=APIResponse[ChatResponse], status_code=status.HTTP_200_OK)
-@limiter.limit("20/minute")
+@limiter.limit("10/minute")
 def chat_with_coach(
     request: Request,
     payload: ChatRequest,
@@ -21,10 +21,12 @@ def chat_with_coach(
 ):
     """
     Send a message to the AI Sustainability Coach.
+
+    Rate limited to 10 requests per minute per IP to protect against
+    API quota abuse (each call incurs Gemini API cost).
     """
     import logging
-    logging.info("COACH_ROUTE_VERSION_2")
-    print("COACH_ROUTE_VERSION_2", flush=True)
+    logger = logging.getLogger(__name__)
     try:
         response_data = coach_service.chat(
             db=db,
@@ -36,7 +38,7 @@ def chat_with_coach(
     except HTTPException as e:
         raise e
     except Exception as e:
-        logging.error(f"Error in chat_with_coach: {str(e)}", exc_info=True)
+        logger.error(f"Error in chat_with_coach: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="An internal server error occurred.")
 
 @router.get("/history", response_model=APIResponse[ConversationHistoryResponse])
