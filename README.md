@@ -11,20 +11,20 @@ Carbon Horizon is a personal sustainability intelligence platform designed to em
 Sustainability & Climate Technology
 
 ## Architecture
-React + TypeScript frontend → FastAPI backend → PostgreSQL → Gemini AI → Google Cloud Run
+React + TypeScript frontend → FastAPI backend → PostgreSQL & Redis → Gemini AI → Google Cloud Run
 
 ```text
 +-------------------+       +--------------------+       +-------------------+
 |   React + Vite    |       |    FastAPI         |       |    PostgreSQL     |
 |   (TypeScript)    | <---> |    Backend         | <---> |    Database       |
 +-------------------+       +--------------------+       +-------------------+
-                                   ^     ^
-                                   |     |
-                       +-----------+     +-----------+
-                       v                             v
-               +---------------+             +----------------+
-               |  Gemini AI    |             |  Google Cloud  |
-               |  (Coach)      |             |  Run           |
+                                   ^     ^                      ^
+                                   |     |                      |
+                       +-----------+     +-----------+          |
+                       v                             v          v
+               +---------------+             +----------------+ +--------+
+               |  Gemini AI    |             |  Google Cloud  | | Redis  |
+               |  (Coach)      |             |  Run           | +--------+
                +---------------+             +----------------+
 ```
 
@@ -81,7 +81,10 @@ Otherwise, for manual setup:
 #### Database Setup & Migrations
 ```bash
 # Start PostgreSQL (if not using docker-compose)
-docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=password -e POSTGRES_DB=carbonhorizon postgres:15
+docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=password -e POSTGRES_DB=carbonhorizon postgres:16
+
+# Start Redis
+docker run -d -p 6379:6379 redis:7-alpine
 
 # Run Alembic Migrations
 cd backend
@@ -99,7 +102,8 @@ source venv/bin/activate
 uvicorn main:app --reload
 ```
 
-# Frontend
+#### Frontend
+```bash
 cd frontend
 npm install
 cp .env.example .env.local   # fill in VITE_API_URL
@@ -107,11 +111,11 @@ npm run dev
 ```
 
 ### Production Deployment (Google Cloud Run)
-1. **Containerize**: Ensure both `backend/` and `frontend/` have their respective `Dockerfile` configured.
+1. **Containerize**: Ensure you build with `Dockerfile.backend` and `Dockerfile.frontend` at the root directory.
 2. **Push to Google Container Registry or Artifact Registry**:
 ```bash
-gcloud builds submit --tag gcr.io/PROJECT-ID/carbon-horizon-backend ./backend
-gcloud builds submit --tag gcr.io/PROJECT-ID/carbon-horizon-frontend ./frontend
+gcloud builds submit --tag gcr.io/PROJECT-ID/carbon-horizon-backend -f Dockerfile.backend .
+gcloud builds submit --tag gcr.io/PROJECT-ID/carbon-horizon-frontend -f Dockerfile.frontend .
 ```
 3. **Deploy to Cloud Run**:
 ```bash
@@ -146,12 +150,18 @@ If you previously deployed using the hardcoded credentials, take these steps imm
    *Note: This rewrites history. All collaborators must re-clone the repository.*
 
 ## Tests
+
+### Backend
 ```bash
 cd backend
 pytest tests/ -v --cov=app
 ```
 
+### Frontend
+```bash
+cd frontend
+npm run test
+```
+
 ## License
 MIT
-# trigger test
-
