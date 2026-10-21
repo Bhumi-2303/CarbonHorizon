@@ -121,12 +121,25 @@ def test_simulator_endpoints(client: TestClient, auth_headers: dict):
 def test_dashboard_endpoints(client: TestClient, auth_headers: dict):
     r_sum = client.get("/api/v1/dashboard/summary", headers=auth_headers)
     assert r_sum.status_code == 200
-    assert r_sum.json() == {"detail": "not implemented"}
+    data_sum = r_sum.json()
+    assert data_sum["success"] is True
+    assert "latest_assessment" in data_sum["data"]
+    assert "current_habit_streak" in data_sum["data"]
+    assert "total_assessments" in data_sum["data"]
+
+    r_alias = client.get("/api/v1/dashboard", headers=auth_headers)
+    assert r_alias.status_code == 200
+    assert r_alias.json()["success"] is True
 
     r_hist = client.get("/api/v1/dashboard/history", headers=auth_headers)
     assert r_hist.status_code == 200
-    assert r_hist.json() == {"detail": "not implemented"}
+    data_hist = r_hist.json()
+    assert data_hist["success"] is True
+    assert isinstance(data_hist["data"], list)
 
     r_brk = client.get("/api/v1/dashboard/breakdown", headers=auth_headers)
     assert r_brk.status_code == 200
-    assert r_brk.json() == {"detail": "not implemented"}
+    data_brk = r_brk.json()
+    assert data_brk["success"] is True
+    assert "categories" in data_brk["data"]
+    assert "percentages" in data_brk["data"]
