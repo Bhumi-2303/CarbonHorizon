@@ -4,7 +4,8 @@ Forecast router  —  /api/v1/forecast
 Endpoints
 ---------
 POST   /api/v1/forecast/generate        Run a forecast model + persist
-GET    /api/v1/forecast/history         List all forecast sessions (newest first)
+GET    /api/v1/forecast/history         List all forecast sessions
+                                        (newest first)
 GET    /api/v1/forecast/{forecast_id}   Fetch a single forecast + all points
 DELETE /api/v1/forecast/{forecast_id}   Delete a forecast session
 
@@ -12,6 +13,7 @@ All responses follow the standard APIResponse envelope:
     {"success": true,  "data": { ... }}
     {"success": false, "error": {"code": "...", "message": "..."}}
 """
+
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
@@ -35,6 +37,7 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 # POST /generate  — compute and persist a forecast
 # ---------------------------------------------------------------------------
+
 
 @router.post(
     "/generate",
@@ -60,6 +63,7 @@ async def generate_forecast(
 # ---------------------------------------------------------------------------
 # GET /history  — list all forecast sessions
 # ---------------------------------------------------------------------------
+
 
 @router.get(
     "/history",
@@ -91,6 +95,7 @@ async def list_forecasts(
 # GET /{forecast_id}  — fetch a specific forecast with all points
 # ---------------------------------------------------------------------------
 
+
 @router.get(
     "/{forecast_id}",
     response_model=ForecastDetailAPIResponse,
@@ -101,13 +106,16 @@ async def get_forecast(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> ForecastDetailAPIResponse:
-    forecast = ForecastService.get_forecast_by_id(db, current_user.id, forecast_id)
+    forecast = ForecastService.get_forecast_by_id(
+        db, current_user.id, forecast_id
+    )
     return APIResponse.ok(forecast)
 
 
 # ---------------------------------------------------------------------------
 # DELETE /{forecast_id}  — remove a forecast session
 # ---------------------------------------------------------------------------
+
 
 @router.delete(
     "/{forecast_id}",

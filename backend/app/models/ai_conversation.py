@@ -1,3 +1,9 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
 """
 AIConversation ORM model.
 
@@ -8,6 +14,8 @@ Table: ai_conversations
 - role ENUM (user | assistant)
 - Indexes: conversation_id (schema doc requirement), user_id
 """
+
+
 import uuid
 
 from sqlalchemy import ForeignKey, Index, String, Text
@@ -23,7 +31,10 @@ class AIConversation(Base, CreatedAtMixin):
     __tablename__ = "ai_conversations"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
 
     # Groups all turns in a single conversation session
@@ -41,12 +52,20 @@ class AIConversation(Base, CreatedAtMixin):
     message: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Relationship
-    user: Mapped["User"] = relationship("User", back_populates="ai_conversations")
+    user: Mapped["User"] = relationship(
+        "User", back_populates="ai_conversations"
+    )
 
     __table_args__ = (
-        Index("ix_ai_conversations_conversation_id", "conversation_id"),  # schema doc requirement
+        Index(
+            "ix_ai_conversations_conversation_id", "conversation_id"
+        ),  # schema doc requirement
         Index("ix_ai_conversations_user_id", "user_id"),
-        Index("ix_ai_conversations_user_conversation", "user_id", "conversation_id"),
+        Index(
+            "ix_ai_conversations_user_conversation",
+            "user_id",
+            "conversation_id",
+        ),
         Index("ix_ai_conversations_created_at", "created_at"),
     )
 

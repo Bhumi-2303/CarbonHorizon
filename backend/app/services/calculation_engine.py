@@ -4,6 +4,7 @@ CalculationEngine — Core carbon calculation logic.
 Converts raw user activity survey inputs into carbon emissions (kg CO₂e),
 assigns a normalized carbon score, and stamps version metadata.
 """
+
 import logging
 from sqlalchemy.orm import Session
 from app.models.carbon_factor import CarbonFactor
@@ -17,12 +18,12 @@ DEFAULT_FACTOR_VERSION = "IPCC-2024"
 BASELINE_MONTHLY_EMISSION = 1000.0  # kg CO₂e
 
 TRANSPORT_FALLBACK_FACTORS = {
-    "car": 0.18,          # kg CO₂e / km
-    "motorcycle": 0.10,   # kg CO₂e / km
-    "bus": 0.08,          # kg CO₂e / km
-    "train": 0.04,         # kg CO₂e / km
-    "flight": 0.25,        # kg CO₂e / km
-    "bicycle": 0.00,       # kg CO₂e / km
+    "car": 0.18,  # kg CO₂e / km
+    "motorcycle": 0.10,  # kg CO₂e / km
+    "bus": 0.08,  # kg CO₂e / km
+    "train": 0.04,  # kg CO₂e / km
+    "flight": 0.25,  # kg CO₂e / km
+    "bicycle": 0.00,  # kg CO₂e / km
 }
 
 COUNTRY_GRID_FACTORS = {
@@ -38,7 +39,8 @@ COUNTRY_GRID_FACTORS = {
 
 def _get_val(obj, key, default=None):
     """
-    Helper to extract a field from a dictionary or object (ORM model / Pydantic schema).
+    Helper to extract a field from a dictionary or object
+    (ORM model / Pydantic schema).
     """
     if obj is None:
         return default
@@ -52,10 +54,11 @@ def _get_factor(
     category: str,
     sub_category: str,
     fallback_value: float,
-    version_tracker: dict | None = None
+    version_tracker: dict | None = None,
 ) -> float:
     """
-    Query the database for an active carbon factor. Fallback if not found or DB is unavailable.
+    Query the database for an active carbon factor. Fallback if not
+    found or DB is unavailable.
     """
     if version_tracker and "_factors" in version_tracker:
         factor = version_tracker["_factors"].get((category, sub_category))
@@ -72,7 +75,7 @@ def _get_factor(
             db.query(CarbonFactor)
             .filter(
                 CarbonFactor.category == category,
-                CarbonFactor.sub_category == sub_category
+                CarbonFactor.sub_category == sub_category,
             )
             .first()
         )
@@ -82,9 +85,9 @@ def _get_factor(
             return float(factor.factor_value)
     except Exception as e:
         logger.warning(
-            f"Error querying carbon_factors for {category}/{sub_category}: {e}. "
-            f"Falling back to {fallback_value}."
-        )
+            f"Error querying carbon_factors for "
+            f"{category}/{sub_category}: {e}. "
+            f"Falling back to {fallback_value}.")
     return fallback_value
 
 
@@ -92,7 +95,7 @@ def calculate_transport(
     transport_mode: str | TransportMode | None,
     distance_km: float | None,
     db: Session | None = None,
-    version_tracker: dict | None = None
+    version_tracker: dict | None = None,
 ) -> float:
     """
     Calculate transportation emissions: distance_km * factor.
@@ -109,8 +112,10 @@ def calculate_transport(
     )
 
     fallback = TRANSPORT_FALLBACK_FACTORS.get(mode_str, 0.10)
-    factor_val = _get_factor(db, "transport", mode_str, fallback, version_tracker)
-    
+    factor_val = _get_factor(
+        db, "transport", mode_str, fallback, version_tracker
+    )
+
     base_emission = float(distance_km * factor_val)
     return base_emission
 
@@ -121,7 +126,7 @@ def calculate_energy(
     lpg_usage: float | None,
     solar_usage: bool | None,
     db: Session | None = None,
-    version_tracker: dict | None = None
+    version_tracker: dict | None = None,
 ) -> float:
     """
     Calculate energy emissions from grid electricity, AC hours, and LPG usage.
@@ -138,8 +143,10 @@ def calculate_energy(
     country = _get_val(inp, "assessment_country")
     if country and country in COUNTRY_GRID_FACTORS:
         electricity_factor = COUNTRY_GRID_FACTORS[country]
-        
-    electricity_factor = _get_factor(db, "energy", "electricity", electricity_factor, version_tracker)
+
+    electricity_factor = _get_factor(
+        db, "energy", "electricity", electricity_factor, version_tracker
+    )
     ac_factor = _get_factor(db, "energy", "ac", 0.80, version_tracker)
     lpg_factor = _get_factor(db, "energy", "lpg", 3.00, version_tracker)
 
@@ -155,7 +162,7 @@ def calculate_food(
     household_size: int | None,
     db: Session | None = None,
     version_tracker: dict | None = None,
-    assessment_period: str | AssessmentPeriod | None = None
+    assessment_period: str | AssessmentPeriod | None = None,
 ) -> float:
     """
     Calculate dietary emissions normalized per household size.
@@ -165,9 +172,7 @@ def calculate_food(
         return 0.0
 
     diet_str = (
-        diet_type.value
-        if isinstance(diet_type, DietType)
-        else str(diet_type)
+        diet_type.value if isinstance(diet_type, DietType) else str(diet_type)
     )
 
     if diet_str == "vegetarian":
@@ -200,61 +205,71 @@ def calculate_waste(
     recycling_score: int | None,
     plastic_usage_score: int | None,
     db: Session | None = None,
-    version_tracker: dict | None = None
+    version_tracker: dict | None = None,
 ) -> float:
     """
-    Calculate waste emissions: based on plastic usage score offset by recycling score.
+    Calculate waste emissions: based on plastic usage score offset by
+    recycling score.
     """
     if recycling_score is None and plastic_usage_score is None:
         return 0.0
 
     r_score = max(0, recycling_score) if recycling_score is not None else 0
-    p_score = max(0, plastic_usage_score) if plastic_usage_score is not None else 0
+    p_score = (
+        max(0, plastic_usage_score) if plastic_usage_score is not None else 0
+    )
 
     plastic_factor = _get_factor(db, "waste", "plastic", 15.0, version_tracker)
-    recycling_factor = _get_factor(db, "waste", "recycling", 5.0, version_tracker)
+    recycling_factor = _get_factor(
+        db, "waste", "recycling", 5.0, version_tracker
+    )
 
     waste_emissions = (p_score * plastic_factor) - (r_score * recycling_factor)
     return float(max(0.0, waste_emissions))
+
 
 def calculate_housing(inp: dict) -> float:
     sqm = _get_val(inp, "house_size_sqm") or 0.0
     # Average 0.5 kg CO2 per sqm per month
     return float(sqm * 0.5)
 
+
 def calculate_water(inp: dict) -> float:
     liters = _get_val(inp, "daily_water_liters") or 0.0
-    # Energy to treat/pump water: 0.001 kg per liter per day -> * 30 for monthly
+    # Energy to treat/pump water: 0.001 kg per liter per day -> * 30 for
+    # monthly
     return float((liters * 0.001) * 30.0)
+
 
 def calculate_digital(inp: dict) -> float:
     screen = _get_val(inp, "screen_time_hours") or 0.0
     stream = _get_val(inp, "streaming_hours") or 0.0
     gaming = _get_val(inp, "gaming_hours") or 0.0
-    # Rough estimate: streaming/gaming takes more bandwidth/server energy (~0.05 kg/hr)
+    # Rough estimate: streaming/gaming takes more bandwidth/server energy
+    # (~0.05 kg/hr)
     return float((screen * 0.01 + stream * 0.05 + gaming * 0.08) * 30.0)
+
 
 def calculate_shopping(inp: dict) -> float:
     clothes = _get_val(inp, "new_clothes_monthly") or 0
     electronics = _get_val(inp, "electronics_purchases_yearly") or 0
-    # Fast fashion avg 10 kg per item, electronics 50 kg per item (divided by 12 for monthly)
+    # Fast fashion avg 10 kg per item, electronics 50 kg per item (divided by
+    # 12 for monthly)
     return float((clothes * 10.0) + (electronics * 50.0 / 12.0))
+
 
 def calculate_offsets(inp: dict) -> float:
     total_offset = 0.0
     if _get_val(inp, "composting_active"):
-        total_offset += 15.0 # saves 15 kg/mo
+        total_offset += 15.0  # saves 15 kg/mo
     trees = _get_val(inp, "tree_planting_count") or 0
-    total_offset += trees * 2.0 # 2 kg per tree per month 
+    total_offset += trees * 2.0  # 2 kg per tree per month
     if _get_val(inp, "green_transport_choices"):
         total_offset += 10.0
     return float(total_offset)
 
 
-def calculate_total_emissions(
-    db: Session | None,
-    emission_input=None
-) -> dict:
+def calculate_total_emissions(db: Session | None, emission_input=None) -> dict:
     """
     Main footprint calculation engine entrypoint.
     Supports signature as:
@@ -283,11 +298,13 @@ def calculate_total_emissions(
 
     # Tracking factors database version + passing inputs to extensions
     version_tracker = {"factor_version": DEFAULT_FACTOR_VERSION, "_inp": inp}
-    
+
     if db is not None:
         try:
             factors = db.query(CarbonFactor).all()
-            version_tracker["_factors"] = {(f.category, f.sub_category): f for f in factors}
+            version_tracker["_factors"] = {
+                (f.category, f.sub_category): f for f in factors
+            }
         except Exception as e:
             logger.warning(f"Failed to prefetch carbon factors: {e}")
 
@@ -296,7 +313,7 @@ def calculate_total_emissions(
         transport_mode=transport_mode,
         distance_km=distance_km,
         db=db,
-        version_tracker=version_tracker
+        version_tracker=version_tracker,
     )
 
     energy_emission = calculate_energy(
@@ -305,7 +322,7 @@ def calculate_total_emissions(
         lpg_usage=lpg_usage,
         solar_usage=solar_usage,
         db=db,
-        version_tracker=version_tracker
+        version_tracker=version_tracker,
     )
 
     food_emission = calculate_food(
@@ -313,14 +330,14 @@ def calculate_total_emissions(
         household_size=household_size,
         db=db,
         version_tracker=version_tracker,
-        assessment_period=assessment_period
+        assessment_period=assessment_period,
     )
 
     waste_emission = calculate_waste(
         recycling_score=recycling_score,
         plastic_usage_score=plastic_usage_score,
         db=db,
-        version_tracker=version_tracker
+        version_tracker=version_tracker,
     )
 
     housing_emission = calculate_housing(inp)
@@ -330,8 +347,14 @@ def calculate_total_emissions(
     offsets_total = calculate_offsets(inp)
 
     raw_total = (
-        transport_emission + energy_emission + food_emission + waste_emission
-        + housing_emission + water_emission + digital_emission + shopping_emission
+        transport_emission
+        + energy_emission
+        + food_emission
+        + waste_emission
+        + housing_emission
+        + water_emission
+        + digital_emission
+        + shopping_emission
     )
     total_emission = float(max(0.0, raw_total - offsets_total))
 

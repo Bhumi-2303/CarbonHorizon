@@ -25,7 +25,9 @@ Error handling
 --------------
 All public methods raise FastAPI HTTPException so callers (routers) stay thin.
 """
+
 from __future__ import annotations
+import logging
 
 import uuid
 from datetime import datetime, timezone
@@ -58,6 +60,7 @@ from app.schemas.user import UpdateProfileRequest, validate_age_occupation
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _token_response(user: User) -> TokenResponse:
     """Build a TokenResponse for *user*."""
     return TokenResponse(
@@ -71,9 +74,7 @@ def _token_response(user: User) -> TokenResponse:
 def _assert_email_free(db: Session, email: str) -> None:
     """Raise HTTP 400 if email is already in use."""
     exists = (
-        db.query(User)
-        .filter(func.lower(User.email) == email.lower())
-        .first()
+        db.query(User).filter(func.lower(User.email) == email.lower()).first()
     )
     if exists:
         raise HTTPException(
@@ -86,13 +87,18 @@ def _get_active_user_by_email(db: Session, email: str) -> User:
     """Return an active User by email or raise HTTP 401."""
     user = (
         db.query(User)
-        .filter(func.lower(User.email) == email.lower(), User.deleted_at.is_(None))
+        .filter(
+            func.lower(User.email) == email.lower(), User.deleted_at.is_(None)
+        )
         .first()
     )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="We couldn't sign you in. Please check your email and password.",
+            detail=(
+                "We couldn't sign you in. "
+                "Please check your email and password."
+            ),
         )
     return user
 
@@ -127,11 +133,13 @@ def _get_active_user_by_id(db: Session, user_id: str | uuid.UUID) -> User:
 # Public service functions
 # ---------------------------------------------------------------------------
 
+
 def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
     """
     Create a new user account.
 
-    Registers a new user, hashes password, saves to DB, returns ProfileResponse format.
+    Registers a new user, hashes password, saves to DB, returns
+    ProfileResponse format.
     """
     _assert_email_free(db, payload.email)
 
@@ -153,9 +161,9 @@ def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
     return RegisterResponse(user=ProfileResponse.model_validate(user))
 
 
-import logging
 auth_logger = logging.getLogger("auth_debug")
 auth_logger.setLevel(logging.DEBUG)
+
 
 def login_user(db: Session, email: str, password: str) -> TokenResponse:
     auth_logger.debug(f"LOGIN ATTEMPT: received email={email}")
@@ -166,15 +174,20 @@ def login_user(db: Session, email: str, password: str) -> TokenResponse:
         auth_logger.debug(f"LOGIN ATTEMPT: user not found for email={email}")
         raise
 
-    auth_logger.debug(f"LOGIN ATTEMPT: stored hash length={len(user.password_hash)}")
-    
+    auth_logger.debug(
+        f"LOGIN ATTEMPT: stored hash length={len(user.password_hash)}"
+    )
+
     is_valid = verify_password(password, user.password_hash)
     auth_logger.debug(f"LOGIN ATTEMPT: bcrypt verification result={is_valid}")
 
     if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="We couldn't sign you in. Please check your email and password.",
+            detail=(
+                "We couldn't sign you in. "
+                "Please check your email and password."
+            ),
         )
 
     # Stamp last login
@@ -245,7 +258,8 @@ def update_profile(
 
     Raises
     ------
-    HTTP 404  if the user row disappears between request and commit (very rare).
+    HTTP 404  if the user row disappears between request and commit
+              (very rare).
     """
     update_data = payload.model_dump(exclude_unset=True)
 

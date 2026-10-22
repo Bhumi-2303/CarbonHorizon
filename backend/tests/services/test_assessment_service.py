@@ -3,6 +3,7 @@ tests/test_unit_assessment.py
 ================================
 Unit tests for app.services.assessment_service.
 """
+
 import uuid
 import pytest
 from datetime import datetime, timedelta, timezone
@@ -17,9 +18,11 @@ from app.services.assessment_service import AssessmentService
 
 
 class TestAssessmentService:
-
     def test_create_assessment_success(self, db: Session, make_user):
-        """create_assessment calculates emissions, saves to tables, and returns mapped dict."""
+        """
+        create_assessment calculates emissions, saves to tables, and
+        returns mapped dict.
+        """
         user = make_user()
         inputs = AssessmentInputs(
             transport_mode=TransportMode.car,
@@ -32,7 +35,7 @@ class TestAssessmentService:
             recycling_score=2,
             plastic_usage_score=4,
             household_size=3,
-            assessment_period=AssessmentPeriod.monthly
+            assessment_period=AssessmentPeriod.monthly,
         )
 
         result = AssessmentService.create_assessment(db, user.id, inputs)
@@ -48,28 +51,44 @@ class TestAssessmentService:
         assert result["assessment_period"] == AssessmentPeriod.monthly
 
         # Assert persisted records
-        assessment_in_db = db.query(CarbonAssessment).filter(CarbonAssessment.id == result["assessment_id"]).first()
+        assessment_in_db = (
+            db.query(CarbonAssessment)
+            .filter(CarbonAssessment.id == result["assessment_id"])
+            .first()
+        )
         assert assessment_in_db is not None
         assert assessment_in_db.user_id == user.id
         assert assessment_in_db.total_emission == result["total_emission"]
 
-        inputs_in_db = db.query(EmissionInputs).filter(EmissionInputs.assessment_id == result["assessment_id"]).first()
+        inputs_in_db = (
+            db.query(EmissionInputs)
+            .filter(EmissionInputs.assessment_id == result["assessment_id"])
+            .first()
+        )
         assert inputs_in_db is not None
         assert inputs_in_db.transport_mode == "car"
         assert inputs_in_db.distance_km == 150.0
         assert inputs_in_db.household_size == 3
 
     def test_get_assessment_history(self, db: Session, make_user):
-        """get_assessment_history retrieves all assessments for the user in desc chronological order."""
+        """
+        get_assessment_history retrieves all assessments for the user
+        in desc chronological order.
+        """
         user1 = make_user()
         user2 = make_user()
 
         # Add assessments for user1
         inputs = AssessmentInputs(diet_type=DietType.mixed)
         res1 = AssessmentService.create_assessment(db, user1.id, inputs)
-        
-        # Manually alter created_at of res1 to be older to prevent SQLite timestamp collisions
-        a1 = db.query(CarbonAssessment).filter(CarbonAssessment.id == res1["assessment_id"]).first()
+
+        # Manually alter created_at of res1 to be older to prevent SQLite
+        # timestamp collisions
+        a1 = (
+            db.query(CarbonAssessment)
+            .filter(CarbonAssessment.id == res1["assessment_id"])
+            .first()
+        )
         a1.created_at = datetime.now(timezone.utc) - timedelta(minutes=5)
         db.commit()
 
@@ -91,12 +110,16 @@ class TestAssessmentService:
         inputs = AssessmentInputs(diet_type=DietType.mixed)
         created = AssessmentService.create_assessment(db, user.id, inputs)
 
-        fetched = AssessmentService.get_assessment_by_id(db, user.id, created["assessment_id"])
+        fetched = AssessmentService.get_assessment_by_id(
+            db, user.id, created["assessment_id"]
+        )
         assert fetched["assessment_id"] == created["assessment_id"]
         assert fetched["total_emission"] == created["total_emission"]
 
     def test_get_assessment_by_id_not_found(self, db: Session, make_user):
-        """get_assessment_by_id raises HTTP 404 if assessment does not exist."""
+        """
+        get_assessment_by_id raises HTTP 404 if assessment does not exist.
+        """
         user = make_user()
         random_id = uuid.uuid4()
         with pytest.raises(HTTPException) as exc:
@@ -104,7 +127,10 @@ class TestAssessmentService:
         assert exc.value.status_code == 404
 
     def test_get_assessment_by_id_unauthorized(self, db: Session, make_user):
-        """get_assessment_by_id raises HTTP 404 if assessment belongs to another user."""
+        """
+        get_assessment_by_id raises HTTP 404 if assessment belongs to
+        another user.
+        """
         user1 = make_user()
         user2 = make_user()
         inputs = AssessmentInputs(diet_type=DietType.mixed)
@@ -112,7 +138,9 @@ class TestAssessmentService:
 
         # user2 attempts to read user1's assessment
         with pytest.raises(HTTPException) as exc:
-            AssessmentService.get_assessment_by_id(db, user2.id, created["assessment_id"])
+            AssessmentService.get_assessment_by_id(
+                db, user2.id, created["assessment_id"]
+            )
         assert exc.value.status_code == 404
 
     def test_get_latest_assessment_success(self, db: Session, make_user):
@@ -120,9 +148,14 @@ class TestAssessmentService:
         user = make_user()
         inputs = AssessmentInputs(diet_type=DietType.mixed)
         res1 = AssessmentService.create_assessment(db, user.id, inputs)
-        
-        # Manually alter created_at of res1 to be older to prevent SQLite timestamp collisions
-        a1 = db.query(CarbonAssessment).filter(CarbonAssessment.id == res1["assessment_id"]).first()
+
+        # Manually alter created_at of res1 to be older to prevent SQLite
+        # timestamp collisions
+        a1 = (
+            db.query(CarbonAssessment)
+            .filter(CarbonAssessment.id == res1["assessment_id"])
+            .first()
+        )
         a1.created_at = datetime.now(timezone.utc) - timedelta(minutes=5)
         db.commit()
 
@@ -145,28 +178,49 @@ class TestAssessmentService:
         created = AssessmentService.create_assessment(db, user.id, inputs)
 
         # Ensure exists
-        assert db.query(CarbonAssessment).filter(CarbonAssessment.id == created["assessment_id"]).first() is not None
+        assert (
+            db.query(CarbonAssessment)
+            .filter(CarbonAssessment.id == created["assessment_id"])
+            .first()
+            is not None
+        )
 
-        AssessmentService.delete_assessment(db, user.id, created["assessment_id"])
+        AssessmentService.delete_assessment(
+            db, user.id, created["assessment_id"]
+        )
 
         # Ensure deleted
-        assert db.query(CarbonAssessment).filter(CarbonAssessment.id == created["assessment_id"]).first() is None
+        assert (
+            db.query(CarbonAssessment)
+            .filter(CarbonAssessment.id == created["assessment_id"])
+            .first()
+            is None
+        )
 
-    def test_delete_assessment_unauthorized_raises_404(self, db: Session, make_user):
-        """delete_assessment raises HTTP 404 if attempting to delete another user's assessment."""
+    def test_delete_assessment_unauthorized_raises_404(
+        self, db: Session, make_user
+    ):
+        """
+        delete_assessment raises HTTP 404 if attempting to delete
+        another user's assessment.
+        """
         user1 = make_user()
         user2 = make_user()
         inputs = AssessmentInputs(diet_type=DietType.mixed)
         created = AssessmentService.create_assessment(db, user1.id, inputs)
 
         with pytest.raises(HTTPException) as exc:
-            AssessmentService.delete_assessment(db, user2.id, created["assessment_id"])
+            AssessmentService.delete_assessment(
+                db, user2.id, created["assessment_id"]
+            )
         assert exc.value.status_code == 404
 
     def test_create_assessment_none_inputs(self, db: Session, make_user):
-        """create_assessment handles a None inputs payload by using fallbacks."""
+        """
+        create_assessment handles a None inputs payload by using
+        fallbacks.
+        """
         user = make_user()
         result = AssessmentService.create_assessment(db, user.id, None)
         assert result["total_emission"] == 0.0
         assert result["carbon_score"] == 100
-

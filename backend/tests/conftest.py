@@ -18,11 +18,11 @@ underlying connection across process restarts which causes "index already
 exists" errors on the second test run. The temp file is deleted after the
 session via tmp_path_factory.
 """
+
 from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Generator
 
 import pytest
@@ -43,12 +43,14 @@ import app.models  # noqa: F401
 
 # Disable rate limiter for testing
 from app.core.rate_limit import limiter
+
 limiter.enabled = False
 
 
 # ---------------------------------------------------------------------------
 # Database engine — fresh temp-file SQLite per test session
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def engine(tmp_path_factory: pytest.TempPathFactory):
@@ -59,10 +61,11 @@ def engine(tmp_path_factory: pytest.TempPathFactory):
     exists" error that occurs when StaticPool reuses a connection that holds
     tables from a previous test run inside the same OS process.
 
-    The file lives in a pytest-managed temp dir and is cleaned up automatically.
+    The file lives in a pytest-managed temp dir and is cleaned up
+    automatically.
     """
     db_path = tmp_path_factory.mktemp("testdb") / "test_carbonhorizon.db"
-    db_url  = f"sqlite:///{db_path}"
+    db_url = f"sqlite:///{db_path}"
 
     _engine = create_engine(
         db_url,
@@ -90,10 +93,12 @@ def session_factory(engine):
 # Per-test DB session — auto-rolled back
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def db(session_factory) -> Generator[Session, None, None]:
     """
-    Yield a SQLAlchemy Session that is automatically rolled back after each test.
+    Yield a SQLAlchemy Session that is automatically rolled back after
+    each test.
     This ensures tests are fully isolated without needing to truncate tables.
     """
     session = session_factory()
@@ -107,6 +112,7 @@ def db(session_factory) -> Generator[Session, None, None]:
 # ---------------------------------------------------------------------------
 # FastAPI TestClient wired to the same test DB
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def client(db: Session):
@@ -133,6 +139,7 @@ def client(db: Session):
 # Factories / helpers
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def make_user(db: Session):
     """
@@ -143,6 +150,7 @@ def make_user(db: Session):
         user = make_user(email="x@example.com")     # override any field
         user = make_user(deleted=True)              # soft-deleted account
     """
+
     def _create(
         *,
         full_name: str = "Test User",
@@ -180,13 +188,17 @@ def make_user(db: Session):
 @pytest.fixture()
 def test_user(make_user) -> User:
     """A single ready-to-use active user."""
-    return make_user(email=f"testuser_{uuid.uuid4().hex[:6]}@example.com", password="GoodPass42!")
+    return make_user(
+        email=f"testuser_{uuid.uuid4().hex[:6]}@example.com",
+        password="GoodPass42!",
+    )
 
 
 @pytest.fixture()
 def auth_headers(test_user: User) -> dict[str, str]:
     """
-    Return Authorization headers for test_user with a freshly minted access token.
+    Return Authorization headers for test_user with a freshly minted
+    access token.
     """
     token = create_access_token(subject=str(test_user.id))
     return {"Authorization": f"Bearer {token}"}

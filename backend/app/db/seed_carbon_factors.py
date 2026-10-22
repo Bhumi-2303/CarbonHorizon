@@ -7,6 +7,7 @@ Seeds the carbon_factors table with official emission factors from IPCC/EPA:
 - Food (vegetarian, mixed, non_vegetarian)
 - Waste (recycling score, plastic score)
 """
+
 import logging
 import uuid
 from datetime import date
@@ -63,7 +64,6 @@ def seed_carbon_factors(db: Session) -> None:
             "factor_value": 0.000,
             "unit": "kg CO₂e / km",
         },
-
         # 2. Energy
         {
             "category": "energy",
@@ -83,7 +83,6 @@ def seed_carbon_factors(db: Session) -> None:
             "factor_value": 2.980,
             "unit": "kg CO₂e / kg",
         },
-
         # 3. Food (kg CO₂e / day)
         {
             "category": "food",
@@ -103,7 +102,6 @@ def seed_carbon_factors(db: Session) -> None:
             "factor_value": 3.300,
             "unit": "kg CO₂e / day",
         },
-
         # 4. Waste (kg CO₂e / score index)
         {
             "category": "waste",
@@ -127,14 +125,15 @@ def seed_carbon_factors(db: Session) -> None:
             db.query(CarbonFactor)
             .filter(
                 CarbonFactor.category == data["category"],
-                CarbonFactor.sub_category == data["sub_category"]
+                CarbonFactor.sub_category == data["sub_category"],
             )
             .first()
         )
 
         if existing:
             logger.info(
-                f"Updating existing factor for {data['category']}/{data['sub_category']}"
+                f"Updating existing factor for "
+                f"{data['category']}/{data['sub_category']}"
             )
             existing.factor_value = data["factor_value"]
             existing.unit = data["unit"]
@@ -143,7 +142,8 @@ def seed_carbon_factors(db: Session) -> None:
             existing.effective_date = effective_dt
         else:
             logger.info(
-                f"Creating new factor for {data['category']}/{data['sub_category']}"
+                f"Creating new factor for "
+                f"{data['category']}/{data['sub_category']}"
             )
             factor = CarbonFactor(
                 id=uuid.uuid4(),

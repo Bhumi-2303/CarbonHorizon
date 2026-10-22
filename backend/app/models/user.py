@@ -8,6 +8,20 @@ Table: users
 - Soft delete via deleted_at
 - Index: email (UNIQUE), deleted_at
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user_preferences import UserPreferences
+    from app.models.carbon_assessment import CarbonAssessment
+    from app.models.goal import Goal
+    from app.models.simulation import Simulation
+    from app.models.forecast import Forecast
+    from app.models.habit import Habit
+    from app.models.ai_conversation import AIConversation
+
+
 import uuid
 
 from sqlalchemy import Boolean, DateTime, Index, String
@@ -45,20 +59,28 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
         String(20), nullable=True
     )
     age: Mapped[int | None] = mapped_column(nullable=True)
-    gender: Mapped[Gender | None] = mapped_column(
-        String(20), nullable=True
-    )
+    gender: Mapped[Gender | None] = mapped_column(String(20), nullable=True)
     country: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    state_province: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    state_province: Mapped[str | None] = mapped_column(
+        String(100), nullable=True
+    )
     city: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Auth state
-    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    last_login: Mapped[None] = mapped_column(DateTime(timezone=True), nullable=True)
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    last_login: Mapped[None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Relationships
     preferences: Mapped["UserPreferences"] = relationship(
-        "UserPreferences", back_populates="user", uselist=False, cascade="all, delete-orphan", lazy="joined"
+        "UserPreferences",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+        lazy="joined",
     )
     carbon_assessments: Mapped[list["CarbonAssessment"]] = relationship(
         "CarbonAssessment", back_populates="user", cascade="all, delete-orphan"
@@ -81,7 +103,7 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
 
     # Table-level indexes (email index declared inline above; extra below)
     __table_args__ = (
-        Index("ix_users_country", "country"),       # geographic queries
+        Index("ix_users_country", "country"),  # geographic queries
     )
 
     def __repr__(self) -> str:

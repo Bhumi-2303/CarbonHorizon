@@ -7,6 +7,15 @@ Table: forecasts
 - forecast_type ENUM
 - Index: user_id
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.forecast_point import ForecastPoint
+
+
 import uuid
 
 from sqlalchemy import ForeignKey, Index, String
@@ -22,7 +31,10 @@ class Forecast(Base, TimestampMixin):
     __tablename__ = "forecasts"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -36,7 +48,9 @@ class Forecast(Base, TimestampMixin):
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="forecasts")
     forecast_points: Mapped[list["ForecastPoint"]] = relationship(
-        "ForecastPoint", back_populates="forecast", cascade="all, delete-orphan"
+        "ForecastPoint",
+        back_populates="forecast",
+        cascade="all, delete-orphan",
     )
 
     __table_args__ = (
@@ -45,4 +59,7 @@ class Forecast(Base, TimestampMixin):
     )
 
     def __repr__(self) -> str:
-        return f"<Forecast id={self.id} user_id={self.user_id} type={self.forecast_type!r}>"
+        return (
+            f"<Forecast id={self.id} user_id={self.user_id} "
+            f"type={self.forecast_type!r}>"
+        )

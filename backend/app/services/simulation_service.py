@@ -29,8 +29,10 @@ Design notes
 * Each ScenarioChange sub-object is applied independently and additively;
   order: transport → energy → food → waste.
 * carbon_saved = current − projected (positive value = improvement).
-* reduction_percentage = (carbon_saved / current) × 100, clamped to [−999, 100].
+* reduction_percentage = (carbon_saved / current) × 100, clamped to
+  [−999, 100].
 """
+
 from __future__ import annotations
 
 import uuid
@@ -41,8 +43,6 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.simulation import Simulation
-from app.models.carbon_assessment import CarbonAssessment
-from app.models.emission_inputs import EmissionInputs
 from app.models.enums import TransportMode, DietType
 from app.services import calculation_engine
 from app.schemas.simulation import (
@@ -56,6 +56,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _coerce_transport_mode(val: Optional[Any]) -> Optional[str]:
     """Normalise a TransportMode enum or raw string to a plain string."""
@@ -82,17 +83,17 @@ def _build_baseline(request: SimulationRunRequest) -> Dict[str, Any]:
     never raises a TypeError on missing keys.
     """
     return {
-        "transport_mode":      _coerce_transport_mode(request.transport_mode),
-        "distance_km":         request.distance_km         or 0.0,
-        "electricity_kwh":     request.electricity_kwh     or 0.0,
-        "ac_hours":            request.ac_hours             or 0.0,
-        "lpg_usage":           request.lpg_usage            or 0.0,
-        "solar_usage":         request.solar_usage          or False,
-        "diet_type":           _coerce_diet_type(request.diet_type) or "mixed",
-        "recycling_score":     request.recycling_score      or 0,
-        "plastic_usage_score": request.plastic_usage_score  or 0,
-        "household_size":      request.household_size       or 1,
-        "assessment_period":   "monthly",
+        "transport_mode": _coerce_transport_mode(request.transport_mode),
+        "distance_km": request.distance_km or 0.0,
+        "electricity_kwh": request.electricity_kwh or 0.0,
+        "ac_hours": request.ac_hours or 0.0,
+        "lpg_usage": request.lpg_usage or 0.0,
+        "solar_usage": request.solar_usage or False,
+        "diet_type": _coerce_diet_type(request.diet_type) or "mixed",
+        "recycling_score": request.recycling_score or 0,
+        "plastic_usage_score": request.plastic_usage_score or 0,
+        "household_size": request.household_size or 1,
+        "assessment_period": "monthly",
     }
 
 
@@ -149,7 +150,9 @@ def _apply_changes(
         if ec.solar_adoption is not None:
             modified["solar_usage"] = ec.solar_adoption
             diff["solar_usage"] = (
-                "enabled (100% grid offset)" if ec.solar_adoption else "disabled"
+                "enabled (100% grid offset)"
+                if ec.solar_adoption
+                else "disabled"
             )
 
     # ── Food ──────────────────────────────────────────────────────────────
@@ -169,13 +172,17 @@ def _apply_changes(
             old_r = modified.get("recycling_score", 0)
             new_r = min(5, old_r + wc.recycling_improvement)
             modified["recycling_score"] = new_r
-            diff["recycling_score"] = f"{old_r} → {new_r} (+{wc.recycling_improvement})"
+            diff["recycling_score"] = (
+                f"{old_r} → {new_r} (+{wc.recycling_improvement})"
+            )
 
         if wc.plastic_reduction is not None:
             old_p = modified.get("plastic_usage_score", 0)
             new_p = max(1, old_p - wc.plastic_reduction)
             modified["plastic_usage_score"] = new_p
-            diff["plastic_usage_score"] = f"{old_p} → {new_p} (−{wc.plastic_reduction})"
+            diff["plastic_usage_score"] = (
+                f"{old_p} → {new_p} (−{wc.plastic_reduction})"
+            )
 
     return modified, diff
 
@@ -192,8 +199,8 @@ def _reduction_pct(current: float, saved: float) -> float:
 # Service class
 # ---------------------------------------------------------------------------
 
-class SimulationService:
 
+class SimulationService:
     @staticmethod
     def run_simulation(
         db: Session,
@@ -213,37 +220,41 @@ class SimulationService:
         modified, diff = _apply_changes(baseline, request)
 
         # Engine calls — pass db so live carbon factors are used
-        baseline_result = calculation_engine.calculate_total_emissions(db, baseline)
-        modified_result = calculation_engine.calculate_total_emissions(db, modified)
+        baseline_result = calculation_engine.calculate_total_emissions(
+            db, baseline
+        )
+        modified_result = calculation_engine.calculate_total_emissions(
+            db, modified
+        )
 
-        current_emission   = float(baseline_result["total_emission"])
+        current_emission = float(baseline_result["total_emission"])
         projected_emission = float(modified_result["total_emission"])
-        carbon_saved       = round(current_emission - projected_emission, 4)
-        reduction_pct      = _reduction_pct(current_emission, carbon_saved)
+        carbon_saved = round(current_emission - projected_emission, 4)
+        reduction_pct = _reduction_pct(current_emission, carbon_saved)
 
         simulation_data: Dict[str, Any] = {
             # Per-category comparison
             "current": {
                 "transport": baseline_result["transport_emission"],
-                "energy":    baseline_result["energy_emission"],
-                "food":      baseline_result["food_emission"],
-                "waste":     baseline_result["waste_emission"],
-                "total":     current_emission,
-                "score":     baseline_result["carbon_score"],
+                "energy": baseline_result["energy_emission"],
+                "food": baseline_result["food_emission"],
+                "waste": baseline_result["waste_emission"],
+                "total": current_emission,
+                "score": baseline_result["carbon_score"],
             },
             "projected": {
                 "transport": modified_result["transport_emission"],
-                "energy":    modified_result["energy_emission"],
-                "food":      modified_result["food_emission"],
-                "waste":     modified_result["waste_emission"],
-                "total":     projected_emission,
-                "score":     modified_result["carbon_score"],
+                "energy": modified_result["energy_emission"],
+                "food": modified_result["food_emission"],
+                "waste": modified_result["waste_emission"],
+                "total": projected_emission,
+                "score": modified_result["carbon_score"],
             },
             # What changed
             "changes_applied": diff,
             # Versioning
             "calculation_version": baseline_result["calculation_version"],
-            "factor_version":      baseline_result["factor_version"],
+            "factor_version": baseline_result["factor_version"],
         }
 
         return SimulationResult(
@@ -281,7 +292,9 @@ class SimulationService:
         db.refresh(sim)
         logger.info(
             "Simulation saved: id=%s user_id=%s scenario=%r",
-            sim.id, user_id, sim.scenario_name,
+            sim.id,
+            user_id,
+            sim.scenario_name,
         )
         return sim
 

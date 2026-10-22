@@ -3,6 +3,7 @@ User Pydantic schemas — request bodies and API response shapes.
 
 Aligns with the `users` ORM model columns (UUID PK, enums as str).
 """
+
 from __future__ import annotations
 
 import uuid
@@ -24,10 +25,13 @@ from app.models.enums import AgeGroup, LifestyleType, Gender
 # Requests
 # ---------------------------------------------------------------------------
 
-def validate_age_occupation(age: int | None, lifestyle: LifestyleType | None) -> None:
+
+def validate_age_occupation(
+    age: int | None, lifestyle: LifestyleType | None
+) -> None:
     if age is None or lifestyle is None:
         return
-    
+
     if age < 18:
         valid = [LifestyleType.student]
     elif 18 <= age <= 59:
@@ -41,12 +45,16 @@ def validate_age_occupation(age: int | None, lifestyle: LifestyleType | None) ->
         ]
     else:
         valid = [LifestyleType.retired, LifestyleType.consultant]
-        
+
     if lifestyle not in valid:
-        raise ValueError(f"Occupation '{lifestyle.value}' is not available for age {age}.")
+        raise ValueError(
+            f"Occupation '{lifestyle.value}' is not available for age {age}."
+        )
+
 
 class RegisterRequest(BaseModel):
     """POST /auth/register"""
+
     full_name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
@@ -73,12 +81,14 @@ class RegisterRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     """POST /auth/login"""
+
     email: EmailStr
     password: str
 
 
 class UpdateProfileRequest(BaseModel):
     """PUT /auth/profile — all fields optional"""
+
     full_name: Optional[str] = Field(None, min_length=1, max_length=100)
     age: Optional[int] = Field(None, gt=0)
     gender: Optional[Gender] = None
@@ -93,8 +103,12 @@ class UpdateProfileRequest(BaseModel):
 # Responses
 # ---------------------------------------------------------------------------
 
+
 class UserProfile(BaseModel):
-    """Public user profile returned by GET /auth/profile and POST /auth/register."""
+    """
+    Public user profile returned by GET /auth/profile and POST /auth/register.
+    """
+
     id: uuid.UUID
     full_name: str
     email: EmailStr
@@ -115,6 +129,7 @@ class UserProfile(BaseModel):
 
 class RegisterResponse(BaseModel):
     """Response body for successful registration."""
+
     user: UserProfile
     message: str = "Account created successfully. Please verify your email."
 

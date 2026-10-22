@@ -9,17 +9,17 @@ DATABASE_URL switching:
 Set DATABASE_URL in .env to override.
 ASYNC_DATABASE_URL is derived automatically from DATABASE_URL when not set.
 """
+
 from __future__ import annotations
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import model_validator, field_validator
+from typing import List, Optional, Any
 
 import os
 import secrets
 from dotenv import load_dotenv
 
 load_dotenv()
-from typing import List, Optional, Any, Union
-
-from pydantic import model_validator, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -36,12 +36,22 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # ── Environment ─────────────────────────────────────────────────────────
-    ENVIRONMENT: str = "development"       # development | staging | production
+    ENVIRONMENT: str = "development"  # development | staging | production
     DEBUG: bool = True
 
     # ── Database ────────────────────────────────────────────────────────────
     # PostgreSQL configuration
-    DATABASE_URL: str = os.getenv("DATABASE_URL") or "postgresql://postgres:password@localhost:5432/carbonhorizon"
+    DATABASE_URL: str = (
+        os.getenv("DATABASE_URL")
+        or "postgresql://postgres:password@localhost:5432/carbonhorizon"
+    )
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_db_url(cls, v: Any) -> Any:
+        if isinstance(v, str) and v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql://", 1)
+        return v
 
     # Async URL is derived from DATABASE_URL automatically if not set.
     ASYNC_DATABASE_URL: Optional[str] = None
@@ -53,7 +63,9 @@ class Settings(BaseSettings):
             return self.ASYNC_DATABASE_URL
         url = self.DATABASE_URL
         if url.startswith("postgresql+psycopg2:"):
-            return url.replace("postgresql+psycopg2:", "postgresql+asyncpg:", 1)
+            return url.replace(
+                "postgresql+psycopg2:", "postgresql+asyncpg:", 1
+            )
         if url.startswith("postgresql:"):
             return url.replace("postgresql:", "postgresql+asyncpg:", 1)
         return url
@@ -66,9 +78,9 @@ class Settings(BaseSettings):
 
     # ── CORS ────────────────────────────────────────────────────────────────
     ALLOWED_ORIGINS: List[str] = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "https://carbonhorizon-frontend-tvxxkekeuq-el.a.run.app",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://carbonhorizon-frontend-tvxxkekeuq-el.a.run.app",
     ]
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
@@ -91,23 +103,42 @@ class Settings(BaseSettings):
             "change-me-in-production-use-32-char-minimum",
             "change-me-use-a-32-char-random-hex-string",
             "changeme_use_strong_password",
-            "replace_with_openssl_rand_hex_32"
+            "replace_with_openssl_rand_hex_32",
         ]
-        
+
         if self.ENVIRONMENT == "production":
             if self.SECRET_KEY in insecure_placeholders:
-                raise ValueError("SECRET_KEY must be properly configured in production environment.")
-            
+                raise ValueError(
+                    "SECRET_KEY must be properly configured in "
+                    "production environment."
+                )
+
             # Check for insecure database passwords
-            if any(p in self.DATABASE_URL for p in ["postgres:password@", "postgres:changeme@"]):
-                raise ValueError("DATABASE_URL contains an insecure default password in production.")
-                
-            if not self.GEMINI_API_KEY or self.GEMINI_API_KEY in ["", "your_gemini_api_key_here"]:
-                 raise ValueError("GEMINI_API_KEY must be properly configured in production environment.")
+            if any(
+                p in self.DATABASE_URL
+                for p in ["postgres:password@", "postgres:changeme@"]
+            ):
+                raise ValueError(
+                    "DATABASE_URL contains an insecure default password "
+                    "in production."
+                )
+
+            if not self.GEMINI_API_KEY or self.GEMINI_API_KEY in [
+                "",
+                "your_gemini_api_key_here",
+            ]:
+                raise ValueError(
+                    "GEMINI_API_KEY must be properly configured in "
+                    "production environment."
+                )
         else:
             if not self.SECRET_KEY or self.SECRET_KEY in insecure_placeholders:
                 import logging
-                logging.warning("Using ephemeral SECRET_KEY. This is not safe for production.")
+
+                logging.warning(
+                    "Using ephemeral SECRET_KEY. This is not safe "
+                    "for production."
+                )
                 self.SECRET_KEY = secrets.token_hex(32)
         return self
 
@@ -115,8 +146,14 @@ class Settings(BaseSettings):
     def validate_production_cors(self) -> "Settings":
         if self.ENVIRONMENT == "production":
             for origin in self.ALLOWED_ORIGINS:
-                if origin == "*" or "localhost" in origin or "127.0.0.1" in origin:
-                    raise ValueError(f"Invalid CORS origin for production: {origin}")
+                if (
+                    origin == "*"
+                    or "localhost" in origin
+                    or "127.0.0.1" in origin
+                ):
+                    raise ValueError(
+                        f"Invalid CORS origin for production: {origin}"
+                    )
             if not self.ALLOWED_ORIGINS:
                 raise ValueError("ALLOWED_ORIGINS must be set in production")
         return self

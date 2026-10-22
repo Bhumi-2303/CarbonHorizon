@@ -24,11 +24,12 @@ Usage in routers
   # On error (handled automatically by FastAPI exception handlers or manually):
       return APIResponse.fail("AUTH_001", "Invalid credentials")
 """
+
 from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Generic, Optional, TypeVar
+from typing import Generic, Optional, TypeVar
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -42,10 +43,12 @@ T = TypeVar("T")
 # Standard API response wrapper
 # ---------------------------------------------------------------------------
 
+
 class ErrorDetail(BaseModel):
     """Machine-readable error payload embedded in a failed APIResponse."""
-    code: str           # e.g. "AUTH_001", "VALIDATION_ERROR"
-    message: str        # human-readable description
+
+    code: str  # e.g. "AUTH_001", "VALIDATION_ERROR"
+    message: str  # human-readable description
 
 
 class APIResponse(BaseModel, Generic[T]):
@@ -67,6 +70,7 @@ class APIResponse(BaseModel, Generic[T]):
           }
         }
     """
+
     success: bool
     data: Optional[T] = None
     error: Optional[ErrorDetail] = None
@@ -79,7 +83,9 @@ class APIResponse(BaseModel, Generic[T]):
     @classmethod
     def fail(cls, code: str, message: str) -> "APIResponse[None]":
         """Wrap an error response (no data payload)."""
-        return cls(success=False, error=ErrorDetail(code=code, message=message))
+        return cls(
+            success=False, error=ErrorDetail(code=code, message=message)
+        )
 
     model_config = {"arbitrary_types_allowed": True}
 
@@ -88,6 +94,7 @@ class APIResponse(BaseModel, Generic[T]):
 # Request schemas
 # ---------------------------------------------------------------------------
 
+
 class RegisterRequest(BaseModel):
     """
     POST /api/v1/auth/register
@@ -95,6 +102,7 @@ class RegisterRequest(BaseModel):
     All required fields for creating a Carbon Horizon account.
     Password must be at least 8 characters and not all digits.
     """
+
     full_name: str = Field(
         ...,
         min_length=1,
@@ -129,18 +137,21 @@ class RegisterRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     """POST /api/v1/auth/login"""
+
     email: EmailStr = Field(..., examples=["priya@example.com"])
     password: str = Field(..., min_length=1)
 
 
 class RefreshRequest(BaseModel):
     """POST /api/v1/auth/refresh"""
+
     refresh_token: str
 
 
 # ---------------------------------------------------------------------------
 # Response schemas
 # ---------------------------------------------------------------------------
+
 
 class TokenResponse(BaseModel):
     """
@@ -151,6 +162,7 @@ class TokenResponse(BaseModel):
     refresh_token — use on POST /auth/refresh to get a new pair
     expires_in    — access token TTL in seconds (default 1 800 = 30 min)
     """
+
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
@@ -165,6 +177,7 @@ class ProfileResponse(BaseModel):
     Public profile of the authenticated user.
     Returned by GET /auth/profile and embedded in RegisterResponse.
     """
+
     id: uuid.UUID
     full_name: str
     email: EmailStr
@@ -185,14 +198,16 @@ class RegisterResponse(BaseModel):
     Returned on successful account creation.
     Contains the new user's profile and a welcome message.
     """
+
     user: ProfileResponse
     message: str = "Account created successfully. Please verify your email."
 
 
 # ---------------------------------------------------------------------------
-# Typed APIResponse aliases  (convenience — avoids repetitive Generic[T] syntax)
+# Typed APIResponse aliases  (convenience — avoids repetitive
+# Generic[T] syntax)
 # ---------------------------------------------------------------------------
 
-TokenAPIResponse    = APIResponse[TokenResponse]
-ProfileAPIResponse  = APIResponse[ProfileResponse]
+TokenAPIResponse = APIResponse[TokenResponse]
+ProfileAPIResponse = APIResponse[ProfileResponse]
 RegisterAPIResponse = APIResponse[RegisterResponse]

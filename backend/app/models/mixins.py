@@ -5,17 +5,17 @@ TimestampMixin  — created_at / updated_at (UTC, server-side defaults)
 SoftDeleteMixin — deleted_at for soft-delete pattern
 UUIDPrimaryKey  — reusable UUID PK column declaration
 """
-import uuid
+
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, func
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _now_utc() -> datetime:
     """Return timezone-aware current UTC datetime."""
@@ -25,6 +25,7 @@ def _now_utc() -> datetime:
 # ---------------------------------------------------------------------------
 # Mixins
 # ---------------------------------------------------------------------------
+
 
 class TimestampMixin:
     """Adds created_at / updated_at columns (UTC, server-side defaults)."""

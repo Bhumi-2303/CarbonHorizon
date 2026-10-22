@@ -23,6 +23,7 @@ Stubs (not yet implemented):
   POST /forgot-password
   POST /reset-password
 """
+
 from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 
@@ -32,13 +33,10 @@ from app.schemas.auth import (
     APIResponse,
     LoginRequest,
     ProfileAPIResponse,
-    ProfileResponse,
     RefreshRequest,
     RegisterAPIResponse,
     RegisterRequest,
-    RegisterResponse,
     TokenAPIResponse,
-    TokenResponse,
 )
 from app.schemas.user import UpdateProfileRequest
 from app.services import auth_service
@@ -50,6 +48,7 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 # Public endpoints
 # ---------------------------------------------------------------------------
+
 
 @router.post(
     "/register",
@@ -65,7 +64,8 @@ async def register(
     Create a new Carbon Horizon account.
 
     - Hashes the password with bcrypt before storage.
-    - Returns the new user's profile wrapped in `{"success": true, "data": ...}`.
+    - Returns the new user's profile wrapped in
+      `{"success": true, "data": ...}`.
     - Raises **409** if the email is already registered.
     """
     result = auth_service.register_user(db, payload)
@@ -88,7 +88,8 @@ async def login(
 
     - Verifies bcrypt hash.
     - Stamps `last_login` with current UTC time.
-    - Returns `{"success": true, "data": {"access_token": ..., "expires_in": 1800}}`.
+    - Returns `{"success": true, "data": {"access_token": ...,
+      "expires_in": 1800}}`.
     - Raises **401** on invalid credentials.
     """
     token = auth_service.login_user(db, payload.email, payload.password)
@@ -116,6 +117,7 @@ async def refresh_token(
 # ---------------------------------------------------------------------------
 # Authenticated endpoints
 # ---------------------------------------------------------------------------
+
 
 @router.post(
     "/logout",
@@ -193,19 +195,28 @@ async def delete_account(
 # Stubs
 # ---------------------------------------------------------------------------
 
-@router.post("/verify-email",   summary="[Stub] Confirm email via token")
+
+@router.post("/verify-email", summary="[Stub] Confirm email via token")
 async def verify_email():
-    return APIResponse.fail("NOT_IMPLEMENTED", "Email verification not yet implemented")
+    return APIResponse.fail(
+        "NOT_IMPLEMENTED", "Email verification not yet implemented"
+    )
 
 
 @router.post("/forgot-password", summary="[Stub] Send password-reset email")
 async def forgot_password():
-    return APIResponse.fail("NOT_IMPLEMENTED", "Password reset not yet implemented")
+    return APIResponse.fail(
+        "NOT_IMPLEMENTED", "Password reset not yet implemented"
+    )
 
 
-@router.post("/reset-password",  summary="[Stub] Apply new password via reset token")
+@router.post(
+    "/reset-password", summary="[Stub] Apply new password via reset token"
+)
 async def reset_password():
-    return APIResponse.fail("NOT_IMPLEMENTED", "Password reset not yet implemented")
+    return APIResponse.fail(
+        "NOT_IMPLEMENTED", "Password reset not yet implemented"
+    )
 
 
 @router.get(
@@ -214,5 +225,7 @@ async def reset_password():
     summary="Alias for GET /profile",
     include_in_schema=False,
 )
-async def get_me(current_user: User = Depends(get_current_active_user)) -> ProfileAPIResponse:
+async def get_me(
+    current_user: User = Depends(get_current_active_user),
+) -> ProfileAPIResponse:
     return APIResponse.ok(auth_service.get_profile(current_user))

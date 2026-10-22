@@ -7,6 +7,14 @@ Table: forecast_points
 - Supports unlimited time horizons (3m, 6m, 12m, 24m, …)
 - Index: forecast_id
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.forecast import Forecast
+
+
 import uuid
 
 from sqlalchemy import Float, ForeignKey, Index, Integer
@@ -21,7 +29,10 @@ class ForecastPoint(Base, CreatedAtMixin):
     __tablename__ = "forecast_points"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
     forecast_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -34,11 +45,15 @@ class ForecastPoint(Base, CreatedAtMixin):
     predicted_emission: Mapped[float] = mapped_column(Float, nullable=False)
 
     # Relationship
-    forecast: Mapped["Forecast"] = relationship("Forecast", back_populates="forecast_points")
+    forecast: Mapped["Forecast"] = relationship(
+        "Forecast", back_populates="forecast_points"
+    )
 
     __table_args__ = (
         Index("ix_forecast_points_forecast_id", "forecast_id"),
-        Index("ix_forecast_points_month_offset", "forecast_id", "month_offset"),
+        Index(
+            "ix_forecast_points_month_offset", "forecast_id", "month_offset"
+        ),
     )
 
     def __repr__(self) -> str:

@@ -20,7 +20,13 @@ passlib 1.7.4 is incompatible with bcrypt ≥ 4.0 on Python 3.14
 (missing __about__ attribute; 72-byte probe crash).
 We call bcrypt.hashpw / bcrypt.checkpw directly.
 """
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 import bcrypt
 import uuid
@@ -40,9 +46,12 @@ from app.db.session import SessionLocal
 # 1. Password hashing
 # ---------------------------------------------------------------------------
 
+
 def hash_password(plain: str) -> str:
     """Return a bcrypt hash of *plain* text password."""
-    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode(
+        "utf-8"
+    )
 
 
 def verify_password(plain: str, hashed: str) -> bool:
@@ -54,6 +63,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 # 2. JWT helpers
 # ---------------------------------------------------------------------------
 
+
 def create_access_token(
     subject: Any,
     expires_delta: Optional[timedelta] = None,
@@ -62,22 +72,28 @@ def create_access_token(
     Create a signed JWT access token.
 
     Args:
-        subject:       The unique identifier to embed in `sub` (usually user UUID).
-        expires_delta: Override the default TTL (settings.ACCESS_TOKEN_EXPIRE_MINUTES).
+        subject:       The unique identifier to embed in `sub`
+                       (usually user UUID).
+        expires_delta: Override the default TTL
+                       (settings.ACCESS_TOKEN_EXPIRE_MINUTES).
 
     Returns:
         Signed JWT string.
     """
     expire = datetime.now(timezone.utc) + (
-        expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expires_delta
+        or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     payload = {"sub": str(subject), "exp": expire, "type": "access"}
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return jwt.encode(
+        payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
 
 
 def create_refresh_token(subject: Any) -> str:
     """
-    Create a signed JWT refresh token (TTL = settings.REFRESH_TOKEN_EXPIRE_DAYS).
+    Create a signed JWT refresh token
+    (TTL = settings.REFRESH_TOKEN_EXPIRE_DAYS).
 
     Args:
         subject: The unique identifier to embed in `sub` (usually user UUID).
@@ -89,7 +105,9 @@ def create_refresh_token(subject: Any) -> str:
         days=settings.REFRESH_TOKEN_EXPIRE_DAYS
     )
     payload = {"sub": str(subject), "exp": expire, "type": "refresh"}
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return jwt.encode(
+        payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
 
 
 def decode_token(token: str) -> dict:
@@ -103,11 +121,19 @@ def decode_token(token: str) -> dict:
         Decoded claims dict.
 
     Raises:
-        jose.JWTError: If the token is expired, malformed, or has an invalid signature.
+        jose.JWTError: If the token is expired, malformed, or has an
+                       invalid signature.
     """
     try:
-        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError, jwt.DecodeError, jwt.InvalidTokenError) as e:
+        return jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+    except (
+        jwt.ExpiredSignatureError,
+        jwt.InvalidSignatureError,
+        jwt.DecodeError,
+        jwt.InvalidTokenError,
+    ) as e:
         raise JWTError(str(e)) from e
 
 
@@ -143,9 +169,12 @@ def get_db() -> Generator[Session, None, None]:
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
     db: Session = Depends(get_db),
-) -> "User":  # type: ignore[name-defined]  # forward ref resolved at import time
+) -> (
+    "User"
+):  # type: ignore[name-defined]
     """
-    FastAPI dependency — decode the Bearer JWT and return the matching User row.
+    FastAPI dependency — decode the Bearer JWT and return the
+    matching User row.
 
     Steps:
         1. Extract the Bearer token from the Authorization header.

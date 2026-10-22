@@ -7,6 +7,15 @@ Table: carbon_assessments
 - assessment_period ENUM
 - Index: user_id
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.emission_inputs import EmissionInputs
+
+
 import uuid
 
 from sqlalchemy import Float, ForeignKey, Index, Integer, String
@@ -22,7 +31,10 @@ class CarbonAssessment(Base, TimestampMixin):
     __tablename__ = "carbon_assessments"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -31,21 +43,33 @@ class CarbonAssessment(Base, TimestampMixin):
     )
 
     # Emission breakdown (kg CO₂e)
-    transport_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
+    transport_emission: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
     energy_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
     food_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
     waste_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
-    housing_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
+    housing_emission: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
     water_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
-    digital_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
-    shopping_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
+    digital_emission: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
+    shopping_emission: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
     offsets_total: Mapped[float | None] = mapped_column(Float, nullable=True)
     total_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Score and versioning
     carbon_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    calculation_version: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    factor_version: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    calculation_version: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )
+    factor_version: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )
 
     # Period
     assessment_period: Mapped[AssessmentPeriod] = mapped_column(
@@ -53,9 +77,14 @@ class CarbonAssessment(Base, TimestampMixin):
     )
 
     # Relationships
-    user: Mapped["User"] = relationship("User", back_populates="carbon_assessments")
+    user: Mapped["User"] = relationship(
+        "User", back_populates="carbon_assessments"
+    )
     emission_inputs: Mapped["EmissionInputs"] = relationship(
-        "EmissionInputs", back_populates="assessment", uselist=False, cascade="all, delete-orphan"
+        "EmissionInputs",
+        back_populates="assessment",
+        uselist=False,
+        cascade="all, delete-orphan",
     )
 
     __table_args__ = (

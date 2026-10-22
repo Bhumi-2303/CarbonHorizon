@@ -7,6 +7,14 @@ Table: habits
 - habit_type ENUM
 - Indexes: user_id, activity_date (both from schema doc)
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
+
+
 import uuid
 from datetime import date
 
@@ -23,7 +31,10 @@ class Habit(Base, CreatedAtMixin):
     __tablename__ = "habits"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -33,7 +44,9 @@ class Habit(Base, CreatedAtMixin):
 
     # Habit details
     habit_type: Mapped[HabitType] = mapped_column(String(30), nullable=False)
-    completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    completed: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     carbon_saved: Mapped[float | None] = mapped_column(Float, nullable=True)
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -42,9 +55,13 @@ class Habit(Base, CreatedAtMixin):
     user: Mapped["User"] = relationship("User", back_populates="habits")
 
     __table_args__ = (
-        Index("ix_habits_user_id", "user_id"),           # schema doc requirement
-        Index("ix_habits_activity_date", "activity_date"), # schema doc requirement
-        Index("ix_habits_user_date", "user_id", "activity_date"),  # composite for streak queries
+        Index("ix_habits_user_id", "user_id"),  # schema doc requirement
+        Index(
+            "ix_habits_activity_date", "activity_date"
+        ),  # schema doc requirement
+        Index(
+            "ix_habits_user_date", "user_id", "activity_date"
+        ),  # composite for streak queries
         Index("ix_habits_habit_type", "habit_type"),
     )
 

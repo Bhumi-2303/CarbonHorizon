@@ -1,6 +1,7 @@
 """
 Report Pydantic schemas — no logic yet.
 """
+
 from datetime import datetime
 from typing import Literal, Optional
 
