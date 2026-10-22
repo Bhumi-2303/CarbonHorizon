@@ -7,6 +7,14 @@ Table: simulations
 - simulation_data stored as JSONB (PostgreSQL) / JSON (SQLite)
 - Index: user_id
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
+
+
 import uuid
 from typing import Any
 
@@ -22,7 +30,10 @@ class Simulation(Base, TimestampMixin):
     __tablename__ = "simulations"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -32,16 +43,28 @@ class Simulation(Base, TimestampMixin):
 
     # Scenario metadata
     scenario_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    scenario_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    scenario_description: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )
 
     # Emission values (kg CO₂e)
-    current_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
-    projected_emission: Mapped[float | None] = mapped_column(Float, nullable=True)
-    reduction_percentage: Mapped[float | None] = mapped_column(Float, nullable=True)
-    estimated_carbon_saved: Mapped[float | None] = mapped_column(Float, nullable=True)
+    current_emission: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
+    projected_emission: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
+    reduction_percentage: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
+    estimated_carbon_saved: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
 
     # Flexible scenario payload (transport choices, energy mix, etc.)
-    simulation_data: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    simulation_data: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON, nullable=True
+    )
 
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="simulations")

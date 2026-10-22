@@ -7,6 +7,7 @@ Table: carbon_factors
 - Version-controlled via 'version' + 'effective_date'
 - Indexes: category, sub_category (both from schema doc)
 """
+
 import uuid
 from datetime import date
 
@@ -23,7 +24,10 @@ class CarbonFactor(Base, CreatedAtMixin):
     __tablename__ = "carbon_factors"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
 
     # Classification
@@ -36,7 +40,9 @@ class CarbonFactor(Base, CreatedAtMixin):
 
     # Factor
     factor_value: Mapped[float] = mapped_column(Float, nullable=False)
-    unit: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g. "kg CO₂e / km"
+    unit: Mapped[str] = mapped_column(
+        String(50), nullable=False
+    )  # e.g. "kg CO₂e / km"
 
     # Provenance
     source_reference: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -53,8 +59,12 @@ class CarbonFactor(Base, CreatedAtMixin):
     )
 
     __table_args__ = (
-        Index("ix_carbon_factors_category", "category"),           # schema doc requirement
-        Index("ix_carbon_factors_sub_category", "sub_category"),   # schema doc requirement
+        Index(
+            "ix_carbon_factors_category", "category"
+        ),  # schema doc requirement
+        Index(
+            "ix_carbon_factors_sub_category", "sub_category"
+        ),  # schema doc requirement
         Index("ix_carbon_factors_version", "version"),
         Index("ix_carbon_factors_effective_date", "effective_date"),
     )

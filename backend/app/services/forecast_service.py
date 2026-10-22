@@ -16,7 +16,8 @@ ForecastService.get_forecast_by_id(db, user_id, forecast_id)
     → Return a single Forecast (ownership-checked). Raises HTTP 404.
 
 ForecastService.delete_forecast(db, user_id, forecast_id)
-    → Delete a Forecast and all cascade-deleted ForecastPoints. Raises HTTP 404.
+    → Delete a Forecast and all cascade-deleted ForecastPoints.
+      Raises HTTP 404.
 
 Forecast model design (rule-based)
 -----------------------------------
@@ -33,7 +34,8 @@ current_path
 
 recommended_path
     monthly_reduction_rate = habit_impact + best_simulation_boost
-    habit_impact            = 0.20  (20 % improvement from adopting good habits)
+    habit_impact            = 0.20  (20 % improvement from adopting
+                                     good habits)
     best_simulation_boost   = min(abs(best_saved_pct) / 100, 0.30)
       where best_saved_pct is the highest reduction_percentage across ALL
       saved simulations for the user (capped at 30 % to stay realistic).
@@ -56,6 +58,7 @@ Design notes
 * Uses eager join-load for forecast_points so callers get a fully populated
   Forecast without a second round-trip.
 """
+
 from __future__ import annotations
 
 import logging
@@ -82,16 +85,21 @@ logger = logging.getLogger(__name__)
 FORECAST_MONTH_OFFSETS: List[int] = [3, 6, 12]
 
 # Recommended-path constants
-HABIT_IMPACT_RATE:          float = 0.20   # 20 % monthly improvement from habits
-MAX_SIMULATION_BOOST_RATE:  float = 0.30   # cap on simulation-derived boost
-MAX_COMBINED_REDUCTION_RATE: float = 0.50  # absolute ceiling for recommended_path
+HABIT_IMPACT_RATE: float = 0.20  # 20 % monthly improvement from habits
+MAX_SIMULATION_BOOST_RATE: float = 0.30  # cap on simulation-derived boost
+MAX_COMBINED_REDUCTION_RATE: float = (
+    0.50  # absolute ceiling for recommended_path
+)
 
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _fetch_latest_assessment(db: Session, user_id: uuid.UUID) -> CarbonAssessment:
+
+def _fetch_latest_assessment(
+    db: Session, user_id: uuid.UUID
+) -> CarbonAssessment:
     """
     Retrieve the most recent CarbonAssessment for the user.
     Raises HTTP 422 if no assessments exist.
@@ -144,7 +152,7 @@ def _recommended_rate(db: Session, user_id: uuid.UUID) -> float:
       min(habit_impact + best_simulation_boost, MAX_COMBINED)
     """
     sim_boost = _best_simulation_reduction(db, user_id)
-    combined  = HABIT_IMPACT_RATE + sim_boost
+    combined = HABIT_IMPACT_RATE + sim_boost
     return min(combined, MAX_COMBINED_REDUCTION_RATE)
 
 
@@ -154,25 +162,28 @@ def _custom_rate(
 ) -> float:
     """
     Compute custom_path monthly_reduction_rate as a weighted average of the
-    per-category rates, weighted by each category's share of the total emission.
+    per-category rates, weighted by each category's share of the total
+    emission.
 
     Falls back to a simple mean if total_emission is zero or None.
     """
     transport_e = assessment.transport_emission or 0.0
-    energy_e    = assessment.energy_emission    or 0.0
-    food_e      = assessment.food_emission      or 0.0
-    waste_e     = assessment.waste_emission     or 0.0
-    total       = transport_e + energy_e + food_e + waste_e
+    energy_e = assessment.energy_emission or 0.0
+    food_e = assessment.food_emission or 0.0
+    waste_e = assessment.waste_emission or 0.0
+    total = transport_e + energy_e + food_e + waste_e
 
     if total <= 0:
         # No baseline — return simple arithmetic mean
-        return (rates.transport + rates.energy + rates.food + rates.waste) / 4.0
+        return (
+            rates.transport + rates.energy + rates.food + rates.waste
+        ) / 4.0
 
     weighted = (
         rates.transport * transport_e
-        + rates.energy  * energy_e
-        + rates.food    * food_e
-        + rates.waste   * waste_e
+        + rates.energy * energy_e
+        + rates.food * food_e
+        + rates.waste * waste_e
     )
     return weighted / total
 
@@ -227,8 +238,8 @@ def _load_forecast(db: Session, forecast_id: uuid.UUID) -> Forecast:
 # Service class
 # ---------------------------------------------------------------------------
 
-class ForecastService:
 
+class ForecastService:
     @staticmethod
     def generate_forecast(
         db: Session,
@@ -241,18 +252,23 @@ class ForecastService:
         Steps
         -----
         1. Fetch the user's latest CarbonAssessment (422 if none).
-        2. Determine the monthly_reduction_rate for the requested forecast_type.
+        2. Determine the monthly_reduction_rate for the requested
+           forecast_type.
         3. Compute predicted_emission for each month in FORECAST_MONTH_OFFSETS.
         4. Persist a Forecast header row + one ForecastPoint per offset.
         5. Refresh and return the fully loaded Forecast ORM object.
         """
-        assessment     = _fetch_latest_assessment(db, user_id)
+        assessment = _fetch_latest_assessment(db, user_id)
         current_emission = float(assessment.total_emission or 0.0)
-        monthly_rate   = _select_monthly_rate(request, assessment, db, user_id)
+        monthly_rate = _select_monthly_rate(request, assessment, db, user_id)
 
         logger.info(
-            "Generating forecast: user_id=%s type=%s current_emission=%.2f rate=%.4f",
-            user_id, request.forecast_type, current_emission, monthly_rate,
+            "Generating forecast: user_id=%s type=%s "
+            "current_emission=%.2f rate=%.4f",
+            user_id,
+            request.forecast_type,
+            current_emission,
+            monthly_rate,
         )
 
         # ── Create header row ────────────────────────────────────────────────
@@ -266,7 +282,9 @@ class ForecastService:
 
         # ── Create detail rows ───────────────────────────────────────────────
         for offset in FORECAST_MONTH_OFFSETS:
-            predicted = _compute_forecast_point(current_emission, monthly_rate, offset)
+            predicted = _compute_forecast_point(
+                current_emission, monthly_rate, offset
+            )
             point = ForecastPoint(
                 id=uuid.uuid4(),
                 forecast_id=forecast.id,
@@ -280,7 +298,9 @@ class ForecastService:
         # Reload with points eagerly loaded for immediate use by the caller
         loaded = _load_forecast(db, forecast.id)
         logger.info(
-            "Forecast saved: id=%s points=%d", forecast.id, len(loaded.forecast_points)
+            "Forecast saved: id=%s points=%d",
+            forecast.id,
+            len(loaded.forecast_points),
         )
         return loaded
 
@@ -308,7 +328,8 @@ class ForecastService:
         forecast_id: uuid.UUID,
     ) -> Forecast:
         """
-        Fetch a single Forecast (ownership-checked), with points eagerly loaded.
+        Fetch a single Forecast (ownership-checked), with points
+        eagerly loaded.
         Raises HTTP 404 if not found or owned by another user.
         """
         forecast = (
@@ -316,7 +337,7 @@ class ForecastService:
             .options(joinedload(Forecast.forecast_points))
             .filter(
                 Forecast.user_id == user_id,
-                Forecast.id      == forecast_id,
+                Forecast.id == forecast_id,
             )
             .first()
         )
@@ -341,7 +362,7 @@ class ForecastService:
             db.query(Forecast)
             .filter(
                 Forecast.user_id == user_id,
-                Forecast.id      == forecast_id,
+                Forecast.id == forecast_id,
             )
             .first()
         )

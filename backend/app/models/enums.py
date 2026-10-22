@@ -2,6 +2,7 @@
 Python Enum definitions for all ENUM columns used across models.
 Centralised here so enums are shared between ORM models and Pydantic schemas.
 """
+
 import enum
 
 

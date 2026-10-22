@@ -7,6 +7,14 @@ Table: goals
 - status ENUM (active, completed, expired)
 - Index: user_id
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
+
+
 import uuid
 from datetime import date
 
@@ -23,7 +31,10 @@ class Goal(Base, TimestampMixin):
     __tablename__ = "goals"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -36,9 +47,15 @@ class Goal(Base, TimestampMixin):
     goal_description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Targets
-    target_reduction_percentage: Mapped[float | None] = mapped_column(Float, nullable=True)
-    target_emission_value: Mapped[float | None] = mapped_column(Float, nullable=True)
-    current_progress: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    target_reduction_percentage: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
+    target_emission_value: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
+    current_progress: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0.0
+    )
     target_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     # State

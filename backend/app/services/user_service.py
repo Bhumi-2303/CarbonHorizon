@@ -2,6 +2,7 @@
 UserService — business logic for user management.
 No logic implemented yet; method stubs only.
 """
+
 import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -9,6 +10,7 @@ from sqlalchemy import select
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.security import hash_password
+
 
 class UserService:
     # ------------------------------------------------------------------
@@ -49,7 +51,7 @@ class UserService:
             state_province=payload.state_province,
             city=payload.city,
             age_group=payload.age_group,
-            lifestyle_type=payload.lifestyle_type
+            lifestyle_type=payload.lifestyle_type,
         )
         db.add(db_user)
         db.commit()
@@ -60,10 +62,10 @@ class UserService:
     def update(db: Session, user: User, payload: UserUpdate) -> User:
         """Apply partial updates to an existing user."""
         update_data = payload.model_dump(exclude_unset=True)
-        
+
         for field, value in update_data.items():
             setattr(user, field, value)
-            
+
         db.add(user)
         db.commit()
         db.refresh(user)

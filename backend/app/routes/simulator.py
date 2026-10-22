@@ -5,7 +5,8 @@ Endpoints
 ---------
 POST /api/v1/simulator/run
     Run a what-if scenario and return the projected vs current emissions.
-    Does NOT persist automatically — use /save to store results you want to keep.
+    Does NOT persist automatically — use /save to store results
+    you want to keep.
 
 POST /api/v1/simulator/save
     Persist a simulation result to the simulations table.
@@ -23,6 +24,7 @@ All responses follow the standard APIResponse envelope:
     {"success": true,  "data": { ... }}
     {"success": false, "error": {"code": "...", "message": "..."}}
 """
+
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
@@ -48,16 +50,19 @@ router = APIRouter()
 # POST /run  — compute a what-if scenario (not persisted)
 # ---------------------------------------------------------------------------
 
+
 @router.post(
     "/run",
     response_model=SimulationRunAPIResponse,
     status_code=status.HTTP_200_OK,
     summary="Run a what-if simulation scenario",
     description=(
-        "Applies the requested scenario changes on top of the supplied baseline "
+        "Applies the requested scenario changes on top of the "
+        "supplied baseline "
         "inputs and runs the carbon calculation engine on both sets of data. "
         "Returns current vs projected emissions and a per-category breakdown. "
-        "The result is NOT automatically saved — call POST /save to persist it."
+        "The result is NOT automatically saved — call POST /save "
+        "to persist it."
     ),
 )
 async def run_simulation(
@@ -73,13 +78,15 @@ async def run_simulation(
 # POST /save  — persist a previously computed simulation result
 # ---------------------------------------------------------------------------
 
+
 @router.post(
     "/save",
     response_model=SimulationSaveAPIResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Save a simulation result to the database",
     description=(
-        "Persists a SimulationResult (previously returned by POST /run) to the "
+        "Persists a SimulationResult (previously returned by POST /run) "
+        "to the "
         "simulations table so it can be retrieved later via GET /history."
     ),
 )
@@ -95,6 +102,7 @@ async def save_simulation(
 # ---------------------------------------------------------------------------
 # GET /history  — list all saved simulations for the current user
 # ---------------------------------------------------------------------------
+
 
 @router.get(
     "/history",
@@ -113,6 +121,7 @@ async def get_simulation_history(
 # GET /{simulation_id}  — fetch a specific simulation
 # ---------------------------------------------------------------------------
 
+
 @router.get(
     "/{simulation_id}",
     response_model=SimulationDetailAPIResponse,
@@ -123,13 +132,16 @@ async def get_simulation(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> SimulationDetailAPIResponse:
-    sim = SimulationService.get_simulation_by_id(db, current_user.id, simulation_id)
+    sim = SimulationService.get_simulation_by_id(
+        db, current_user.id, simulation_id
+    )
     return APIResponse.ok(sim)
 
 
 # ---------------------------------------------------------------------------
 # DELETE /{simulation_id}  — remove a simulation
 # ---------------------------------------------------------------------------
+
 
 @router.delete(
     "/{simulation_id}",

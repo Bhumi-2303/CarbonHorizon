@@ -2,15 +2,17 @@
 Dashboard Pydantic schemas.
 
 Provides schemas for:
-- DashboardSummaryData: aggregated stats (latest assessment, habit streak, goals, forecast, trend)
+- DashboardSummaryData: aggregated stats (latest assessment,
+  habit streak, goals, forecast, trend)
 - DashboardBreakdownData: category breakdown and percentages
 - DashboardHistoryItem: historical assessment list
 """
+
 from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from app.schemas.auth import APIResponse

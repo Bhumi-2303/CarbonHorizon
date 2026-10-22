@@ -6,6 +6,14 @@ Table: user_preferences
 - 1-to-1 with users
 - theme / measurement_unit ENUMs
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
+
+
 import uuid
 
 from sqlalchemy import Boolean, ForeignKey, Index, String
@@ -21,13 +29,16 @@ class UserPreferences(Base, TimestampMixin):
     __tablename__ = "user_preferences"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
-        unique=True,   # enforces 1-to-1
+        unique=True,  # enforces 1-to-1
     )
 
     theme: Mapped[Theme] = mapped_column(
@@ -46,9 +57,7 @@ class UserPreferences(Base, TimestampMixin):
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="preferences")
 
-    __table_args__ = (
-        Index("ix_user_preferences_user_id", "user_id"),
-    )
+    __table_args__ = (Index("ix_user_preferences_user_id", "user_id"),)
 
     def __repr__(self) -> str:
         return f"<UserPreferences user_id={self.user_id} theme={self.theme!r}>"

@@ -1,4 +1,3 @@
-import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -9,22 +8,33 @@ from typing import Any
 
 router = APIRouter()
 
+
 class ProgressionResponse(BaseModel):
     success: bool
     data: dict[str, Any]
 
-@router.get("", response_model=ProgressionResponse, summary="Get user progression")
+
+@router.get(
+    "", response_model=ProgressionResponse, summary="Get user progression"
+)
 def get_user_progression(
     db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_active_user)
+    current_user: Any = Depends(get_current_active_user),
 ):
     """
     Retrieve the current user's level, points, progress, and badges.
     """
     try:
-        progression_data = ProgressionService.calculate_progression(db, current_user.id)
+        progression_data = ProgressionService.calculate_progression(
+            db, current_user.id
+        )
         return {"success": True, "data": progression_data}
     except Exception as e:
         import logging
-        logging.error(f"Error in get_user_progression: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+
+        logging.error(
+            f"Error in get_user_progression: {str(e)}", exc_info=True
+        )
+        raise HTTPException(
+            status_code=500, detail="An internal server error occurred."
+        )

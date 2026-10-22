@@ -8,8 +8,10 @@ Unit (SimulationService)
   test_car_to_bus_simulation          — car→bus swap reduces transport emission
   test_solar_adoption                 — solar flag zeroes electricity component
   test_diet_switch_nonveg_to_veg      — vegetarian diet lowers food emission
-  test_reduction_percentage_accuracy  — reduction_percentage within 1 % tolerance
-  test_simulation_saves_to_db         — save_simulation persists all fields to DB
+  test_reduction_percentage_accuracy  — reduction_percentage within
+                                        1 % tolerance
+  test_simulation_saves_to_db         — save_simulation persists all
+                                        fields to DB
 
 Integration (POST /api/v1/simulator/run)
 ----------------------------------------
@@ -24,7 +26,8 @@ Integration (POST /api/v1/simulator/run)
   test_run_endpoint_no_changes_carbon_saved_near_zero
       — empty changes → carbon_saved ≈ 0
 
-All emission arithmetic is verified against fallback factors in calculation_engine.py:
+All emission arithmetic is verified against fallback factors in
+calculation_engine.py:
   Transport car  : 0.18  kg CO₂e / km
   Transport bus  : 0.08  kg CO₂e / km
   Transport bike : 0.00  kg CO₂e / km
@@ -34,6 +37,7 @@ All emission arithmetic is verified against fallback factors in calculation_engi
                    mixed        = 2.5 × 30 = 75.0 kg
                    non_veg      = 3.3 × 30 = 99.0 kg
 """
+
 import uuid
 
 import pytest
@@ -41,7 +45,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models.enums import TransportMode, DietType
-from app.models.simulation import Simulation
 from app.schemas.simulation import (
     ScenarioChanges,
     TransportChanges,
@@ -55,6 +58,7 @@ from app.services.simulation_service import SimulationService
 # ---------------------------------------------------------------------------
 # Shared request builders
 # ---------------------------------------------------------------------------
+
 
 def _make_run_request(
     *,
@@ -92,6 +96,7 @@ def _make_run_request(
 # ── UNIT TESTS ──────────────────────────────────────────────────────────────
 # ===========================================================================
 
+
 class TestCarToBusSimulation:
     """
     Verify that swapping transport mode from car to bus reduces transport
@@ -109,7 +114,7 @@ class TestCarToBusSimulation:
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
-        current_transport   = result.simulation_data["current"]["transport"]
+        current_transport = result.simulation_data["current"]["transport"]
         projected_transport = result.simulation_data["projected"]["transport"]
 
         assert projected_transport < current_transport, (
@@ -132,11 +137,18 @@ class TestCarToBusSimulation:
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
-        assert result.simulation_data["current"]["transport"]   == pytest.approx(90.0, rel=0.01)
-        assert result.simulation_data["projected"]["transport"] == pytest.approx(40.0, rel=0.01)
+        assert result.simulation_data["current"]["transport"] == pytest.approx(
+            90.0, rel=0.01
+        )
+        assert result.simulation_data["projected"][
+            "transport"
+        ] == pytest.approx(40.0, rel=0.01)
 
     def test_car_to_bus_carbon_saved_is_positive(self, db: Session):
-        """carbon_saved must be positive when switching to a lower-emission mode."""
+        """
+        carbon_saved must be positive when switching to a
+        lower-emission mode.
+        """
         req = _make_run_request(
             transport_mode=TransportMode.car,
             distance_km=500.0,
@@ -165,6 +177,7 @@ class TestCarToBusSimulation:
 
 # ---------------------------------------------------------------------------
 
+
 class TestSolarAdoption:
     """
     Verify that enabling solar_adoption zeroes out the electricity component
@@ -182,14 +195,15 @@ class TestSolarAdoption:
             ac_hours=0.0,
             lpg_usage=0.0,
             solar_usage=False,
-            changes=ScenarioChanges(
-                energy=EnergyChanges(solar_adoption=True)
-            ),
+            changes=ScenarioChanges(energy=EnergyChanges(solar_adoption=True)),
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
-        assert result.simulation_data["projected"]["energy"] == pytest.approx(0.0, abs=0.01), (
-            "Solar adoption should offset 100 % of electricity → 0 energy emission"
+        assert result.simulation_data["projected"]["energy"] == pytest.approx(
+            0.0, abs=0.01
+        ), (
+            "Solar adoption should offset 100 % of electricity → 0 energy "
+            "emission"
         )
 
     def test_solar_adoption_reduces_total_emission(self, db: Session):
@@ -214,7 +228,9 @@ class TestSolarAdoption:
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
-        assert result.simulation_data["current"]["energy"] == pytest.approx(150.0, rel=0.01)
+        assert result.simulation_data["current"]["energy"] == pytest.approx(
+            150.0, rel=0.01
+        )
 
     def test_solar_adoption_changes_applied_recorded(self, db: Session):
         """solar_usage must appear in changes_applied."""
@@ -229,9 +245,11 @@ class TestSolarAdoption:
 
 # ---------------------------------------------------------------------------
 
+
 class TestDietSwitchNonVegToVegetarian:
     """
-    Verify that switching from non_vegetarian → vegetarian lowers food emission.
+    Verify that switching from non_vegetarian → vegetarian lowers food
+    emission.
 
     Monthly food emission (fallback, household_size=1):
       non_vegetarian  = 3.3 × 30 = 99.0 kg
@@ -249,14 +267,19 @@ class TestDietSwitchNonVegToVegetarian:
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
-        assert result.simulation_data["projected"]["food"] < result.simulation_data["current"]["food"]
+        assert (
+            result.simulation_data["projected"]["food"]
+            < result.simulation_data["current"]["food"]
+        )
 
-    def test_diet_switch_baseline_food_matches_non_veg_factor(self, db: Session):
+    def test_diet_switch_baseline_food_matches_non_veg_factor(
+        self, db: Session
+    ):
         """Current food = 3.3 kg/day × 30 days = 99.0 kg."""
         req = _make_run_request(
             diet_type=DietType.non_vegetarian,
             household_size=1,
-            distance_km=0.0,       # isolate food only
+            distance_km=0.0,  # isolate food only
             electricity_kwh=0.0,
             changes=ScenarioChanges(
                 food=FoodChanges(new_diet_type=DietType.vegetarian)
@@ -264,7 +287,9 @@ class TestDietSwitchNonVegToVegetarian:
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
-        assert result.simulation_data["current"]["food"] == pytest.approx(99.0, rel=0.01)
+        assert result.simulation_data["current"]["food"] == pytest.approx(
+            99.0, rel=0.01
+        )
 
     def test_diet_switch_projected_food_matches_veg_factor(self, db: Session):
         """Projected food = 1.7 kg/day × 30 days = 51.0 kg."""
@@ -279,7 +304,9 @@ class TestDietSwitchNonVegToVegetarian:
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
-        assert result.simulation_data["projected"]["food"] == pytest.approx(51.0, rel=0.01)
+        assert result.simulation_data["projected"]["food"] == pytest.approx(
+            51.0, rel=0.01
+        )
 
     def test_diet_switch_carbon_saved_matches_expected(self, db: Session):
         """carbon_saved ≈ 99.0 − 51.0 = 48.0 kg (isolated, no other inputs)."""
@@ -312,6 +339,7 @@ class TestDietSwitchNonVegToVegetarian:
 
 
 # ---------------------------------------------------------------------------
+
 
 class TestReductionPercentageAccuracy:
     """
@@ -358,8 +386,11 @@ class TestReductionPercentageAccuracy:
 
         # current = 90 (transport) + 75 (food) = 165; saved = 50
         expected_pct = (50.0 / 165.0) * 100  # ≈ 30.30
-        assert result.reduction_percentage == pytest.approx(expected_pct, abs=1.0), (
-            f"Expected ≈{expected_pct:.2f} %, got {result.reduction_percentage:.2f} %"
+        assert result.reduction_percentage == pytest.approx(
+            expected_pct, abs=1.0
+        ), (
+            f"Expected ≈{expected_pct:.2f} %, "
+            f"got {result.reduction_percentage:.2f} %"
         )
 
     def test_solar_adoption_100pct_electricity_offset(self, db: Session):
@@ -381,7 +412,8 @@ class TestReductionPercentageAccuracy:
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
-        # Food (veg) is still present in both baseline and projected → not 100 %
+        # Food (veg) is still present in both baseline and projected
+        # → not 100 %
         # But the electricity portion IS zeroed, so reduction > 0
         assert result.reduction_percentage > 0
         assert result.reduction_percentage <= 100
@@ -400,8 +432,11 @@ class TestReductionPercentageAccuracy:
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
         expected_pct = (48.0 / 99.0) * 100  # ≈ 48.48
-        assert result.reduction_percentage == pytest.approx(expected_pct, abs=1.0), (
-            f"Expected ≈{expected_pct:.2f} %, got {result.reduction_percentage:.2f} %"
+        assert result.reduction_percentage == pytest.approx(
+            expected_pct, abs=1.0
+        ), (
+            f"Expected ≈{expected_pct:.2f} %, "
+            f"got {result.reduction_percentage:.2f} %"
         )
 
     def test_no_changes_reduction_pct_is_zero(self, db: Session):
@@ -411,7 +446,9 @@ class TestReductionPercentageAccuracy:
 
         assert result.reduction_percentage == pytest.approx(0.0, abs=0.01)
 
-    def test_bicycle_reduces_transport_to_zero_gives_max_transport_reduction(self, db: Session):
+    def test_bicycle_reduces_transport_to_zero_gives_max_transport_reduction(
+        self, db: Session
+    ):
         """
         Car→bicycle: projected transport = 0 kg.
 
@@ -432,13 +469,18 @@ class TestReductionPercentageAccuracy:
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
 
-        assert result.simulation_data["projected"]["transport"] == pytest.approx(0.0, abs=0.01)
+        assert result.simulation_data["projected"][
+            "transport"
+        ] == pytest.approx(0.0, abs=0.01)
         # reduction_pct = 90 / 165 × 100 ≈ 54.55 %
         expected_pct = (90.0 / 165.0) * 100
-        assert result.reduction_percentage == pytest.approx(expected_pct, abs=1.0)
+        assert result.reduction_percentage == pytest.approx(
+            expected_pct, abs=1.0
+        )
 
 
 # ---------------------------------------------------------------------------
+
 
 class TestSimulationSavesToDb:
     """
@@ -454,7 +496,10 @@ class TestSimulationSavesToDb:
             projected_emission=250.0,
             carbon_saved=150.0,
             reduction_percentage=37.5,
-            simulation_data={"current": {"total": 400.0}, "projected": {"total": 250.0}},
+            simulation_data={
+                "current": {"total": 400.0},
+                "projected": {"total": 250.0},
+            },
         )
         sim = SimulationService.save_simulation(db, test_user.id, payload)
 
@@ -481,15 +526,19 @@ class TestSimulationSavesToDb:
             reduction_percentage=40.0,
         )
         saved = SimulationService.save_simulation(db, test_user.id, payload)
-        fetched = SimulationService.get_simulation_by_id(db, test_user.id, saved.id)
+        fetched = SimulationService.get_simulation_by_id(
+            db, test_user.id, saved.id
+        )
 
         assert fetched.id == saved.id
         assert fetched.scenario_name == "queryable"
 
     def test_save_run_then_save_roundtrip(self, db: Session, test_user):
         """
-        Full round-trip: run_simulation → save_simulation → get_simulation_by_id.
-        Verifies that run output maps correctly to the save payload and is stored.
+        Full round-trip: run_simulation → save_simulation →
+        get_simulation_by_id.
+        Verifies that run output maps correctly to the save payload and
+        is stored.
         """
         run_req = _make_run_request(
             transport_mode=TransportMode.car,
@@ -500,7 +549,9 @@ class TestSimulationSavesToDb:
             ),
             scenario_name="run_save_roundtrip",
         )
-        run_result = SimulationService.run_simulation(db, test_user.id, run_req)
+        run_result = SimulationService.run_simulation(
+            db, test_user.id, run_req
+        )
 
         save_payload = SimulationSaveRequest(
             scenario_name=run_result.scenario_name,
@@ -510,14 +561,26 @@ class TestSimulationSavesToDb:
             reduction_percentage=run_result.reduction_percentage,
             simulation_data=run_result.simulation_data,
         )
-        saved = SimulationService.save_simulation(db, test_user.id, save_payload)
-        fetched = SimulationService.get_simulation_by_id(db, test_user.id, saved.id)
+        saved = SimulationService.save_simulation(
+            db, test_user.id, save_payload
+        )
+        fetched = SimulationService.get_simulation_by_id(
+            db, test_user.id, saved.id
+        )
 
-        assert fetched.current_emission   == pytest.approx(run_result.current_emission,   rel=0.001)
-        assert fetched.projected_emission == pytest.approx(run_result.projected_emission, rel=0.001)
-        assert fetched.estimated_carbon_saved == pytest.approx(run_result.carbon_saved,   rel=0.001)
+        assert fetched.current_emission == pytest.approx(
+            run_result.current_emission, rel=0.001
+        )
+        assert fetched.projected_emission == pytest.approx(
+            run_result.projected_emission, rel=0.001
+        )
+        assert fetched.estimated_carbon_saved == pytest.approx(
+            run_result.carbon_saved, rel=0.001
+        )
 
-    def test_save_without_simulation_data_is_accepted(self, db: Session, test_user):
+    def test_save_without_simulation_data_is_accepted(
+        self, db: Session, test_user
+    ):
         """simulation_data is optional — None should be accepted."""
         payload = SimulationSaveRequest(
             scenario_name="no_data",
@@ -548,14 +611,11 @@ _VALID_RUN_PAYLOAD = {
     "recycling_score": 0,
     "plastic_usage_score": 0,
     "household_size": 1,
-    "changes": {
-        "transport": {"new_mode": "bus"}
-    },
+    "changes": {"transport": {"new_mode": "bus"}},
 }
 
 
 class TestSimulatorRunEndpoint:
-
     def test_run_endpoint_returns_200_with_correct_projected_values(
         self, client: TestClient, auth_headers: dict
     ):
@@ -582,14 +642,16 @@ class TestSimulatorRunEndpoint:
         # current  = 90.0 (car/500km × 0.18) + 75.0 (food/mixed) = 165.0
         # projected = 40.0 (bus/500km × 0.08) + 75.0 (food/mixed) = 115.0
         # carbon_saved = 50.0
-        assert data["current_emission"]     == pytest.approx(165.0, rel=0.01)
-        assert data["projected_emission"]   == pytest.approx(115.0, rel=0.01)
-        assert data["carbon_saved"]         == pytest.approx(50.0,  rel=0.01)
+        assert data["current_emission"] == pytest.approx(165.0, rel=0.01)
+        assert data["projected_emission"] == pytest.approx(115.0, rel=0.01)
+        assert data["carbon_saved"] == pytest.approx(50.0, rel=0.01)
         assert data["reduction_percentage"] > 0
 
     def test_run_endpoint_unauthorized(self, client: TestClient):
         """POST /run without auth token → 401."""
-        response = client.post("/api/v1/simulator/run", json=_VALID_RUN_PAYLOAD)
+        response = client.post(
+            "/api/v1/simulator/run", json=_VALID_RUN_PAYLOAD
+        )
         assert response.status_code == 401
 
     def test_run_endpoint_car_to_bicycle_full_cycle(
@@ -621,11 +683,13 @@ class TestSimulatorRunEndpoint:
 
         # simulation_data structure
         sim_data = data["simulation_data"]
-        assert "current"         in sim_data
-        assert "projected"       in sim_data
+        assert "current" in sim_data
+        assert "projected" in sim_data
         assert "changes_applied" in sim_data
 
-        assert sim_data["projected"]["transport"] == pytest.approx(0.0, abs=0.01)
+        assert sim_data["projected"]["transport"] == pytest.approx(
+            0.0, abs=0.01
+        )
         assert "transport_mode" in sim_data["changes_applied"]
 
     def test_run_endpoint_save_flow(
@@ -646,12 +710,12 @@ class TestSimulatorRunEndpoint:
 
         # Step 2: save
         save_payload = {
-            "scenario_name":        run_data["scenario_name"],
-            "current_emission":     run_data["current_emission"],
-            "projected_emission":   run_data["projected_emission"],
-            "carbon_saved":         run_data["carbon_saved"],
+            "scenario_name": run_data["scenario_name"],
+            "current_emission": run_data["current_emission"],
+            "projected_emission": run_data["projected_emission"],
+            "carbon_saved": run_data["carbon_saved"],
             "reduction_percentage": run_data["reduction_percentage"],
-            "simulation_data":      run_data["simulation_data"],
+            "simulation_data": run_data["simulation_data"],
         }
         save_resp = client.post(
             "/api/v1/simulator/save",
@@ -743,5 +807,5 @@ class TestSimulatorRunEndpoint:
         assert response.status_code == 200
         sim_data = response.json()["data"]["simulation_data"]
 
-        assert sim_data["current"]["food"]   == pytest.approx(99.0, rel=0.01)
+        assert sim_data["current"]["food"] == pytest.approx(99.0, rel=0.01)
         assert sim_data["projected"]["food"] == pytest.approx(51.0, rel=0.01)

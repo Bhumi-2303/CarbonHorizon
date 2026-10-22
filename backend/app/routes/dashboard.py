@@ -4,10 +4,13 @@ Dashboard router  —  /api/v1/dashboard
 Endpoints:
 ---------
 GET /api/v1/dashboard/summary    Aggregated stats for the user's dashboard
-GET /api/v1/dashboard            Backward-compatible summary alias (consumed by frontend client)
+GET /api/v1/dashboard            Backward-compatible summary alias
+                                 (consumed by frontend client)
 GET /api/v1/dashboard/history    Assessment history trend data
-GET /api/v1/dashboard/breakdown  Emission breakdown by category from latest assessment
+GET /api/v1/dashboard/breakdown  Emission breakdown by category from
+                                 latest assessment
 """
+
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
@@ -28,7 +31,10 @@ router = APIRouter()
 @router.get(
     "/summary",
     response_model=DashboardSummaryResponse,
-    summary="Aggregated dashboard stats (latest assessment, active goals, streak, forecast snapshot)",
+    summary=(
+        "Aggregated dashboard stats (latest assessment, active goals, "
+        "streak, forecast snapshot)"
+    ),
 )
 @limiter.limit("60/minute")
 async def get_dashboard_summary(
@@ -60,7 +66,8 @@ async def get_dashboard_alias(
     db: Session = Depends(get_db),
 ) -> DashboardSummaryResponse:
     """
-    Backward-compatible alias for GET /dashboard returning the full dashboard summary.
+    Backward-compatible alias for GET /dashboard returning the full
+    dashboard summary.
     """
     summary = DashboardService.get_summary(db, current_user.id)
     return APIResponse.ok(summary)
@@ -106,7 +113,10 @@ async def get_assessment_history(
 @router.get(
     "/breakdown",
     response_model=DashboardBreakdownResponse,
-    summary="Emission category breakdown from the latest assessment (transport/energy/food/waste)",
+    summary=(
+        "Emission category breakdown from the latest assessment "
+        "(transport/energy/food/waste)"
+    ),
 )
 @limiter.limit("60/minute")
 async def get_emission_breakdown(
@@ -115,7 +125,8 @@ async def get_emission_breakdown(
     db: Session = Depends(get_db),
 ) -> DashboardBreakdownResponse:
     """
-    Fetch the emission category breakdown and percentages from the latest assessment.
+    Fetch the emission category breakdown and percentages from the
+    latest assessment.
     Returns 0-values gracefully if no assessment exists yet.
     """
     breakdown = DashboardService.get_breakdown(db, current_user.id)

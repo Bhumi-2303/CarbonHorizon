@@ -1,25 +1,31 @@
 """
-DashboardService — Aggregated metrics, trend calculations, and category breakdowns.
+DashboardService — Aggregated metrics, trend calculations, and category
+breakdowns.
 
 Provides:
 - get_summary: Aggregated stats for the user dashboard (latest assessment,
-  habit streak, active goals count & list, forecast snapshot, and trend percentage).
+  habit streak, active goals count & list, forecast snapshot, and trend
+  percentage).
 - get_history: Chronological assessment history for emission charting.
 - get_breakdown: Category-level emission breakdown from the latest assessment.
 
 Trend Calculation Formula:
 -------------------------
-Trend represents percentage change in total emission from the previous assessment:
-    trend_percentage = ((latest_emission - previous_emission) / previous_emission) * 100.0
+Trend represents percentage change in total emission from the previous
+assessment:
+    trend_percentage = (
+        (latest_emission - previous_emission) / previous_emission
+    ) * 100.0
 
 A negative percentage indicates an emission reduction (improvement).
 If fewer than 2 assessments exist, or if previous_emission == 0, trend is 0.0.
 """
+
 from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -33,7 +39,9 @@ logger = logging.getLogger(__name__)
 
 
 def _map_assessment_to_dict(assessment: CarbonAssessment) -> Dict[str, Any]:
-    """Helper to convert a CarbonAssessment ORM instance into a clean dictionary."""
+    """
+    Helper to convert a CarbonAssessment ORM instance into a clean dictionary.
+    """
     return {
         "id": assessment.id,
         "assessment_id": assessment.id,
@@ -58,7 +66,6 @@ def _map_assessment_to_dict(assessment: CarbonAssessment) -> Dict[str, Any]:
 
 
 class DashboardService:
-
     @staticmethod
     def get_summary(db: Session, user_id: uuid.UUID) -> Dict[str, Any]:
         """
@@ -89,7 +96,11 @@ class DashboardService:
                 latest_total = float(assessments[0].total_emission or 0.0)
                 previous_total = float(assessments[1].total_emission or 0.0)
                 if previous_total > 0.0:
-                    trend_delta = round(((latest_total - previous_total) / previous_total) * 100.0, 2)
+                    trend_delta = round(
+                        ((latest_total - previous_total) / previous_total)
+                        * 100.0,
+                        2,
+                    )
                 else:
                     trend_delta = 0.0
 
@@ -107,7 +118,9 @@ class DashboardService:
                 "target_emission_value": g.target_emission_value,
                 "current_progress": g.current_progress,
                 "target_date": g.target_date,
-                "status": str(g.status.value if hasattr(g.status, "value") else g.status),
+                "status": str(
+                    g.status.value if hasattr(g.status, "value") else g.status
+                ),
             }
             for g in active_goals_orm
         ]
@@ -118,7 +131,14 @@ class DashboardService:
         if forecasts:
             latest_forecast = forecasts[0]
             # Find month 3 point
-            pt3 = next((p for p in latest_forecast.forecast_points if p.month_offset == 3), None)
+            pt3 = next(
+                (
+                    p
+                    for p in latest_forecast.forecast_points
+                    if p.month_offset == 3
+                ),
+                None,
+            )
             if pt3:
                 forecast_summary = {
                     "month_3_emission": round(float(pt3.predicted_emission), 2)
@@ -151,7 +171,8 @@ class DashboardService:
     @staticmethod
     def get_breakdown(db: Session, user_id: uuid.UUID) -> Dict[str, Any]:
         """
-        Fetch emission category breakdown and percentages from the user's latest assessment.
+        Fetch emission category breakdown and percentages from the user's
+        latest assessment.
         Returns a zero-safe payload if the user has no assessments.
         """
         latest = (

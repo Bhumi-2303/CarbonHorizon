@@ -18,18 +18,18 @@ GET    /api/v1/auth/profile   — 200 with valid token, 401 expired/missing
 PUT    /api/v1/auth/profile   — 200 patched profile
 DELETE /api/v1/auth/account   — 204, 409 already deleted
 """
+
 from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta, timezone
 
-import pytest
 from fastapi.testclient import TestClient
 import jwt
 
 from app.core.config import settings
 
-# ─── Shared payloads ──────────────────────────────────────────────────────────
+# ─── Shared payloads ────────────────────────────────────────────────────
 
 REGISTER_BODY = {
     "full_name": "Integration Tester",
@@ -47,7 +47,8 @@ LOGIN_BODY = {
 }
 
 
-# ─── Helper ───────────────────────────────────────────────────────────────────
+# ─── Helper ─────────────────────────────────────────────────────────────
+
 
 def _unique_register_body(**overrides) -> dict:
     body = REGISTER_BODY.copy()
@@ -71,8 +72,8 @@ def _register_and_login(client: TestClient) -> dict:
 # POST /api/v1/auth/register
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestRegisterEndpoint:
 
+class TestRegisterEndpoint:
     def test_register_happy_path_returns_201(self, client: TestClient):
         body = _unique_register_body()
         r = client.post("/api/v1/auth/register", json=body)
@@ -82,7 +83,9 @@ class TestRegisterEndpoint:
         assert data["success"] is True
         assert data["data"]["user"]["email"] == body["email"]
 
-    def test_register_response_excludes_password_hash(self, client: TestClient):
+    def test_register_response_excludes_password_hash(
+        self, client: TestClient
+    ):
         """The API response must never expose the password hash."""
         body = _unique_register_body()
         r = client.post("/api/v1/auth/register", json=body)
@@ -127,7 +130,10 @@ class TestRegisterEndpoint:
         assert r.status_code == 422
 
     def test_register_short_password_returns_422(self, client: TestClient):
-        """Passwords shorter than 8 chars must be rejected by Zod at schema level."""
+        """
+        Passwords shorter than 8 chars must be rejected by Zod at schema
+        level.
+        """
         body = _unique_register_body(password="short")
         r = client.post("/api/v1/auth/register", json=body)
         assert r.status_code == 422
@@ -138,7 +144,9 @@ class TestRegisterEndpoint:
         r = client.post("/api/v1/auth/register", json=body)
         assert r.status_code == 422
 
-    def test_register_missing_required_fields_returns_422(self, client: TestClient):
+    def test_register_missing_required_fields_returns_422(
+        self, client: TestClient
+    ):
         r = client.post("/api/v1/auth/register", json={"email": "x@x.com"})
         assert r.status_code == 422
 
@@ -147,8 +155,8 @@ class TestRegisterEndpoint:
 # POST /api/v1/auth/login
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestLoginEndpoint:
 
+class TestLoginEndpoint:
     def test_login_returns_jwt_token_pair(self, client: TestClient):
         """Successful login must return access_token + refresh_token."""
         body = _unique_register_body()
@@ -166,17 +174,25 @@ class TestLoginEndpoint:
         assert "access_token" in token_data
         assert "refresh_token" in token_data
         assert token_data["token_type"] == "bearer"
-        assert token_data["expires_in"] == settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        assert (
+            token_data["expires_in"]
+            == settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        )
 
     def test_login_access_token_is_valid_jwt(self, client: TestClient):
         """The returned access token must decode to a valid JWT."""
         body = _unique_register_body()
         client.post("/api/v1/auth/register", json=body)
 
-        r = client.post("/api/v1/auth/login", json={"email": body["email"], "password": body["password"]})
+        r = client.post(
+            "/api/v1/auth/login",
+            json={"email": body["email"], "password": body["password"]},
+        )
         token = r.json()["data"]["access_token"]
 
-        claims = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        claims = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         assert claims["type"] == "access"
         assert "sub" in claims
 
@@ -206,10 +222,11 @@ class TestLoginEndpoint:
 # POST /api/v1/auth/refresh
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestRefreshEndpoint:
 
+class TestRefreshEndpoint:
     def test_refresh_returns_new_token_pair(self, client: TestClient):
         from freezegun import freeze_time
+
         with freeze_time("2026-06-11 12:00:00") as frozen_time:
             tokens = _register_and_login(client)
             frozen_time.tick(delta=timedelta(seconds=1))
@@ -258,12 +275,14 @@ class TestRefreshEndpoint:
 # GET /api/v1/auth/profile
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestProfileEndpoint:
 
+class TestProfileEndpoint:
     def test_profile_with_valid_token_returns_200(
         self, client: TestClient, auth_headers: dict
     ):
-        """A valid Bearer token must return the authenticated user's profile."""
+        """
+        A valid Bearer token must return the authenticated user's profile.
+        """
         r = client.get("/api/v1/auth/profile", headers=auth_headers)
         assert r.status_code == 200
 
@@ -288,7 +307,9 @@ class TestProfileEndpoint:
         r = client.get("/api/v1/auth/profile")
         assert r.status_code in (401, 403)
 
-    def test_profile_with_expired_token_returns_401(self, client: TestClient, test_user):
+    def test_profile_with_expired_token_returns_401(
+        self, client: TestClient, test_user
+    ):
         """An expired access token must be rejected with 401."""
         expired_token = jwt.encode(
             {
@@ -310,6 +331,7 @@ class TestProfileEndpoint:
     ):
         """Sending a refresh token to a protected endpoint must be rejected."""
         from app.core.security import create_refresh_token
+
         rt = create_refresh_token(subject=str(test_user.id))
         r = client.get(
             "/api/v1/auth/profile",
@@ -335,8 +357,8 @@ class TestProfileEndpoint:
 # POST /api/v1/auth/logout
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestLogoutEndpoint:
 
+class TestLogoutEndpoint:
     def test_logout_returns_204(self, client: TestClient, auth_headers: dict):
         r = client.post("/api/v1/auth/logout", headers=auth_headers)
         assert r.status_code == 204
@@ -350,8 +372,8 @@ class TestLogoutEndpoint:
 # PUT /api/v1/auth/profile
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestUpdateProfileEndpoint:
 
+class TestUpdateProfileEndpoint:
     def test_update_profile_returns_200(
         self, client: TestClient, auth_headers: dict
     ):
@@ -372,7 +394,9 @@ class TestUpdateProfileEndpoint:
         assert r.status_code == 200
         assert r.json()["data"]["full_name"] == "Updated Name"
 
-    def test_update_profile_without_token_returns_401(self, client: TestClient):
+    def test_update_profile_without_token_returns_401(
+        self, client: TestClient
+    ):
         r = client.put("/api/v1/auth/profile", json={"city": "X"})
         assert r.status_code in (401, 403)
 
@@ -381,15 +405,20 @@ class TestUpdateProfileEndpoint:
 # DELETE /api/v1/auth/account
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestDeleteAccountEndpoint:
 
+class TestDeleteAccountEndpoint:
     def test_delete_account_returns_204(
         self, client: TestClient, make_user, db
     ):
-        """A valid delete request should soft-delete the account and return 204."""
+        """
+        A valid delete request should soft-delete the account and return 204.
+        """
         from app.core.security import create_access_token
+
         user = make_user(email=f"del_{uuid.uuid4().hex[:6]}@example.com")
-        headers = {"Authorization": f"Bearer {create_access_token(str(user.id))}"}
+        headers = {
+            "Authorization": f"Bearer {create_access_token(str(user.id))}"
+        }
 
         r = client.delete("/api/v1/auth/account", headers=headers)
         assert r.status_code == 204
@@ -399,8 +428,11 @@ class TestDeleteAccountEndpoint:
     ):
         """Trying to delete an already-deleted account must return 409."""
         from app.core.security import create_access_token
+
         user = make_user(email=f"del2_{uuid.uuid4().hex[:6]}@example.com")
-        headers = {"Authorization": f"Bearer {create_access_token(str(user.id))}"}
+        headers = {
+            "Authorization": f"Bearer {create_access_token(str(user.id))}"
+        }
 
         client.delete("/api/v1/auth/account", headers=headers)  # first delete
 

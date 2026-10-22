@@ -5,6 +5,7 @@ All responses are wrapped in the standard APIResponse envelope:
     {"success": true,  "data": { ... }}
     {"success": false, "error": {"code": "...", "message": "..."}}
 """
+
 from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 from uuid import UUID
@@ -56,7 +57,8 @@ async def get_history(
     db: Session = Depends(get_db),
 ) -> AssessmentListAPIResponse:
     """
-    Retrieve user's historical carbon assessments in descending chronological order.
+    Retrieve user's historical carbon assessments in descending
+    chronological order.
     """
     history = AssessmentService.get_assessment_history(db, current_user.id)
     return APIResponse.ok(history)
@@ -97,7 +99,9 @@ async def get_assessment(
     Fetch details of a specific assessment.
     Validates ownership; returns HTTP 404 if not found or unauthorized.
     """
-    result = AssessmentService.get_assessment_by_id(db, current_user.id, assessment_id)
+    result = AssessmentService.get_assessment_by_id(
+        db, current_user.id, assessment_id
+    )
     return APIResponse.ok(result)
 
 

@@ -2,6 +2,7 @@
 FastAPI dependency injection providers.
 These are injected into route handlers via Depends().
 """
+
 from typing import Generator
 
 from fastapi import Depends, HTTPException, status
@@ -19,6 +20,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 # Database session dependency
 # ---------------------------------------------------------------------------
 
+
 def get_db() -> Generator:
     """Yield a SQLAlchemy database session, then close it."""
     db = SessionLocal()
@@ -31,6 +33,7 @@ def get_db() -> Generator:
 # ---------------------------------------------------------------------------
 # Current user dependency (placeholder — wire to UserService when ready)
 # ---------------------------------------------------------------------------
+
 
 def get_current_user(
     token: str = Depends(oauth2_scheme),

@@ -11,8 +11,10 @@ Coverage targets
 ✓ verify_password    — correct → True, wrong → False
 ✓ create_access_token  — valid JWT, type=access, sub correct, expiry correct
 ✓ create_refresh_token — valid JWT, type=refresh, longer expiry
-✓ decode_token          — valid → claims dict; expired → JWTError; tampered → JWTError
+✓ decode_token          — valid → claims dict; expired → JWTError;
+                           tampered → JWTError
 """
+
 from __future__ import annotations
 
 import uuid
@@ -37,8 +39,8 @@ from app.core.security import (
 # 1. bcrypt — hash_password / verify_password
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestBcrypt:
 
+class TestBcrypt:
     def test_hash_password_returns_string(self):
         h = hash_password("MyPassword1!")
         assert isinstance(h, str)
@@ -78,8 +80,8 @@ class TestBcrypt:
 # 2. JWT — create_access_token
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCreateAccessToken:
 
+class TestCreateAccessToken:
     def test_returns_string(self):
         token = create_access_token("some-user-id")
         assert isinstance(token, str)
@@ -104,16 +106,15 @@ class TestCreateAccessToken:
         token = create_access_token("user-123")
         claims = decode_token(token)
 
-        expected_exp = (
-            datetime(2024, 1, 1, tzinfo=timezone.utc)
-            + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expected_exp = datetime(2024, 1, 1, tzinfo=timezone.utc) + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
         actual_exp = datetime.fromtimestamp(claims["exp"], tz=timezone.utc)
         assert actual_exp == expected_exp
 
     def test_uuid_subject_is_stored_as_string(self):
         uid = uuid.uuid4()
-        token = create_access_token(uid)            # pass UUID object, not string
+        token = create_access_token(uid)  # pass UUID object, not string
         claims = decode_token(token)
         assert claims["sub"] == str(uid)
 
@@ -122,8 +123,8 @@ class TestCreateAccessToken:
 # 3. JWT — create_refresh_token
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCreateRefreshToken:
 
+class TestCreateRefreshToken:
     def test_token_type_is_refresh(self):
         token = create_refresh_token("user-id")
         claims = decode_token(token)
@@ -138,10 +139,10 @@ class TestCreateRefreshToken:
     @freeze_time("2024-06-01 12:00:00")
     def test_refresh_token_expiry_is_longer_than_access(self):
         """Refresh tokens must outlive access tokens by a wide margin."""
-        access  = create_access_token("u")
+        access = create_access_token("u")
         refresh = create_refresh_token("u")
 
-        access_exp  = decode_token(access)["exp"]
+        access_exp = decode_token(access)["exp"]
         refresh_exp = decode_token(refresh)["exp"]
 
         assert refresh_exp > access_exp
@@ -152,10 +153,9 @@ class TestCreateRefreshToken:
         token = create_refresh_token(uid)
         claims = decode_token(token)
 
-        expected_exp = (
-            datetime(2024, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
-            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-        )
+        expected_exp = datetime(
+            2024, 6, 1, 12, 0, 0, tzinfo=timezone.utc
+        ) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         actual_exp = datetime.fromtimestamp(claims["exp"], tz=timezone.utc)
         assert actual_exp == expected_exp
 
@@ -164,8 +164,8 @@ class TestCreateRefreshToken:
 # 4. decode_token
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestDecodeToken:
 
+class TestDecodeToken:
     def test_valid_token_returns_claims_dict(self):
         uid = "test-uid-abc"
         token = create_access_token(uid)
@@ -196,10 +196,15 @@ class TestDecodeToken:
         header, payload, sig = token.split(".")
         import base64
         import json
+
         decoded = base64.urlsafe_b64decode(payload + "==")
         data = json.loads(decoded)
         data["sub"] = "tampered-user"
-        tampered_payload = base64.urlsafe_b64encode(json.dumps(data).encode()).decode().replace("=", "")
+        tampered_payload = (
+            base64.urlsafe_b64encode(json.dumps(data).encode())
+            .decode()
+            .replace("=", "")
+        )
         tampered = f"{header}.{tampered_payload}.{sig}"
 
         with pytest.raises(JWTError):
@@ -224,11 +229,12 @@ class TestDecodeToken:
 # 5. FastAPI Dependencies — get_db, get_current_user, get_current_active_user
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestFastAPIDependencies:
 
+class TestFastAPIDependencies:
     def test_get_db_yields_session(self):
         from app.core.security import get_db
         from sqlalchemy.orm import Session
+
         db_generator = get_db()
         db_session = next(db_generator)
         assert isinstance(db_session, Session)
@@ -239,6 +245,7 @@ class TestFastAPIDependencies:
 
     def test_get_db_rolls_back_on_exception(self):
         from app.core.security import get_db
+
         db_generator = get_db()
         next(db_generator)
         with pytest.raises(Exception):
@@ -248,12 +255,18 @@ class TestFastAPIDependencies:
         from app.core.security import get_current_user
         from fastapi.security import HTTPAuthorizationCredentials
         from fastapi import HTTPException
+
         token = jwt.encode(
-            {"type": "access", "exp": datetime.now(timezone.utc) + timedelta(minutes=30)},
+            {
+                "type": "access",
+                "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
+            },
             settings.SECRET_KEY,
             algorithm=settings.ALGORITHM,
         )
-        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+        creds = HTTPAuthorizationCredentials(
+            scheme="Bearer", credentials=token
+        )
         with pytest.raises(HTTPException) as exc_info:
             get_current_user(creds, db)
         assert exc_info.value.status_code == 401
@@ -262,8 +275,11 @@ class TestFastAPIDependencies:
         from app.core.security import get_current_user
         from fastapi.security import HTTPAuthorizationCredentials
         from fastapi import HTTPException
+
         token = create_access_token(subject=str(uuid.uuid4()))
-        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+        creds = HTTPAuthorizationCredentials(
+            scheme="Bearer", credentials=token
+        )
         with pytest.raises(HTTPException) as exc_info:
             get_current_user(creds, db)
         assert exc_info.value.status_code == 401
@@ -271,6 +287,7 @@ class TestFastAPIDependencies:
     def test_get_current_active_user_soft_deleted_raises_403(self, make_user):
         from app.core.security import get_current_active_user
         from fastapi import HTTPException
+
         user = make_user(deleted=True)
         with pytest.raises(HTTPException) as exc_info:
             get_current_active_user(current_user=user)
@@ -278,6 +295,7 @@ class TestFastAPIDependencies:
 
     def test_get_current_active_user_happy_path(self, make_user):
         from app.core.security import get_current_active_user
+
         user = make_user()
         active_user = get_current_active_user(current_user=user)
         assert active_user == user

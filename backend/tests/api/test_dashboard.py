@@ -5,35 +5,41 @@ Covers:
 - Empty dashboard state (no assessments, goals, streaks, or forecasts)
 - Valid summary responses with populated data
 - Latest assessment selection and accurate category mapping
-- Trend percentage calculation (two assessments, zero previous emissions, insufficient history)
+- Trend percentage calculation (two assessments, zero previous emissions,
+  insufficient history)
 - Total assessment counts
 - Active goal filtering and progress inclusion
 - Habit streak integration
 - Forecast summary integration (available vs missing)
 - History endpoint: ordering (descending), response shape, category emissions
-- Breakdown endpoint: category breakdown, percentage calculations, safe fallback on empty
+- Breakdown endpoint: category breakdown, percentage calculations,
+  safe fallback on empty
 - User data isolation (cross-user data cannot leak)
 - Unauthenticated access protection (returns 401 / 403)
-- Backward compatibility alias routes (/api/v1/dashboard and /api/v1/dashboard/)
+- Backward compatibility alias routes (/api/v1/dashboard and
+  /api/v1/dashboard/)
 """
+
 import uuid
 from datetime import date, datetime, timedelta, timezone
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.core.security import create_access_token
 from app.models.carbon_assessment import CarbonAssessment
 from app.models.forecast import Forecast
 from app.models.forecast_point import ForecastPoint
 from app.models.goal import Goal
 from app.models.habit import Habit
-from app.models.enums import AssessmentPeriod, ForecastType, GoalStatus, HabitType
+from app.models.enums import (
+    AssessmentPeriod,
+    ForecastType,
+    GoalStatus,
+    HabitType,
+)
 from app.models.user import User
 
 
 class TestDashboardSummary:
-
     def test_unauthenticated_access_returns_401(self, client: TestClient):
         """Dashboard endpoints require Bearer auth."""
         res_sum = client.get("/api/v1/dashboard/summary")
@@ -48,8 +54,13 @@ class TestDashboardSummary:
         res_brk = client.get("/api/v1/dashboard/breakdown")
         assert res_brk.status_code in (401, 403)
 
-    def test_empty_dashboard_state(self, client: TestClient, auth_headers: dict):
-        """When user has no activity, summary returns sensible zero/null defaults."""
+    def test_empty_dashboard_state(
+        self, client: TestClient, auth_headers: dict
+    ):
+        """
+        When user has no activity, summary returns sensible zero/null
+        defaults.
+        """
         res = client.get("/api/v1/dashboard/summary", headers=auth_headers)
         assert res.status_code == 200
         payload = res.json()
@@ -65,7 +76,9 @@ class TestDashboardSummary:
         assert data["current_habit_streak"] == 0
         assert data["forecast_summary"] is None
 
-    def test_compatibility_alias_routes(self, client: TestClient, auth_headers: dict):
+    def test_compatibility_alias_routes(
+        self, client: TestClient, auth_headers: dict
+    ):
         """GET /dashboard and /dashboard/ return the same summary response."""
         res_exact = client.get("/api/v1/dashboard", headers=auth_headers)
         assert res_exact.status_code == 200
@@ -75,12 +88,18 @@ class TestDashboardSummary:
         assert res_slash.status_code == 200
         assert res_slash.json()["success"] is True
 
-        res_summary = client.get("/api/v1/dashboard/summary", headers=auth_headers)
+        res_summary = client.get(
+            "/api/v1/dashboard/summary", headers=auth_headers
+        )
         assert res_summary.status_code == 200
         assert res_exact.json()["data"] == res_summary.json()["data"]
 
     def test_single_assessment_summary_and_trend(
-        self, client: TestClient, db: Session, test_user: User, auth_headers: dict
+        self,
+        client: TestClient,
+        db: Session,
+        test_user: User,
+        auth_headers: dict,
     ):
         """With 1 assessment, trend is 0.0 and total_assessments is 1."""
         assessment = CarbonAssessment(
@@ -110,11 +129,16 @@ class TestDashboardSummary:
         assert data["latest_assessment"]["carbon_score"] == 75
 
     def test_multiple_assessments_trend_calculation(
-        self, client: TestClient, db: Session, test_user: User, auth_headers: dict
+        self,
+        client: TestClient,
+        db: Session,
+        test_user: User,
+        auth_headers: dict,
     ):
         """
         Trend calculates percentage change from previous to latest assessment.
-        Previous = 500 kg, Latest = 400 kg -> (400 - 500) / 500 * 100 = -20.0% (reduction).
+        # Previous = 500 kg, Latest = 400 kg ->
+        # (400 - 500) / 500 * 100 = -20.0% (reduction).
         """
         now = datetime.now(timezone.utc)
         older = CarbonAssessment(
@@ -150,9 +174,16 @@ class TestDashboardSummary:
         assert data["latest_assessment"]["total_emission"] == 400.0
 
     def test_trend_calculation_zero_previous_emission(
-        self, client: TestClient, db: Session, test_user: User, auth_headers: dict
+        self,
+        client: TestClient,
+        db: Session,
+        test_user: User,
+        auth_headers: dict,
     ):
-        """Division by zero is guarded when previous assessment has 0.0 total emission."""
+        """
+        Division by zero is guarded when previous assessment has 0.0 total
+        emission.
+        """
         now = datetime.now(timezone.utc)
         older = CarbonAssessment(
             id=uuid.uuid4(),
@@ -176,9 +207,16 @@ class TestDashboardSummary:
         assert data["trend_percentage"] == 0.0
 
     def test_active_goals_and_habit_streak_integration(
-        self, client: TestClient, db: Session, test_user: User, auth_headers: dict
+        self,
+        client: TestClient,
+        db: Session,
+        test_user: User,
+        auth_headers: dict,
     ):
-        """Summary aggregates active goals and calculates habit streak correctly."""
+        """
+        Summary aggregates active goals and calculates habit streak
+        correctly.
+        """
         # Active and completed goals
         active_goal = Goal(
             id=uuid.uuid4(),
@@ -226,9 +264,16 @@ class TestDashboardSummary:
         assert data["current_habit_streak"] == 2
 
     def test_forecast_summary_integration(
-        self, client: TestClient, db: Session, test_user: User, auth_headers: dict
+        self,
+        client: TestClient,
+        db: Session,
+        test_user: User,
+        auth_headers: dict,
     ):
-        """Summary extracts the 3-month forecast point from the user's latest forecast."""
+        """
+        Summary extracts the 3-month forecast point from the user's
+        latest forecast.
+        """
         fc = Forecast(
             id=uuid.uuid4(),
             user_id=test_user.id,
@@ -261,7 +306,6 @@ class TestDashboardSummary:
 
 
 class TestDashboardHistory:
-
     def test_empty_history(self, client: TestClient, auth_headers: dict):
         """Returns an empty list when user has no assessments."""
         res = client.get("/api/v1/dashboard/history", headers=auth_headers)
@@ -271,7 +315,11 @@ class TestDashboardHistory:
         assert payload["data"] == []
 
     def test_history_ordered_descending(
-        self, client: TestClient, db: Session, test_user: User, auth_headers: dict
+        self,
+        client: TestClient,
+        db: Session,
+        test_user: User,
+        auth_headers: dict,
     ):
         """History returns assessments newest first with category mappings."""
         now = datetime.now(timezone.utc)
@@ -311,9 +359,13 @@ class TestDashboardHistory:
 
 
 class TestDashboardBreakdown:
-
-    def test_breakdown_with_no_assessment(self, client: TestClient, auth_headers: dict):
-        """Gracefully returns 0-values without throwing errors if no assessments exist."""
+    def test_breakdown_with_no_assessment(
+        self, client: TestClient, auth_headers: dict
+    ):
+        """
+        Gracefully returns 0-values without throwing errors if no
+        assessments exist.
+        """
         res = client.get("/api/v1/dashboard/breakdown", headers=auth_headers)
         assert res.status_code == 200
         data = res.json()["data"]
@@ -324,9 +376,16 @@ class TestDashboardBreakdown:
         assert data["carbon_score"] is None
 
     def test_breakdown_with_valid_assessment(
-        self, client: TestClient, db: Session, test_user: User, auth_headers: dict
+        self,
+        client: TestClient,
+        db: Session,
+        test_user: User,
+        auth_headers: dict,
     ):
-        """Correctly breaks down category emissions and calculates percentages."""
+        """
+        Correctly breaks down category emissions and calculates
+        percentages.
+        """
         assessment = CarbonAssessment(
             id=uuid.uuid4(),
             user_id=test_user.id,
@@ -348,14 +407,18 @@ class TestDashboardBreakdown:
         assert data["transport_emission"] == 200.0
         assert data["categories"]["transport"] == 200.0
         assert data["percentages"]["transport"] == 40.0  # (200 / 500) * 100
-        assert data["percentages"]["energy"] == 20.0     # (100 / 500) * 100
+        assert data["percentages"]["energy"] == 20.0  # (100 / 500) * 100
         assert data["carbon_score"] == 80
 
 
 class TestUserDataIsolation:
-
     def test_dashboard_does_not_leak_other_user_data(
-        self, client: TestClient, db: Session, make_user, test_user: User, auth_headers: dict
+        self,
+        client: TestClient,
+        db: Session,
+        make_user,
+        test_user: User,
+        auth_headers: dict,
     ):
         """Data belonging to user B never appears in user A's dashboard."""
         other_user = make_user(email="other_user@example.com")
@@ -386,10 +449,14 @@ class TestUserDataIsolation:
         assert data_sum["active_goals_count"] == 0
         assert data_sum["active_goals"] == []
 
-        res_hist = client.get("/api/v1/dashboard/history", headers=auth_headers)
+        res_hist = client.get(
+            "/api/v1/dashboard/history", headers=auth_headers
+        )
         assert res_hist.status_code == 200
         assert res_hist.json()["data"] == []
 
-        res_brk = client.get("/api/v1/dashboard/breakdown", headers=auth_headers)
+        res_brk = client.get(
+            "/api/v1/dashboard/breakdown", headers=auth_headers
+        )
         assert res_brk.status_code == 200
         assert res_brk.json()["data"]["total_emission"] == 0.0
