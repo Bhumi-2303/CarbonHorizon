@@ -43,6 +43,13 @@ class Settings(BaseSettings):
     # PostgreSQL configuration
     DATABASE_URL: str = os.getenv("DATABASE_URL") or "postgresql://postgres:password@localhost:5432/carbonhorizon"
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_db_url(cls, v: Any) -> Any:
+        if isinstance(v, str) and v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql://", 1)
+        return v
+
     # Async URL is derived from DATABASE_URL automatically if not set.
     ASYNC_DATABASE_URL: Optional[str] = None
 

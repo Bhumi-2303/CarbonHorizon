@@ -15,3 +15,9 @@ def test_config_async_url():
     with patch.dict(os.environ, {"DATABASE_URL": "postgresql+psycopg2://test"}):
         s = Settings()
         assert "asyncpg" in s.async_database_url
+
+def test_config_render_postgres_url_normalization():
+    with patch.dict(os.environ, {"DATABASE_URL": "postgres://user:pass@dpg-host:5432/carbonhorizon"}):
+        s = Settings()
+        assert s.DATABASE_URL.startswith("postgresql://")
+        assert "asyncpg" in s.async_database_url
