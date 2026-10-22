@@ -13,11 +13,11 @@ Covers:
 All DB interactions use the in-memory SQLite conftest fixtures.
 """
 import uuid
-from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
 
+from app.models.simulation import Simulation
 from app.schemas.simulation import (
     ScenarioChanges,
     TransportChanges,
@@ -36,7 +36,7 @@ from app.services.simulation_service import (
 )
 
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
+# ─── Helpers ──────────────────────────────────────────────────────────
 
 def _run_request(
     changes: ScenarioChanges = None,
@@ -61,7 +61,7 @@ def _run_request(
     return SimulationRunRequest(**defaults)
 
 
-# ─── _build_baseline ──────────────────────────────────────────────────────────
+# ─── _build_baseline ──────────────────────────────────────────────────
 
 class TestBuildBaseline:
     def test_maps_all_fields(self):
@@ -91,7 +91,7 @@ class TestBuildBaseline:
         assert baseline["household_size"] == 1
 
 
-# ─── _apply_changes ───────────────────────────────────────────────────────────
+# ─── _apply_changes ───────────────────────────────────────────────────
 
 class TestApplyChanges:
 
@@ -218,7 +218,7 @@ class TestApplyChanges:
         assert len(diff) == 4
 
 
-# ─── _reduction_pct ───────────────────────────────────────────────────────────
+# ─── _reduction_pct ───────────────────────────────────────────────────
 
 class TestReductionPct:
     def test_50_pct_reduction(self):
@@ -238,7 +238,7 @@ class TestReductionPct:
         assert _reduction_pct(1.0, -99999.0) == pytest.approx(-999.0)
 
 
-# ─── SimulationService.run_simulation ─────────────────────────────────────────
+# ─── SimulationService.run_simulation ─────────────────────────────────
 
 class TestRunSimulation:
 
@@ -268,7 +268,8 @@ class TestRunSimulation:
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
         assert result.projected_emission < result.current_emission
-        assert result.simulation_data["projected"]["transport"] == pytest.approx(0.0)
+        proj_transport = result.simulation_data["projected"]["transport"]
+        assert proj_transport == pytest.approx(0.0)
 
     def test_solar_adoption_reduces_electricity_emissions(self, db):
         req = _run_request(
@@ -279,7 +280,9 @@ class TestRunSimulation:
             ),
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
-        assert result.simulation_data["projected"]["energy"] < result.simulation_data["current"]["energy"]
+        proj_energy = result.simulation_data["projected"]["energy"]
+        curr_energy = result.simulation_data["current"]["energy"]
+        assert proj_energy < curr_energy
 
     def test_vegetarian_diet_lowers_food_vs_non_veg(self, db):
         req = _run_request(
@@ -289,7 +292,9 @@ class TestRunSimulation:
             ),
         )
         result = SimulationService.run_simulation(db, uuid.uuid4(), req)
-        assert result.simulation_data["projected"]["food"] < result.simulation_data["current"]["food"]
+        proj_food = result.simulation_data["projected"]["food"]
+        curr_food = result.simulation_data["current"]["food"]
+        assert proj_food < curr_food
 
     def test_no_changes_gives_zero_carbon_saved(self, db):
         req = _run_request(changes=ScenarioChanges())
@@ -303,7 +308,7 @@ class TestRunSimulation:
         assert "calculation_version" in result.simulation_data
 
 
-# ─── SimulationService.save_simulation ────────────────────────────────────────
+# ─── SimulationService.save_simulation ────────────────────────────────
 
 class TestSaveSimulation:
 
@@ -335,7 +340,7 @@ class TestSaveSimulation:
         assert sim.user_id == test_user.id
 
 
-# ─── SimulationService.get_simulation_history ─────────────────────────────────
+# ─── SimulationService.get_simulation_history ─────────────────────────
 
 class TestGetSimulationHistory:
 
@@ -373,12 +378,13 @@ class TestGetSimulationHistory:
             )
         history = SimulationService.get_simulation_history(db, test_user.id)
         assert len(history) == 3
-        # All three scenarios must be present (SQLite may not resolve sub-ms order)
+        # All three scenarios must be present
+        # (SQLite may not resolve sub-ms order)
         names = {s.scenario_name for s in history}
         assert names == {"first", "second", "third"}
 
 
-# ─── SimulationService.get_simulation_by_id ───────────────────────────────────
+# ─── SimulationService.get_simulation_by_id ───────────────────────────
 
 class TestGetSimulationById:
 
@@ -397,7 +403,9 @@ class TestGetSimulationById:
 
     def test_returns_correct_simulation(self, db, test_user):
         sim = self._save_one(db, test_user.id)
-        found = SimulationService.get_simulation_by_id(db, test_user.id, sim.id)
+        found = SimulationService.get_simulation_by_id(
+            db, test_user.id, sim.id
+        )
         assert found.id == sim.id
         assert found.scenario_name == "findme"
 
@@ -417,7 +425,7 @@ class TestGetSimulationById:
         assert exc_info.value.status_code == 404
 
 
-# ─── SimulationService.delete_simulation ──────────────────────────────────────
+# ─── SimulationService.delete_simulation ──────────────────────────────
 
 class TestDeleteSimulation:
 
