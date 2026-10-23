@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 
 
 import uuid
+from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, Index, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -70,7 +71,7 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
     email_verified: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
-    last_login: Mapped[None] = mapped_column(
+    last_login: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 

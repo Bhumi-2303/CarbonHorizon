@@ -76,6 +76,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    # ── Redis (Token Revocation) ────────────────────────────────────────────
+    REDIS_URL: Optional[str] = None
+    REDIS_FAIL_OPEN: bool = False       # default: fail closed (reject if Redis down)
+
     # ── CORS ────────────────────────────────────────────────────────────────
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
@@ -92,6 +96,22 @@ class Settings(BaseSettings):
 
     # ── External APIs ───────────────────────────────────────────────────────
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
+
+    @model_validator(mode="after")
+    def validate_production_cors(self) -> "Settings":
+        if self.ENVIRONMENT == "production":
+            for origin in self.ALLOWED_ORIGINS:
+                if (
+                    origin == "*"
+                    or "localhost" in origin
+                    or "127.0.0.1" in origin
+                ):
+                    raise ValueError(
+                        f"Invalid CORS origin for production: {origin}"
+                    )
+            if not self.ALLOWED_ORIGINS:
+                raise ValueError("ALLOWED_ORIGINS must be set in production")
+        return self
 
     @model_validator(mode="after")
     def validate_secrets(self) -> "Settings":
@@ -131,6 +151,13 @@ class Settings(BaseSettings):
                     "GEMINI_API_KEY must be properly configured in "
                     "production environment."
                 )
+
+            # Redis is required in production for token revocation
+            if not self.REDIS_URL:
+                raise ValueError(
+                    "REDIS_URL must be set in production for token revocation. "
+                    "Example: redis://redis:6379/0"
+                )
         else:
             if not self.SECRET_KEY or self.SECRET_KEY in insecure_placeholders:
                 import logging
@@ -140,22 +167,6 @@ class Settings(BaseSettings):
                     "for production."
                 )
                 self.SECRET_KEY = secrets.token_hex(32)
-        return self
-
-    @model_validator(mode="after")
-    def validate_production_cors(self) -> "Settings":
-        if self.ENVIRONMENT == "production":
-            for origin in self.ALLOWED_ORIGINS:
-                if (
-                    origin == "*"
-                    or "localhost" in origin
-                    or "127.0.0.1" in origin
-                ):
-                    raise ValueError(
-                        f"Invalid CORS origin for production: {origin}"
-                    )
-            if not self.ALLOWED_ORIGINS:
-                raise ValueError("ALLOWED_ORIGINS must be set in production")
         return self
 
 

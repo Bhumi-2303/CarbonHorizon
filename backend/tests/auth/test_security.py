@@ -251,7 +251,8 @@ class TestFastAPIDependencies:
         with pytest.raises(Exception):
             db_generator.throw(Exception("Simulated DB error"))
 
-    def test_get_current_user_no_sub_raises_401(self, db):
+    @pytest.mark.asyncio
+    async def test_get_current_user_no_sub_raises_401(self, db):
         from app.core.security import get_current_user
         from fastapi.security import HTTPAuthorizationCredentials
         from fastapi import HTTPException
@@ -268,10 +269,11 @@ class TestFastAPIDependencies:
             scheme="Bearer", credentials=token
         )
         with pytest.raises(HTTPException) as exc_info:
-            get_current_user(creds, db)
+            await get_current_user(creds, db)
         assert exc_info.value.status_code == 401
 
-    def test_get_current_user_nonexistent_user_raises_401(self, db):
+    @pytest.mark.asyncio
+    async def test_get_current_user_nonexistent_user_raises_401(self, db):
         from app.core.security import get_current_user
         from fastapi.security import HTTPAuthorizationCredentials
         from fastapi import HTTPException
@@ -281,7 +283,7 @@ class TestFastAPIDependencies:
             scheme="Bearer", credentials=token
         )
         with pytest.raises(HTTPException) as exc_info:
-            get_current_user(creds, db)
+            await get_current_user(creds, db)
         assert exc_info.value.status_code == 401
 
     def test_get_current_active_user_soft_deleted_raises_403(self, make_user):

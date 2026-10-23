@@ -96,16 +96,22 @@ class TestRegisterEndpoint:
     def test_register_all_optional_fields(self, client: TestClient):
         """Registering with all optional fields should succeed."""
         body = _unique_register_body(
+            age=20,
+            gender="Female",
             age_group="student",
             lifestyle_type="student",
             city="Pune",
             country="India",
+            state_province="Maharashtra",
         )
         r = client.post("/api/v1/auth/register", json=body)
         assert r.status_code == 201
         user = r.json()["data"]["user"]
+        assert user["age"] == 20
+        assert user["gender"] == "Female"
         assert user["city"] == "Pune"
         assert user["age_group"] == "student"
+        assert user["state_province"] == "Maharashtra"
 
     def test_register_minimal_fields(self, client: TestClient):
         """Only full_name, email, password are required."""
@@ -359,9 +365,9 @@ class TestProfileEndpoint:
 
 
 class TestLogoutEndpoint:
-    def test_logout_returns_204(self, client: TestClient, auth_headers: dict):
+    def test_logout_returns_200(self, client: TestClient, auth_headers: dict):
         r = client.post("/api/v1/auth/logout", headers=auth_headers)
-        assert r.status_code == 204
+        assert r.status_code == 200
 
     def test_logout_without_token_returns_401_or_403(self, client: TestClient):
         r = client.post("/api/v1/auth/logout")

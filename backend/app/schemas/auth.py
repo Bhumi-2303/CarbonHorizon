@@ -33,7 +33,7 @@ from typing import Generic, Optional, TypeVar
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from app.models.enums import AgeGroup, LifestyleType
+from app.models.enums import AgeGroup, Gender, LifestyleType
 
 # TypeVar for the generic data payload
 T = TypeVar("T")
@@ -124,8 +124,11 @@ class RegisterRequest(BaseModel):
         None,
         description="One of: student, professional, homemaker, retired",
     )
+    age: Optional[int] = Field(None, gt=0)
+    gender: Optional[Gender] = None
     city: Optional[str] = Field(None, max_length=100, examples=["Mumbai"])
     country: Optional[str] = Field(None, max_length=100, examples=["India"])
+    state_province: Optional[str] = Field(None, max_length=100)
 
     @field_validator("password")
     @classmethod
@@ -181,10 +184,13 @@ class ProfileResponse(BaseModel):
     id: uuid.UUID
     full_name: str
     email: EmailStr
+    age: Optional[int] = None
+    gender: Optional[Gender] = None
     age_group: Optional[AgeGroup] = None
     lifestyle_type: Optional[LifestyleType] = None
     city: Optional[str] = None
     country: Optional[str] = None
+    state_province: Optional[str] = None
     email_verified: bool
     last_login: Optional[datetime] = None
     created_at: datetime
@@ -204,10 +210,35 @@ class RegisterResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Typed APIResponse aliases  (convenience — avoids repetitive
-# Generic[T] syntax)
+# Logout schemas
+# ---------------------------------------------------------------------------
+
+
+class LogoutRequest(BaseModel):
+    """POST /api/v1/auth/logout — optional refresh token to revoke."""
+
+    refresh_token: Optional[str] = None
+
+
+class LogoutResponse(BaseModel):
+    """Response after a successful logout."""
+
+    message: str = "Logged out successfully"
+
+
+class LogoutAllResponse(BaseModel):
+    """Response after revoking all sessions."""
+
+    message: str = "All sessions revoked"
+    revoked_count: int
+
+
+# ---------------------------------------------------------------------------
+# Typed APIResponse aliases  (convenience — avoids repetitive Generic[T] syntax)
 # ---------------------------------------------------------------------------
 
 TokenAPIResponse = APIResponse[TokenResponse]
 ProfileAPIResponse = APIResponse[ProfileResponse]
 RegisterAPIResponse = APIResponse[RegisterResponse]
+LogoutAPIResponse = APIResponse[LogoutResponse]
+LogoutAllAPIResponse = APIResponse[LogoutAllResponse]

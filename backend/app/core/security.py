@@ -11,8 +11,9 @@ Routers import directly from here:
 Sections
 --------
 1. Password hashing   — bcrypt (direct, no passlib)
-2. JWT helpers        — python-jose (create / decode)
-3. FastAPI auth deps  — get_current_user, get_current_active_user, get_db
+2. JWT helpers        — PyJWT (create / decode) with JTI claims
+3. Token revocation   — Redis-backed JTI blocklist
+4. FastAPI auth deps  — get_current_user, get_current_active_user, get_db
 
 bcrypt note
 -----------
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 import bcrypt
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Generator, Optional
@@ -40,7 +42,8 @@ from jwt.exceptions import InvalidTokenError as JWTError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.db.session import SessionLocal
+
+security_logger = logging.getLogger("security.token_revocation")
 
 # ---------------------------------------------------------------------------
 # 1. Password hashing
@@ -60,7 +63,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# 2. JWT helpers
+# 2. JWT helpers (with JTI claims)
 # ---------------------------------------------------------------------------
 
 
@@ -69,7 +72,7 @@ def create_access_token(
     expires_delta: Optional[timedelta] = None,
 ) -> str:
     """
-    Create a signed JWT access token.
+    Create a signed JWT access token with a unique JTI claim.
 
     Args:
         subject:       The unique identifier to embed in `sub`
@@ -80,11 +83,18 @@ def create_access_token(
     Returns:
         Signed JWT string.
     """
-    expire = datetime.now(timezone.utc) + (
+    now = datetime.now(timezone.utc)
+    expire = now + (
         expires_delta
         or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    payload = {"sub": str(subject), "exp": expire, "type": "access"}
+    payload = {
+        "sub": str(subject),
+        "exp": expire,
+        "iat": now,
+        "jti": str(uuid.uuid4()),
+        "type": "access",
+    }
     return jwt.encode(
         payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
@@ -92,7 +102,7 @@ def create_access_token(
 
 def create_refresh_token(subject: Any) -> str:
     """
-    Create a signed JWT refresh token
+    Create a signed JWT refresh token with a unique JTI claim.
     (TTL = settings.REFRESH_TOKEN_EXPIRE_DAYS).
 
     Args:
@@ -101,10 +111,15 @@ def create_refresh_token(subject: Any) -> str:
     Returns:
         Signed JWT string.
     """
-    expire = datetime.now(timezone.utc) + timedelta(
-        days=settings.REFRESH_TOKEN_EXPIRE_DAYS
-    )
-    payload = {"sub": str(subject), "exp": expire, "type": "refresh"}
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    payload = {
+        "sub": str(subject),
+        "exp": expire,
+        "iat": now,
+        "jti": str(uuid.uuid4()),
+        "type": "refresh",
+    }
     return jwt.encode(
         payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
@@ -121,8 +136,8 @@ def decode_token(token: str) -> dict:
         Decoded claims dict.
 
     Raises:
-        jose.JWTError: If the token is expired, malformed, or has an
-                       invalid signature.
+        JWTError: If the token is expired, malformed, or has an
+                  invalid signature.
     """
     try:
         return jwt.decode(
@@ -137,9 +152,192 @@ def decode_token(token: str) -> dict:
         raise JWTError(str(e)) from e
 
 
+def _calculate_ttl(exp_timestamp: int | float) -> int:
+    """
+    Calculate remaining TTL in seconds from an exp claim timestamp.
+
+    Returns at least 1 second to prevent negative/zero TTL in Redis SET EX.
+    Handles clock skew and already-expired tokens gracefully.
+    """
+    remaining = int(exp_timestamp - datetime.now(timezone.utc).timestamp())
+    return max(remaining, 1)
+
+
 # ---------------------------------------------------------------------------
-# 3. FastAPI dependencies
+# 3. Token revocation — Redis-backed JTI blocklist
 # ---------------------------------------------------------------------------
+
+async def revoke_token(jti: str, ttl_seconds: int) -> None:
+    """
+    Add a JTI to the Redis blocklist with the given TTL.
+
+    The key auto-expires when the original token would have expired,
+    so Redis doesn't grow unbounded.
+
+    Args:
+        jti: The JWT ID to revoke.
+        ttl_seconds: Time-to-live in seconds (clamped to >= 1).
+    """
+    from app.core.redis_client import get_redis
+
+    r = get_redis()
+    if r is None:
+        security_logger.warning(
+            "Redis not available — cannot revoke token | jti=%s", jti
+        )
+        return
+
+    ttl = max(ttl_seconds, 1)
+    await r.set(f"revoked_token:{jti}", "1", ex=ttl)
+    security_logger.info(
+        "Token revoked | jti=%s | ttl=%ds", jti, ttl
+    )
+
+
+async def is_token_revoked(jti: str) -> bool:
+    """
+    Check if a JTI has been revoked.
+
+    Args:
+        jti: The JWT ID to check.
+
+    Returns:
+        True if the token is in the blocklist.
+
+    Raises:
+        HTTPException(503) if Redis is unreachable and REDIS_FAIL_OPEN is False.
+    """
+    from app.core.redis_client import get_redis
+
+    r = get_redis()
+    if r is None:
+        # No Redis configured — tokens are not revocable
+        return False
+
+    try:
+        return bool(await r.exists(f"revoked_token:{jti}"))
+    except Exception as e:
+        if settings.REDIS_FAIL_OPEN:
+            security_logger.warning(
+                "Redis unavailable, fail-open policy — allowing token | jti=%s | error=%s",
+                jti, str(e)
+            )
+            return False
+        else:
+            security_logger.error(
+                "Redis unavailable, fail-closed policy — rejecting request | jti=%s | error=%s",
+                jti, str(e)
+            )
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Authentication service temporarily unavailable. Please try again.",
+            )
+
+
+async def track_user_session(user_id: str, jti: str, ttl_seconds: int) -> None:
+    """
+    Track an active session JTI in the user's session set.
+
+    Used by logout-all to enumerate and revoke all sessions for a user.
+
+    Args:
+        user_id: The user's UUID string.
+        jti: The JWT ID to track.
+        ttl_seconds: TTL for the session set (matches the longest-lived token).
+    """
+    from app.core.redis_client import get_redis
+
+    r = get_redis()
+    if r is None:
+        return
+
+    key = f"user_sessions:{user_id}"
+    ttl = max(ttl_seconds, 1)
+    try:
+        await r.sadd(key, jti)
+        # Refresh the set's expiry to at least the new token's TTL
+        current_ttl = await r.ttl(key)
+        if current_ttl < ttl:
+            await r.expire(key, ttl)
+    except Exception as e:
+        security_logger.warning(
+            "Failed to track user session | user_id=%s | jti=%s | error=%s",
+            user_id, jti, str(e)
+        )
+
+
+async def revoke_all_user_tokens(user_id: str) -> int:
+    """
+    Revoke ALL active sessions for a user (logout-all).
+
+    Iterates the user_sessions:{user_id} set, blocklists each JTI,
+    then deletes the set.
+
+    Args:
+        user_id: The user's UUID string.
+
+    Returns:
+        Number of JTIs revoked.
+
+    Raises:
+        HTTPException(503) if Redis is unreachable.
+    """
+    from app.core.redis_client import get_redis
+
+    r = get_redis()
+    if r is None:
+        security_logger.warning(
+            "Redis not available — cannot revoke all tokens | user_id=%s", user_id
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Token revocation service unavailable. Please try again.",
+        )
+
+    try:
+        key = f"user_sessions:{user_id}"
+        jtis = await r.smembers(key)
+
+        if not jtis:
+            security_logger.info(
+                "Logout-all: no active sessions found | user_id=%s", user_id
+            )
+            return 0
+
+        # Blocklist each JTI with a conservative TTL
+        # (max refresh token lifetime as upper bound since we don't know
+        # which are access vs refresh tokens)
+        max_ttl = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600
+
+        pipe = r.pipeline()
+        for jti in jtis:
+            pipe.set(f"revoked_token:{jti}", "1", ex=max_ttl)
+        pipe.delete(key)
+        await pipe.execute()
+
+        count = len(jtis)
+        security_logger.info(
+            "Logout-all completed | user_id=%s | revoked_count=%d", user_id, count
+        )
+        return count
+    except HTTPException:
+        raise
+    except Exception as e:
+        security_logger.error(
+            "Failed to revoke all tokens | user_id=%s | error=%s", user_id, str(e)
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Token revocation service unavailable. Please try again.",
+        )
+
+
+# ---------------------------------------------------------------------------
+# 4. FastAPI dependencies
+# ---------------------------------------------------------------------------
+
+# Needed for the DB session dependency
+from app.db.session import SessionLocal
 
 # HTTPBearer reads `Authorization: Bearer <token>` from the request header.
 _bearer_scheme = HTTPBearer(auto_error=True)
@@ -166,28 +364,29 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-def get_current_user(
+async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
     db: Session = Depends(get_db),
 ) -> (
     "User"
 ):  # type: ignore[name-defined]
     """
-    FastAPI dependency — decode the Bearer JWT and return the
-    matching User row.
+    FastAPI dependency — decode the Bearer JWT, check blocklist, return User.
 
     Steps:
         1. Extract the Bearer token from the Authorization header.
         2. Decode and verify the JWT signature / expiry.
         3. Assert token type is "access" (not "refresh").
-        4. Look up the User by the UUID in `sub`.
+        4. If jti is present, check the Redis blocklist.
+        5. Look up the User by the UUID in `sub`.
 
     Raises:
-        HTTP 401  on any invalid / expired token or missing user.
+        HTTP 401  on any invalid / expired / revoked token or missing user.
+        HTTP 503  if Redis is unreachable and REDIS_FAIL_OPEN is False.
 
     Usage:
         @router.get("/protected")
-        def endpoint(user: User = Depends(get_current_user)):
+        async def endpoint(user: User = Depends(get_current_user)):
             ...
     """
     # Import here to avoid circular imports (User model imports Base which
@@ -197,6 +396,12 @@ def get_current_user(
     credentials_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    revoked_exc = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Token has been revoked, please log in again",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -211,6 +416,20 @@ def get_current_user(
     user_id: str | None = payload.get("sub")
     if not user_id:
         raise credentials_exc
+
+    # --- JTI blocklist check ---
+    jti = payload.get("jti")
+    if jti:
+        if await is_token_revoked(jti):
+            security_logger.warning(
+                "Revoked token used | jti=%s | user_id=%s", jti, user_id
+            )
+            raise revoked_exc
+    else:
+        # Legacy token without jti — allow through with warning
+        security_logger.warning(
+            "Token without jti claim detected — not revocable | user_id=%s", user_id
+        )
 
     try:
         uuid_obj = uuid.UUID(user_id)

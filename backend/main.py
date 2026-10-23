@@ -62,6 +62,8 @@ app.state.limiter = limiter
 @app.on_event("startup")
 async def startup_event():
     from urllib.parse import urlparse
+    from app.core.redis_client import init_redis
+
     logger.info(f"ENVIRONMENT: {settings.ENVIRONMENT}")
     
     # Validate SECRET_KEY for production
@@ -80,6 +82,16 @@ async def startup_event():
     
     logger.info(f"DB Engine: {engine}")
     logger.info(f"DB Host: {host}")
+
+    # Initialize Redis connection pool for token revocation
+    await init_redis()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    from app.core.redis_client import close_redis
+    await close_redis()
+    logger.info("Application shutdown complete")
 
 
 # ---------------------------------------------------------------------------

@@ -65,6 +65,7 @@ def test_production_cors_validation_passes_with_valid_origins():
         SECRET_KEY="supersecretproductionkeythats32chars",
         DATABASE_URL="sqlite:///./test.db",
         GEMINI_API_KEY="test-key",
+        REDIS_URL="redis://localhost:6379/0",
     )
     assert settings.ALLOWED_ORIGINS == ["https://my-frontend.com"]
 

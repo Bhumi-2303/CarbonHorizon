@@ -38,6 +38,8 @@ from app.schemas.auth import RefreshRequest, RegisterRequest
 from app.schemas.user import UpdateProfileRequest
 from app.services import auth_service
 
+pytestmark = pytest.mark.asyncio
+
 
 # ─── Helpers ────────────────────────────────────────────────────────────
 
@@ -137,25 +139,25 @@ class TestRegisterUser:
 
 
 class TestLoginUser:
-    def test_correct_credentials_return_token_pair(
+    async def test_correct_credentials_return_token_pair(
         self, db: Session, make_user
     ):
         """login_user with correct creds returns access + refresh tokens."""
         user = make_user(password="Correct99!")
-        result = auth_service.login_user(db, user.email, "Correct99!")
+        result = await auth_service.login_user(db, user.email, "Correct99!")
 
         assert result.access_token
         assert result.refresh_token
         assert result.token_type == "bearer"
         assert result.expires_in == settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
-    def test_login_stamps_last_login(self, db: Session, make_user):
+    async def test_login_stamps_last_login(self, db: Session, make_user):
         """login_user must update user.last_login with the current UTC time."""
         user = make_user(password="TimeStamp1!")
         assert user.last_login is None
 
         before = datetime.now(timezone.utc)
-        auth_service.login_user(db, user.email, "TimeStamp1!")
+        await auth_service.login_user(db, user.email, "TimeStamp1!")
         after = datetime.now(timezone.utc)
 
         db.refresh(user)
@@ -167,47 +169,47 @@ class TestLoginUser:
         )
         assert before <= last_login_aware <= after
 
-    def test_wrong_password_raises_401(self, db: Session, make_user):
+    async def test_wrong_password_raises_401(self, db: Session, make_user):
         """Incorrect password must raise HTTP 401."""
         user = make_user(password="RealPass99!")
 
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.login_user(db, user.email, "WrongPass99!")
+            await auth_service.login_user(db, user.email, "WrongPass99!")
 
         assert exc_info.value.status_code == 401
 
-    def test_nonexistent_user_raises_401(self, db: Session):
+    async def test_nonexistent_user_raises_401(self, db: Session):
         """
         Non-existent email must raise HTTP 401 (not 404 — avoids email
         enumeration).
         """
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.login_user(db, "nobody@nowhere.com", "Irrelevant1!")
+            await auth_service.login_user(db, "nobody@nowhere.com", "Irrelevant1!")
 
         assert exc_info.value.status_code == 401
 
-    def test_soft_deleted_user_cannot_login(self, db: Session, make_user):
+    async def test_soft_deleted_user_cannot_login(self, db: Session, make_user):
         """A soft-deleted user's email should not be found → HTTP 401."""
         user = make_user(password="WasActive1!", deleted=True)
 
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.login_user(db, user.email, "WasActive1!")
+            await auth_service.login_user(db, user.email, "WasActive1!")
 
         assert exc_info.value.status_code == 401
 
-    def test_access_token_contains_correct_sub(self, db: Session, make_user):
+    async def test_access_token_contains_correct_sub(self, db: Session, make_user):
         """The access token `sub` must be the user's UUID string."""
         user = make_user(password="SubCheck1!")
-        result = auth_service.login_user(db, user.email, "SubCheck1!")
+        result = await auth_service.login_user(db, user.email, "SubCheck1!")
 
         claims = decode_token(result.access_token)
         assert claims["sub"] == str(user.id)
         assert claims["type"] == "access"
 
-    def test_refresh_token_type_is_refresh(self, db: Session, make_user):
+    async def test_refresh_token_type_is_refresh(self, db: Session, make_user):
         """The refresh token must have type='refresh' in its claims."""
         user = make_user(password="RefType1!")
-        result = auth_service.login_user(db, user.email, "RefType1!")
+        result = await auth_service.login_user(db, user.email, "RefType1!")
 
         claims = decode_token(result.refresh_token)
         assert claims["type"] == "refresh"
@@ -219,17 +221,17 @@ class TestLoginUser:
 
 
 class TestRefreshTokens:
-    def test_valid_refresh_token_returns_new_pair(
+    async def test_valid_refresh_token_returns_new_pair(
         self, db: Session, make_user
     ):
         """A valid refresh token should produce a new access + refresh pair."""
         user = make_user(password="Refresh1!")
-        login_result = auth_service.login_user(db, user.email, "Refresh1!")
+        login_result = await auth_service.login_user(db, user.email, "Refresh1!")
 
         refresh_payload = RefreshRequest(
             refresh_token=login_result.refresh_token
         )
-        new_tokens = auth_service.refresh_tokens(db, refresh_payload)
+        new_tokens = await auth_service.refresh_tokens(db, refresh_payload)
 
         assert new_tokens.access_token
         assert new_tokens.refresh_token
@@ -237,19 +239,19 @@ class TestRefreshTokens:
         claims = decode_token(new_tokens.access_token)
         assert claims["sub"] == str(user.id)
 
-    def test_access_token_rejected_as_refresh(self, db: Session, make_user):
+    async def test_access_token_rejected_as_refresh(self, db: Session, make_user):
         """Sending an access token to the refresh endpoint must raise 401."""
         user = make_user(password="WrongType1!")
-        login_result = auth_service.login_user(db, user.email, "WrongType1!")
+        login_result = await auth_service.login_user(db, user.email, "WrongType1!")
 
         # Pass the access token where a refresh token is expected
         bad_payload = RefreshRequest(refresh_token=login_result.access_token)
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.refresh_tokens(db, bad_payload)
+            await auth_service.refresh_tokens(db, bad_payload)
 
         assert exc_info.value.status_code == 401
 
-    def test_expired_refresh_token_raises_401(self, db: Session, make_user):
+    async def test_expired_refresh_token_raises_401(self, db: Session, make_user):
         """An expired refresh token must be rejected with HTTP 401."""
         user = make_user(password="Expired1!")
 
@@ -265,20 +267,20 @@ class TestRefreshTokens:
         )
         bad_payload = RefreshRequest(refresh_token=expired_token)
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.refresh_tokens(db, bad_payload)
+            await auth_service.refresh_tokens(db, bad_payload)
 
         assert exc_info.value.status_code == 401
 
-    def test_tampered_refresh_token_raises_401(self, db: Session):
+    async def test_tampered_refresh_token_raises_401(self, db: Session):
         """A token with an invalid signature must be rejected."""
         bad_payload = RefreshRequest(
             refresh_token="header.payload.badsignature"
         )
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.refresh_tokens(db, bad_payload)
+            await auth_service.refresh_tokens(db, bad_payload)
         assert exc_info.value.status_code == 401
 
-    def test_refresh_token_for_deleted_user_raises_404(
+    async def test_refresh_token_for_deleted_user_raises_404(
         self, db: Session, make_user
     ):
         """
@@ -292,11 +294,11 @@ class TestRefreshTokens:
         payload = RefreshRequest(refresh_token=token)
 
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.refresh_tokens(db, payload)
+            await auth_service.refresh_tokens(db, payload)
 
         assert exc_info.value.status_code == 404
 
-    def test_refresh_token_missing_sub_raises_401(self, db: Session):
+    async def test_refresh_token_missing_sub_raises_401(self, db: Session):
         """A refresh token missing the `sub` claim must raise HTTP 401."""
         bad_token = jwt.encode(
             {
@@ -308,10 +310,10 @@ class TestRefreshTokens:
         )
         payload = RefreshRequest(refresh_token=bad_token)
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.refresh_tokens(db, payload)
+            await auth_service.refresh_tokens(db, payload)
         assert exc_info.value.status_code == 401
 
-    def test_refresh_token_invalid_uuid_raises_404(self, db: Session):
+    async def test_refresh_token_invalid_uuid_raises_404(self, db: Session):
         """A refresh token with a non-UUID sub must raise HTTP 404."""
         bad_token = jwt.encode(
             {
@@ -324,7 +326,7 @@ class TestRefreshTokens:
         )
         payload = RefreshRequest(refresh_token=bad_token)
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.refresh_tokens(db, payload)
+            await auth_service.refresh_tokens(db, payload)
         assert exc_info.value.status_code == 404
 
 
@@ -417,13 +419,13 @@ class TestUpdateProfile:
 
 
 class TestSoftDeleteAccount:
-    def test_sets_deleted_at(self, db: Session, make_user):
+    async def test_sets_deleted_at(self, db: Session, make_user):
         """soft_delete_account sets deleted_at to the current UTC timestamp."""
         user = make_user()
         assert user.deleted_at is None
 
         before = datetime.now(timezone.utc)
-        auth_service.soft_delete_account(db, user)
+        await auth_service.soft_delete_account(db, user)
         after = datetime.now(timezone.utc)
 
         db.refresh(user)
@@ -435,7 +437,7 @@ class TestSoftDeleteAccount:
         )
         assert before <= deleted_at_aware <= after
 
-    def test_already_deleted_raises_409(self, db: Session, make_user):
+    async def test_already_deleted_raises_409(self, db: Session, make_user):
         """
         Calling soft_delete on an already-deleted user must raise
         HTTP 409.
@@ -443,15 +445,15 @@ class TestSoftDeleteAccount:
         user = make_user(deleted=True)
 
         with pytest.raises(HTTPException) as exc_info:
-            auth_service.soft_delete_account(db, user)
+            await auth_service.soft_delete_account(db, user)
 
         assert exc_info.value.status_code == 409
 
-    def test_is_deleted_property_true_after_delete(
+    async def test_is_deleted_property_true_after_delete(
         self, db: Session, make_user
     ):
         """User.is_deleted must return True after soft deletion."""
         user = make_user()
-        auth_service.soft_delete_account(db, user)
+        await auth_service.soft_delete_account(db, user)
         db.refresh(user)
         assert user.is_deleted is True

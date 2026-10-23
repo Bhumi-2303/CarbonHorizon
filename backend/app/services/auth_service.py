@@ -6,20 +6,26 @@ Responsibilities
 register_user      Hash password with bcrypt, persist new User row,
                    return UserProfile + TokenResponse in one step.
 login_user         Verify bcrypt hash, stamp last_login, return token pair.
-refresh_tokens     Validate a refresh JWT, issue a fresh token pair.
+refresh_tokens     Validate a refresh JWT, issue a fresh token pair
+                   (with refresh token rotation — old refresh is revoked).
 get_profile        Fetch the authenticated user's public profile.
 update_profile     Patch mutable profile fields.
-soft_delete_account  Set deleted_at; the account is invisible to queries
-                     but data is retained for 90 days per the retention policy.
+soft_delete_account  Set deleted_at; revoke all active sessions.
+logout             Revoke the current access + optional refresh token.
+logout_all         Revoke ALL active sessions for a user.
 
 Token strategy
 --------------
   Access  token: 30 min,  type="access"   — sent in every API request header
   Refresh token: 7 days,  type="refresh"  — used only on POST /auth/refresh
 
-Both tokens are signed with the app SECRET_KEY using HS256.  There is no
-server-side token store: logout is stateless (client discards the tokens).
-For production, add a Redis blocklist for refresh tokens on logout.
+Both tokens include a unique `jti` (JWT ID) claim for server-side revocation.
+On logout, the jti is added to a Redis blocklist with a TTL matching the
+token's remaining lifetime. Redis auto-garbage-collects expired entries.
+
+Refresh Token Rotation: each refresh request revokes the old refresh token
+and issues an entirely new pair. Reuse of an already-revoked refresh token
+is detected and logged as a potential token-theft signal.
 
 Error handling
 --------------
@@ -27,8 +33,8 @@ All public methods raise FastAPI HTTPException so callers (routers) stay thin.
 """
 
 from __future__ import annotations
-import logging
 
+import logging
 import uuid
 from datetime import datetime, timezone
 
@@ -39,10 +45,15 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.security import (
+    _calculate_ttl,
     create_access_token,
     create_refresh_token,
     decode_token,
     hash_password,
+    is_token_revoked,
+    revoke_all_user_tokens,
+    revoke_token,
+    track_user_session,
     verify_password,
 )
 from app.models.user import User
@@ -55,17 +66,42 @@ from app.schemas.auth import (
 )
 from app.schemas.user import UpdateProfileRequest, validate_age_occupation
 
+security_logger = logging.getLogger("security.token_revocation")
+auth_logger = logging.getLogger("auth_debug")
+auth_logger.setLevel(logging.DEBUG)
+
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+async def _token_response(user: User) -> TokenResponse:
+    """
+    Build a TokenResponse for *user*.
 
-def _token_response(user: User) -> TokenResponse:
-    """Build a TokenResponse for *user*."""
+    Creates access + refresh tokens, tracks both JTIs in the user's
+    Redis session set for logout-all support.
+    """
+    access_token = create_access_token(subject=str(user.id))
+    refresh_token = create_refresh_token(subject=str(user.id))
+
+    # Track session JTIs in Redis for logout-all support
+    access_claims = decode_token(access_token)
+    refresh_claims = decode_token(refresh_token)
+
+    # Track with the longest TTL (refresh token's)
+    refresh_ttl = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600
+    access_jti = access_claims.get("jti")
+    refresh_jti = refresh_claims.get("jti")
+
+    if access_jti:
+        await track_user_session(str(user.id), access_jti, refresh_ttl)
+    if refresh_jti:
+        await track_user_session(str(user.id), refresh_jti, refresh_ttl)
+
     return TokenResponse(
-        access_token=create_access_token(subject=str(user.id)),
-        refresh_token=create_refresh_token(subject=str(user.id)),
+        access_token=access_token,
+        refresh_token=refresh_token,
         token_type="bearer",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
@@ -148,10 +184,13 @@ def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
         full_name=payload.full_name,
         email=payload.email.lower(),
         password_hash=hash_password(payload.password),
+        age=payload.age,
+        gender=payload.gender,
         age_group=payload.age_group,
         lifestyle_type=payload.lifestyle_type,
         city=payload.city,
         country=payload.country,
+        state_province=payload.state_province,
         email_verified=False,
     )
     db.add(user)
@@ -161,11 +200,8 @@ def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
     return RegisterResponse(user=ProfileResponse.model_validate(user))
 
 
-auth_logger = logging.getLogger("auth_debug")
-auth_logger.setLevel(logging.DEBUG)
-
-
-def login_user(db: Session, email: str, password: str) -> TokenResponse:
+async def login_user(db: Session, email: str, password: str) -> TokenResponse:
+    """Verify credentials, stamp last_login, return token pair."""
     auth_logger.debug(f"LOGIN ATTEMPT: received email={email}")
     try:
         user = _get_active_user_by_email(db, email)
@@ -195,24 +231,25 @@ def login_user(db: Session, email: str, password: str) -> TokenResponse:
     db.commit()
     db.refresh(user)
 
-    return _token_response(user)
+    return await _token_response(user)
 
 
-def refresh_tokens(db: Session, payload: RefreshRequest) -> TokenResponse:
+async def refresh_tokens(db: Session, payload: RefreshRequest) -> TokenResponse:
     """
     Validate a refresh token and issue a fresh token pair.
 
-    Steps
-    -----
-    1. Decode and verify the JWT signature.
-    2. Assert token type is "refresh".
-    3. Load the user from `sub`; ensure account is still active.
-    4. Return a brand-new access + refresh pair.
+    Implements refresh token rotation:
+    1. Decode and verify the old refresh token.
+    2. Check if the old refresh token has been revoked (replay detection).
+    3. Revoke the old refresh token's JTI (single-use enforcement).
+    4. Issue a brand-new access + refresh pair.
 
-    Raises
-    ------
-    HTTP 401  on any invalid / expired / wrong-type token.
-    HTTP 404  if the user in `sub` no longer exists.
+    If the old refresh token's JTI is already revoked, this indicates
+    potential token theft (replay attack) and is logged as a security warning.
+
+    Raises:
+        HTTP 401  on any invalid / expired / wrong-type / revoked token.
+        HTTP 404  if the user in `sub` no longer exists.
     """
     credentials_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -231,8 +268,88 @@ def refresh_tokens(db: Session, payload: RefreshRequest) -> TokenResponse:
     if not user_id:
         raise credentials_exc
 
+    # --- Refresh token rotation: check and revoke old token ---
+    old_jti = claims.get("jti")
+    if old_jti:
+        # Check if already revoked (token replay / theft detection)
+        if await is_token_revoked(old_jti):
+            security_logger.warning(
+                "SECURITY: Refresh token replay detected — possible token theft | "
+                "jti=%s | user_id=%s | action=rejected",
+                old_jti, user_id
+            )
+            raise credentials_exc
+
+        # Revoke the old refresh token (single-use enforcement)
+        ttl = _calculate_ttl(claims["exp"])
+        await revoke_token(old_jti, ttl)
+        security_logger.info(
+            "Refresh token rotated | old_jti=%s | user_id=%s", old_jti, user_id
+        )
+
     user = _get_active_user_by_id(db, user_id)
-    return _token_response(user)
+    return await _token_response(user)
+
+
+async def logout(
+    access_token_claims: dict,
+    refresh_token: str | None,
+    user_id: str,
+) -> None:
+    """
+    Revoke the current access token and optionally the refresh token.
+
+    Args:
+        access_token_claims: Decoded claims dict from the access token.
+        refresh_token: Optional refresh token string to also revoke.
+        user_id: The authenticated user's UUID string.
+    """
+    # Revoke the access token
+    access_jti = access_token_claims.get("jti")
+    if access_jti:
+        access_exp = access_token_claims.get("exp", 0)
+        ttl = _calculate_ttl(access_exp)
+        await revoke_token(access_jti, ttl)
+        security_logger.info(
+            "Logout: access token revoked | jti=%s | user_id=%s", access_jti, user_id
+        )
+
+    # Revoke the refresh token if provided
+    if refresh_token:
+        try:
+            refresh_claims = decode_token(refresh_token)
+            refresh_jti = refresh_claims.get("jti")
+            if refresh_jti:
+                refresh_exp = refresh_claims.get("exp", 0)
+                ttl = _calculate_ttl(refresh_exp)
+                await revoke_token(refresh_jti, ttl)
+                security_logger.info(
+                    "Logout: refresh token revoked | jti=%s | user_id=%s",
+                    refresh_jti, user_id
+                )
+        except JWTError:
+            # Refresh token is already expired or invalid — that's fine,
+            # it's already unusable. Log and continue.
+            security_logger.info(
+                "Logout: refresh token already expired/invalid | user_id=%s", user_id
+            )
+
+
+async def logout_all(user_id: str) -> int:
+    """
+    Revoke ALL active sessions for a user.
+
+    Args:
+        user_id: The user's UUID string.
+
+    Returns:
+        Number of JTIs revoked.
+    """
+    count = await revoke_all_user_tokens(user_id)
+    security_logger.info(
+        "Logout-all completed | user_id=%s | revoked_count=%d", user_id, count
+    )
+    return count
 
 
 def get_profile(current_user: User) -> ProfileResponse:
@@ -279,16 +396,13 @@ def update_profile(
     return ProfileResponse.model_validate(current_user)
 
 
-def soft_delete_account(db: Session, current_user: User) -> None:
+async def soft_delete_account(db: Session, current_user: User) -> None:
     """
     Soft-delete the authenticated user's account.
 
-    Sets deleted_at to the current UTC time.  The row is retained for 90 days
-    per the data retention policy (see Backend Schema Documentation §21).
-
-    After this call the client should discard its tokens — subsequent requests
-    using the old access token will be rejected by get_current_active_user
-    (which checks deleted_at).
+    Sets deleted_at to the current UTC time and revokes all active sessions.
+    The row is retained for 90 days per the data retention policy
+    (see Backend Schema Documentation §21).
 
     Raises
     ------
@@ -302,3 +416,17 @@ def soft_delete_account(db: Session, current_user: User) -> None:
 
     current_user.deleted_at = datetime.now(timezone.utc)
     db.commit()
+
+    # Revoke all active sessions — the user can no longer use any tokens
+    try:
+        await revoke_all_user_tokens(str(current_user.id))
+        security_logger.info(
+            "Account deactivated — all sessions revoked | user_id=%s",
+            str(current_user.id)
+        )
+    except Exception as e:
+        # Account is already soft-deleted; log but don't fail the request
+        security_logger.warning(
+            "Account deactivated but failed to revoke sessions | user_id=%s | error=%s",
+            str(current_user.id), str(e)
+        )

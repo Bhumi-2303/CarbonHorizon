@@ -10,13 +10,14 @@ Endpoints
 Public (no auth):
   POST /register      Create account
   POST /login         Obtain token pair
-  POST /refresh       Exchange refresh token
+  POST /refresh       Exchange refresh token (with rotation)
 
 Authenticated (Bearer JWT):
-  POST   /logout      Stateless 204
+  POST   /logout      Revoke current access + optional refresh token
+  POST   /logout-all  Revoke ALL active sessions for the user
   GET    /profile     Current user's profile
   PUT    /profile     Update mutable profile fields
-  DELETE /account     Soft-delete account
+  DELETE /account     Soft-delete account (also revokes all sessions)
 
 Stubs (not yet implemented):
   POST /verify-email
@@ -25,13 +26,25 @@ Stubs (not yet implemented):
 """
 
 from fastapi import APIRouter, Depends, status, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from app.core.security import get_current_active_user, get_db
+from app.core.security import (
+    decode_token,
+    get_current_active_user,
+    get_current_user,
+    get_db,
+    _bearer_scheme,
+)
 from app.models.user import User
 from app.schemas.auth import (
     APIResponse,
     LoginRequest,
+    LogoutAPIResponse,
+    LogoutAllAPIResponse,
+    LogoutAllResponse,
+    LogoutRequest,
+    LogoutResponse,
     ProfileAPIResponse,
     RefreshRequest,
     RegisterAPIResponse,
@@ -92,7 +105,7 @@ async def login(
       "expires_in": 1800}}`.
     - Raises **401** on invalid credentials.
     """
-    token = auth_service.login_user(db, payload.email, payload.password)
+    token = await auth_service.login_user(db, payload.email, payload.password)
     return APIResponse.ok(token)
 
 
@@ -108,9 +121,13 @@ async def refresh_token(
     """
     Use a valid refresh token to get a fresh access + refresh pair.
 
-    - Raises **401** if the token is expired, malformed, or not type `refresh`.
+    Implements refresh token rotation: the old refresh token is revoked
+    and a new pair is issued. Reuse of the old refresh token after rotation
+    is detected as a potential token-theft signal.
+
+    - Raises **401** if the token is expired, malformed, revoked, or not type `refresh`.
     """
-    token = auth_service.refresh_tokens(db, payload)
+    token = await auth_service.refresh_tokens(db, payload)
     return APIResponse.ok(token)
 
 
@@ -121,19 +138,59 @@ async def refresh_token(
 
 @router.post(
     "/logout",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Logout — instruct client to discard tokens",
+    response_model=LogoutAPIResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Logout — revoke access token and optionally refresh token",
 )
+@limiter.limit("10/minute")
 async def logout(
-    _current_user: User = Depends(get_current_active_user),
-) -> None:
+    request: Request,
+    payload: LogoutRequest = LogoutRequest(),
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
+    current_user: User = Depends(get_current_active_user),
+) -> LogoutAPIResponse:
     """
-    Stateless logout — tokens are self-expiring JWTs with no server-side store.
-    The client must discard the tokens from storage.
-    Returns **204 No Content**.
+    Revoke the current access token (from Authorization header) and
+    optionally the refresh token (from request body).
+
+    Both tokens' JTIs are added to the Redis blocklist with TTLs
+    matching their remaining lifetimes.
+
+    Returns **200** with confirmation message.
     """
-    # TODO: Redis blocklist for refresh tokens on logout
-    return None
+    # Decode the raw access token to get its claims (jti, exp)
+    access_claims = decode_token(credentials.credentials)
+
+    await auth_service.logout(
+        access_token_claims=access_claims,
+        refresh_token=payload.refresh_token,
+        user_id=str(current_user.id),
+    )
+
+    return APIResponse.ok(LogoutResponse())
+
+
+@router.post(
+    "/logout-all",
+    response_model=LogoutAllAPIResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Logout all devices — revoke ALL active sessions",
+)
+@limiter.limit("10/minute")
+async def logout_all(
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+) -> LogoutAllAPIResponse:
+    """
+    Revoke ALL active sessions for the authenticated user.
+
+    Iterates the user's session set in Redis and blocklists every JTI.
+    Use this when a user suspects their account is compromised.
+
+    Returns **200** with the count of revoked sessions.
+    """
+    count = await auth_service.logout_all(user_id=str(current_user.id))
+    return APIResponse.ok(LogoutAllResponse(revoked_count=count))
 
 
 @router.get(
@@ -184,10 +241,11 @@ async def delete_account(
 ) -> None:
     """
     Soft-delete by setting `deleted_at`; data retained 90 days.
+    Also revokes all active sessions.
     Returns **204 No Content**.
     Raises **409** if already deactivated.
     """
-    auth_service.soft_delete_account(db, current_user)
+    await auth_service.soft_delete_account(db, current_user)
     return None
 
 

@@ -26,6 +26,9 @@ apiClient.interceptors.response.use(
       if (data.error?.message) {
         return Promise.reject(new Error(data.error.message))
       }
+      if (typeof data.error === 'string') {
+        return Promise.reject(new Error(data.error))
+      }
       if (data.detail) {
         return Promise.reject(new Error(data.detail))
       }
