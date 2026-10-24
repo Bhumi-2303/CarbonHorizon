@@ -38,6 +38,24 @@ logger = logging.getLogger("security.redis")
 _redis_pool: Optional[aioredis.Redis] = None
 
 
+def _sanitize_url(url: Optional[str]) -> str:
+    """Mask credentials in a URL for safe logging and diagnostics."""
+    if not url:
+        return ""
+    try:
+        from urllib.parse import urlsplit, urlunsplit
+        parts = urlsplit(url)
+        if parts.password:
+            user = parts.username or ""
+            host = parts.hostname or ""
+            port = f":{parts.port}" if parts.port else ""
+            netloc = f"{user}:***@{host}{port}"
+            return urlunsplit((parts.scheme, netloc, parts.path, parts.query, parts.fragment))
+        return url
+    except Exception:
+        return "<sanitized-url>"
+
+
 async def init_redis() -> None:
     """
     Initialize the async Redis connection pool.
@@ -67,11 +85,13 @@ async def init_redis() -> None:
         await _redis_pool.ping()
         logger.info("Redis connection pool initialized successfully")
     except Exception as e:
-        logger.error(f"Failed to connect to Redis at {settings.REDIS_URL}: {e}")
+        safe_url = _sanitize_url(settings.REDIS_URL)
+        logger.error(f"Failed to connect to Redis at {safe_url}")
         _redis_pool = None
         if settings.ENVIRONMENT == "production":
             raise RuntimeError(
-                f"Cannot start production server without Redis: {e}"
+                "Cannot start production server without a working Redis connection. "
+                f"Connection to {safe_url} failed."
             ) from e
 
 

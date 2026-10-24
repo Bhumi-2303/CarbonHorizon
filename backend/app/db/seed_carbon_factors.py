@@ -9,9 +9,16 @@ Seeds the carbon_factors table with official emission factors from IPCC/EPA:
 """
 
 import logging
+import os
+import sys
 import uuid
 from datetime import date
 from sqlalchemy.orm import Session
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_BACKEND_ROOT = os.path.dirname(os.path.dirname(_HERE))
+if _BACKEND_ROOT not in sys.path:
+    sys.path.insert(0, _BACKEND_ROOT)
 
 from app.db.session import SessionLocal
 from app.models.carbon_factor import CarbonFactor
@@ -20,7 +27,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def seed_carbon_factors(db: Session) -> None:
+def seed_carbon_factors(db: Session, *, commit: bool = True) -> None:
     """
     Idempotently seed the carbon_factors table with reference data.
     """
@@ -157,7 +164,8 @@ def seed_carbon_factors(db: Session) -> None:
             )
             db.add(factor)
 
-    db.commit()
+    if commit:
+        db.commit()
     logger.info("Carbon factors successfully seeded.")
 
 

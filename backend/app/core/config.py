@@ -1,12 +1,12 @@
 """
 Application configuration using Pydantic BaseSettings.
 
-DATABASE_URL switching:
-  • Dev  (default) → SQLite:    sqlite:///./carbonhorizon.db
-  • Prod            → Postgres:  postgresql+psycopg2://user:pass@host/db
-                               or postgresql+asyncpg://...  (async routes)
+DATABASE_URL:
+  • Default: PostgreSQL (postgresql://postgres:password@localhost:5432/carbonhorizon)
+  • External (e.g. Neon): postgresql://user:pass@ep-xyz.region.aws.neon.tech/dbname?sslmode=require
+  • Test / SQLite: sqlite:///./carbonhorizon.db
 
-Set DATABASE_URL in .env to override.
+Set DATABASE_URL in .env or environment variables to override the default.
 ASYNC_DATABASE_URL is derived automatically from DATABASE_URL when not set.
 """
 
@@ -14,17 +14,24 @@ from __future__ import annotations
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import model_validator, field_validator
 from typing import List, Optional, Any
-
+import json
+import logging
 import os
 import secrets
+from pathlib import Path
 from dotenv import load_dotenv
 
+_BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+load_dotenv(_BACKEND_DIR / ".env")
+load_dotenv(_BACKEND_DIR.parent / ".env")
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
@@ -84,13 +91,20 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:5173",
-        "https://carbonhorizon-frontend-tvxxkekeuq-el.a.run.app",
     ]
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Any) -> Any:
-        if isinstance(v, str) and not v.startswith("["):
+        if isinstance(v, str):
+            v_stripped = v.strip()
+            if v_stripped.startswith("[") and v_stripped.endswith("]"):
+                try:
+                    parsed = json.loads(v_stripped)
+                    if isinstance(parsed, list):
+                        return [str(i).strip() for i in parsed if str(i).strip()]
+                except Exception:
+                    pass
             return [i.strip() for i in v.split(",") if i.strip()]
         return v
 
@@ -105,6 +119,7 @@ class Settings(BaseSettings):
                     origin == "*"
                     or "localhost" in origin
                     or "127.0.0.1" in origin
+                    or "run.app" in origin
                 ):
                     raise ValueError(
                         f"Invalid CORS origin for production: {origin}"
@@ -133,7 +148,12 @@ class Settings(BaseSettings):
                     "production environment."
                 )
 
-            # Check for insecure database passwords
+            # Check for empty or insecure database passwords
+            if not self.DATABASE_URL:
+                raise ValueError(
+                    "DATABASE_URL must be configured in production environment."
+                )
+
             if any(
                 p in self.DATABASE_URL
                 for p in ["postgres:password@", "postgres:changeme@"]
@@ -143,26 +163,31 @@ class Settings(BaseSettings):
                     "in production."
                 )
 
-            if not self.GEMINI_API_KEY or self.GEMINI_API_KEY in [
-                "",
-                "your_gemini_api_key_here",
-            ]:
-                raise ValueError(
-                    "GEMINI_API_KEY must be properly configured in "
-                    "production environment."
-                )
-
             # Redis is required in production for token revocation
             if not self.REDIS_URL:
                 raise ValueError(
                     "REDIS_URL must be set in production for token revocation. "
                     "Example: redis://redis:6379/0"
                 )
+
+            # Validate Gemini API key if provided
+            if self.GEMINI_API_KEY:
+                if (
+                    self.GEMINI_API_KEY in insecure_placeholders
+                    or self.GEMINI_API_KEY == "your_gemini_api_key_here"
+                ):
+                    raise ValueError(
+                        "GEMINI_API_KEY contains an invalid placeholder in "
+                        "production environment."
+                    )
+            else:
+                logger.warning(
+                    "GEMINI_API_KEY is not configured in production. "
+                    "AI Coach chat functionality will be unavailable."
+                )
         else:
             if not self.SECRET_KEY or self.SECRET_KEY in insecure_placeholders:
-                import logging
-
-                logging.warning(
+                logger.warning(
                     "Using ephemeral SECRET_KEY. This is not safe "
                     "for production."
                 )

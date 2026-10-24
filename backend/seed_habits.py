@@ -1,36 +1,36 @@
-import uuid
+"""
+Standalone habit seeding script and compatibility wrapper.
+"""
+from __future__ import annotations
+
+import os
+import sys
+from typing import Optional
 from sqlalchemy.orm import Session
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+
+from app.db.init_db import seed_habit_definitions as _seed_habit_definitions
 from app.db.session import SessionLocal
-from app.models.habit_definition import HabitDefinition
 
-def seed_habit_definitions():
-    db: Session = SessionLocal()
-    try:
-        definitions = [
-            {"habit_type": "public_transport", "factor": 1.2, "unit": "kg CO2e"},
-            {"habit_type": "recycling", "factor": 0.5, "unit": "kg CO2e"},
-            {"habit_type": "save_electricity", "factor": 0.8, "unit": "kg CO2e"},
-            {"habit_type": "water_conservation", "factor": 0.3, "unit": "kg CO2e"},
-            {"habit_type": "plastic_reduction", "factor": 0.4, "unit": "kg CO2e"},
-        ]
 
-        for d in definitions:
-            existing = db.query(HabitDefinition).filter(HabitDefinition.habit_type == d["habit_type"]).first()
-            if not existing:
-                new_def = HabitDefinition(
-                    habit_type=d["habit_type"],
-                    carbon_saving_factor=d["factor"],
-                    unit=d["unit"]
-                )
-                db.add(new_def)
-                
-        db.commit()
-        print("Habit definitions seeded successfully.")
-    except Exception as e:
-        print(f"Error seeding habit definitions: {e}")
-        db.rollback()
-    finally:
-        db.close()
+def seed_habit_definitions(
+    db: Optional[Session] = None, *, commit: bool = True
+) -> None:
+    """
+    Seed habit definitions. If db is omitted, manages its own session.
+    """
+    if db is None:
+        session = SessionLocal()
+        try:
+            _seed_habit_definitions(session, commit=commit)
+        finally:
+            session.close()
+    else:
+        _seed_habit_definitions(db, commit=commit)
+
 
 if __name__ == "__main__":
     seed_habit_definitions()

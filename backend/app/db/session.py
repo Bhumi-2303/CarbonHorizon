@@ -24,12 +24,18 @@ from app.core.config import settings
 # Sync engine (Alembic + sync FastAPI Depends)
 # ---------------------------------------------------------------------------
 
-_engine_kwargs: dict = {
-    "pool_pre_ping": True,
-    "pool_size": 10,
-    "max_overflow": 20,
-    "poolclass": QueuePool,
-}
+if settings.DATABASE_URL.startswith("sqlite"):
+    _engine_kwargs: dict = {
+        "connect_args": {"check_same_thread": False},
+    }
+else:
+    _engine_kwargs: dict = {
+        "pool_pre_ping": True,
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_recycle": 300,
+        "poolclass": QueuePool,
+    }
 
 engine = create_engine(settings.DATABASE_URL, **_engine_kwargs)
 
@@ -48,12 +54,19 @@ def get_async_engine():
     """Return an async SQLAlchemy engine."""
     from sqlalchemy.ext.asyncio import create_async_engine as _async_engine
 
-    kwargs: dict = {
-        "echo": settings.DEBUG,
-        "pool_pre_ping": True,
-        "pool_size": 10,
-        "max_overflow": 20,
-    }
+    if settings.async_database_url.startswith("sqlite"):
+        kwargs: dict = {
+            "echo": settings.DEBUG,
+            "connect_args": {"check_same_thread": False},
+        }
+    else:
+        kwargs: dict = {
+            "echo": settings.DEBUG,
+            "pool_pre_ping": True,
+            "pool_size": 10,
+            "max_overflow": 20,
+            "pool_recycle": 300,
+        }
     return _async_engine(settings.async_database_url, **kwargs)
 
 
