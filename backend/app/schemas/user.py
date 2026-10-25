@@ -58,7 +58,7 @@ class RegisterRequest(BaseModel):
     full_name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
-    age: int = Field(..., gt=0)
+    age: int = Field(..., gt=0, le=130)
     gender: Gender
     age_group: Optional[AgeGroup] = None
     lifestyle_type: Optional[LifestyleType] = None
@@ -90,7 +90,7 @@ class UpdateProfileRequest(BaseModel):
     """PUT /auth/profile — all fields optional"""
 
     full_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    age: Optional[int] = Field(None, gt=0)
+    age: Optional[int] = Field(None, gt=0, le=130)
     gender: Optional[Gender] = None
     age_group: Optional[AgeGroup] = None
     lifestyle_type: Optional[LifestyleType] = None

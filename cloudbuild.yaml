@@ -1,9 +1,13 @@
 steps:
-# Build frontend
+# Build frontend with build-time arguments baked into static bundle
 - name: 'gcr.io/cloud-builders/docker'
   args:
     [
       'build',
+      '--build-arg', 'VITE_APP_URL=${_VITE_APP_URL}',
+      '--build-arg', 'VITE_API_URL=${_VITE_API_URL}',
+      '--build-arg', 'VITE_ANALYTICS_DOMAIN=${_VITE_ANALYTICS_DOMAIN}',
+      '--build-arg', 'VITE_TURNSTILE_SITE_KEY=${_VITE_TURNSTILE_SITE_KEY}',
       '-t',
       'gcr.io/$PROJECT_ID/carbonhorizon-frontend',
       '-f',
@@ -45,6 +49,8 @@ steps:
       'asia-south1',
       '--platform',
       'managed',
+      '--set-env-vars',
+      'BACKEND_URL=${_BACKEND_URL}',
       '--quiet'
     ]
 
@@ -66,6 +72,13 @@ steps:
 images:
   - 'gcr.io/$PROJECT_ID/carbonhorizon-frontend'
   - 'gcr.io/$PROJECT_ID/carbonhorizon-backend'
+
+substitutions:
+  _VITE_APP_URL: 'https://carbonhorizon.app'
+  _VITE_API_URL: '/api/v1'
+  _VITE_ANALYTICS_DOMAIN: 'carbonhorizon.app'
+  _VITE_TURNSTILE_SITE_KEY: '0x4AAAAAAAxPlaceholderTurnstileKey'
+  _BACKEND_URL: 'https://carbonhorizon-backend-asia-south1.a.run.app'
 
 options:
   logging: CLOUD_LOGGING_ONLY

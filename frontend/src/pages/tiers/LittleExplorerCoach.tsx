@@ -57,16 +57,16 @@ export default function LittleExplorerCoach() {
         </div>
         <div>
           <h2 className="text-xl font-black text-primary font-poppins">Nature Guide</h2>
-          <p className="text-sm text-sky-200 font-medium">Ask me how to help animals and trees!</p>
+          <p className="text-sm text-sky-950 dark:text-sky-200 font-medium">Ask me how to help animals and trees!</p>
         </div>
       </div>
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-6">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full opacity-50">
+          <div className="flex flex-col items-center justify-center h-full">
             <Sun className="w-16 h-16 text-amber-400 mb-4 animate-pulse" />
-            <p className="text-amber-200 font-medium text-lg text-center px-8">
+            <p className="text-amber-900 dark:text-amber-200 font-medium text-lg text-center px-8">
               Hello Little Explorer! <br/> I am your Nature Guide. How can we help the Earth today?
             </p>
           </div>
@@ -105,9 +105,11 @@ export default function LittleExplorerCoach() {
             disabled={loading}
           />
           <button
+            type="button"
             onClick={handleSend}
             disabled={!input.trim() || loading}
-            className="absolute right-2 top-2 bottom-2 aspect-square bg-sky-500 hover:bg-sky-400 text-primary rounded-lg flex items-center justify-center disabled:opacity-50 transition-colors"
+            aria-label="Send message"
+            className="absolute right-2 top-2 bottom-2 aspect-square bg-sky-500 hover:bg-sky-400 text-white rounded-lg flex items-center justify-center disabled:opacity-50 transition-colors"
           >
             <Send className="w-5 h-5" />
           </button>

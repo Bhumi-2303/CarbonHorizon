@@ -6,6 +6,17 @@ on:
       - main
 
 jobs:
+  secret-scan:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   frontend-check:
     runs-on: ubuntu-latest
     steps:
@@ -19,6 +30,8 @@ jobs:
         run: |
           cd frontend
           npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+      - name: Check Links & Integrity
+        run: node scripts/check-links.mjs
       - name: Type check
         run: |
           cd frontend

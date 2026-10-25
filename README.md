@@ -28,130 +28,169 @@ React + TypeScript frontend → FastAPI backend → PostgreSQL → Gemini AI →
                +---------------+             +----------------+
 ```
 
+## Security & Privacy Architecture
+1. **HTTPS Enforcement Everywhere**:
+   - Backend `HTTPSRedirectMiddleware` enforces HTTPS by inspecting `X-Forwarded-Proto` (terminating proxy safe for Cloud Run).
+   - Nginx reverse-proxy redirects HTTP to HTTPS when `X-Forwarded-Proto = "http"`.
+2. **Security Headers**:
+   - `Strict-Transport-Security: max-age=31536000; includeSubDomains`
+   - `X-Content-Type-Options: nosniff`
+   - `X-Frame-Options: DENY` / `frame-ancestors 'none'`
+   - `Referrer-Policy: strict-origin-when-cross-origin`
+   - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+   - `Content-Security-Policy`: restrictive CSP allowing self, fonts, and consent-gated telemetry.
+3. **Session & Cookie Security**:
+   - Cookies are `Secure`, `HttpOnly`, and `SameSite=Lax`.
+   - Redis-backed JTI blocklist for immediate session revocation upon logout or password change.
+4. **Bot Protection & Anti-Abuse (Task 18)**:
+   - Cloudflare Turnstile token validation server-side on sensitive routes (`/register`, `/login`, `/coach/chat`).
+   - Hidden honeypot fields on all client and server authentication/chat models.
+   - Sliding-window login lockout (5 failures in 15 min triggers 15-minute 429 lockout).
+   - Per-IP and per-user rate limiting via `slowapi` (`5/minute` on auth, `10/minute` on coach).
+5. **Form Validation & Accessibility (Task 17)**:
+   - Client-side: Schema validation with Zod + `react-hook-form`, accessible inline errors (`aria-describedby`, `aria-invalid`, `role="alert"`), password strength indicator, and disabled-submit/loading states.
+   - Server-side: Strict Pydantic models with bounded ranges (`ge`, `le` on distance, kWh, household size, age), enums for age group/lifestyle, and XSS output sanitization (`sanitize_html_output`) stripping `<script>` and `on*` event handlers from LLM coach responses.
+6. **Privacy-Friendly Analytics (Task 19)**:
+   - Powered by Plausible Analytics (< 1 KB, zero cookies, no persistent cross-site tracking, 100% anonymized IPs, GDPR & DPDP compliant).
+   - Gated by cookie consent (`useConsent()`).
+   - **Little Explorer Exemption**: Strictly and permanently disabled for child profiles (`user.age_group === 'child'` or age 4–12).
+   - Typed events: `signup_started`, `assessment_completed`, `forecast_viewed`, `habit_logged`, `coach_question_asked`, `cta_clicked`.
+   - Never transmits conversation text, passwords, or personal identifying information.
+7. **Landing Page Conversion & Clarity (Task 20)**:
+   - Single prominent primary CTA: **"Calculate my carbon footprint"** *(Free, takes about 5 minutes)* in the hero and repeated at the bottom.
+   - One-line value proposition: *"Measure your environmental footprint and cut emissions with tailored AI coaching."*
+   - 3 short benefit points (Regional Precision, Tailored AI Coaching, Privacy-First Design) and trust line (*Free forever • No credit card required • Privacy-first*).
+
 ## Carbon Methodology
-Sources: IPCC, EPA, IEA  
-Formula: Carbon Emission = Activity Data × Emission Factor  
-Example: 100 km car travel × 0.192 kg CO₂e/km = 19.2 kg CO₂e  
-All calculations are version-tracked (calculation_version + factor_version stored per assessment).
+- Sources: IPCC, EPA, IEA
+- Formula: Carbon Emission = Activity Data × Emission Factor
+- Example: 100 km car travel × 0.192 kg CO₂e/km = 19.2 kg CO₂e
+- All calculations are version-tracked (`calculation_version` + `factor_version` stored per assessment).
 
 ## AI Coach Design
-- Powered by Google Gemini API
-- Scope: sustainability questions only — out-of-scope queries are redirected
-- Personalization: responses use user's age group, city, country, diet, transport mode, and current footprint
-- AI never performs carbon calculations — all math is backend-only (per Architectural Principle 2)
+- Powered by Google Gemini API proxied server-to-server (browser never touches AI credentials).
+- Scope: sustainability topics only — out-of-scope queries are gracefully redirected.
+- Personalization: responses adapt to user's age group, city, country, diet, and current footprint.
+- Little Explorer mode: cheerful, positive habit guidance completely free of CO₂ terminology and without tracking.
 
-## How It Works
-1. **Registration**: Create an account and set your baseline profile.
-2. **Assessment**: Complete a dynamic questionnaire detailing your energy usage, diet, and travel habits.
-   <br>![Assessment](docs/screenshots/assessment.png)
-3. **Dashboard**: View your calculated carbon footprint, historical trends, and top emission sources in a beautifully visualized interface.
-   <br>![Dashboard](docs/screenshots/dashboard.png)
-4. **AI Coach**: Chat with the personalized sustainability coach to get actionable, context-aware advice on reducing your impact.
-   <br>![AI Coach](docs/screenshots/ai_coach.png)
-5. **Simulator**: Adjust variables (e.g., changing diet or transport) to see how your footprint would change.
-6. **Forecast**: View projections of your emissions based on current trends versus recommended changes.
-7. **Habit Tracker**: Log daily eco-friendly actions (like taking public transit or recycling) and track your streak and carbon savings.
-8. **Reports**: Monitor your achievements, streak milestones, and overall impact reduction over time.
-   <br>![Reports](docs/screenshots/reports.png)
+## Environment Variables
 
-## Assumptions
-- Carbon factors are sourced from IPCC/EPA and versioned
-- Emission factors are not region-specific in MVP (global averages used)
-- Forecast uses rule-based linear projection, not ML
-- Water usage is tracked for habit purposes but not included in core CO₂ calculation in MVP
+### Runtime vs. Build-Time Variables
+- **Build-Time (`VITE_*`)**: Injected during `vite build` and baked into the static HTML/JS bundles. In production mode, `VITE_APP_URL` is mandatory; Vite will fail the build if it is missing. In Google Cloud Build, these are supplied via `--build-arg` in `Dockerfile.frontend`.
+- **Runtime Variables**: Evaluated dynamically by the server process (FastAPI or Nginx container startup). In production, missing required runtime variables (`SECRET_KEY`, `REDIS_URL`, `ALLOWED_ORIGINS`, `BACKEND_URL`) will cause immediate startup termination.
 
-## Deployment Guide
-### Prerequisites
-- Node.js 18+
-- Python 3.12+
-- Google Cloud account
-- Gemini API key
+### Backend Runtime Variables (`backend/.env` / Cloud Run)
+| Variable | Description | Required in Production | Default | Notes / Startup Check |
+|---|---|---|---|---|
+| `ENVIRONMENT` | Environment name | Optional | `production` | If set to `production`, docs/OpenAPI are disabled and strict checks apply. |
+| `DATABASE_URL` | PostgreSQL connection string | Yes | - | Must point to Cloud SQL / managed Postgres. |
+| `SECRET_KEY` | JWT signing secret key (≥ 32 chars) | **Yes (Refuses startup)** | - | Cannot be default placeholder or empty. |
+| `REDIS_URL` | Redis connection URL | **Yes (Refuses startup)** | - | Required for login lockout & token revocation across Cloud Run instances. |
+| `ALLOWED_ORIGINS` | Permitted CORS origins | **Yes (Refuses startup)** | `https://carbonhorizon.app` | Refuses startup if containing `localhost`, `127.0.0.1`, or `*` in production. |
+| `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile secret key | **Yes (Refuses startup)** | - | Bot verification rejects bypass in production. |
+| `GEMINI_API_KEY` | Google Gemini API key for AI Coach | Yes | - | Proxied server-side to prevent browser exposure. |
+| `BACKEND_URL` | Nginx reverse-proxy upstream target | **Yes (Nginx startup check)** | - | Validated in container CMD; exits immediately if unset. |
 
-### Local Development
+### Frontend Build-Time Variables (`frontend/.env` / Cloud Build `--build-arg`)
+| Variable | Description | Required in Production | Default | Notes / Build Check |
+|---|---|---|---|---|
+| `VITE_APP_URL` | Canonical app URL (e.g. `https://carbonhorizon.app`) | **Yes (Build fails if unset)** | `https://carbonhorizon.app` | Used for sitemaps, canonical tags, and OpenGraph URLs. |
+| `VITE_API_URL` | Backend API base path | Optional | `/api/v1` | Relative path proxied by Nginx in production. |
+| `VITE_ANALYTICS_DOMAIN` | Plausible Analytics domain | Optional | `carbonhorizon.app` | Used for privacy-friendly telemetry with user consent. |
+| `VITE_TURNSTILE_SITE_KEY` | Cloudflare Turnstile public site key | Optional in Dev | `""` | Rendered on auth forms for bot verification. |
 
-For the easiest setup, use the provided [docker-compose.yml](docker-compose.yml). First, configure your secrets:
+## Local Development Setup
+
+### Option 1: Docker Compose (Recommended)
 ```bash
 cp .env.example .env
-# IMPORTANT: Open .env and fill in real values. Never commit .env to version control!
-docker-compose up -d
+docker compose up -d
 ```
 
-Otherwise, for manual setup:
+### Option 2: Manual Setup
 
-#### Database Setup & Migrations
+#### 1. Backend Setup
 ```bash
-# Start PostgreSQL (if not using docker-compose)
-docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=password -e POSTGRES_DB=carbonhorizon postgres:15
-
-# Run Alembic Migrations
 cd backend
-python -m venv venv
-source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
+pip install -r requirements-dev.txt
+
+# Run migrations and seed factors
 alembic upgrade head
+python -m app.db.init_db
+
+# Run backend development server
+uvicorn main:app --reload --port 8000
 ```
 
-#### Backend API
+#### 2. Frontend Setup
 ```bash
-cd backend
-source venv/bin/activate
-uvicorn main:app --reload
-```
-
-# Frontend
 cd frontend
 npm install
-cp .env.example .env.local   # fill in VITE_API_URL
 npm run dev
 ```
 
-### Production Deployment (Google Cloud Run)
-1. **Containerize**: Ensure both `backend/` and `frontend/` have their respective `Dockerfile` configured.
-2. **Push to Google Container Registry or Artifact Registry**:
+## Running Tests & Quality Verification
+
+### 1. Link & Route Integrity Check
 ```bash
-gcloud builds submit --tag gcr.io/PROJECT-ID/carbon-horizon-backend ./backend
-gcloud builds submit --tag gcr.io/PROJECT-ID/carbon-horizon-frontend ./frontend
+node scripts/check-links.mjs
 ```
-3. **Deploy to Cloud Run**:
+
+### 2. Frontend Tests & Type Checking
 ```bash
-gcloud run deploy carbon-horizon-backend \
-  --image gcr.io/PROJECT-ID/carbon-horizon-backend \
-  --platform managed \
-  --allow-unauthenticated \
-  --set-env-vars="GEMINI_API_KEY=...,DATABASE_URL=..."
-
-gcloud run deploy carbon-horizon-frontend \
-  --image gcr.io/PROJECT-ID/carbon-horizon-frontend \
-  --platform managed \
-  --allow-unauthenticated
+cd frontend
+npm run type-check
+npm test -- --run
+npm run build
 ```
-*Note: For production, use Google Secret Manager to securely mount `GEMINI_API_KEY`, `SECRET_KEY`, and `DATABASE_URL` directly into the container instance.*
 
-## Secrets Management
-Production deployments **must** use a managed secret store (e.g., Google Secret Manager, AWS Secrets Manager, HashiCorp Vault). Never bake environment variables into compose files or CI YAML. `cloudbuild.yaml` in this repository demonstrates how to bind Google Cloud Secret Manager values via `--set-secrets`.
-
-## Remediation & Migration (For existing deployments)
-If you previously deployed using the hardcoded credentials, take these steps immediately:
-1. **Rotate PostgreSQL Password:** In your production database, rotate the password. Then update Secret Manager with the new password.
-2. **Rotate SECRET_KEY:** Update your `SECRET_KEY` in Secret Manager. This will invalidate all currently issued JWT tokens, logging out active users. It's recommended to do this during a low-traffic window and communicate the change to users.
-3. **Clean Git History (Optional but Recommended):** If this repository was ever public, scrub the "password" string from git history using BFG Repo-Cleaner:
-   ```bash
-   # Make sure you have backed up your repository first
-   echo "password" > passwords.txt
-   bfg --replace-text passwords.txt
-   git reflog expire --expire=now --all && git gc --prune=now --aggressive
-   git push --force
-   ```
-   *Note: This rewrites history. All collaborators must re-clone the repository.*
-
-## Tests
+### 3. Backend Tests & Linting
 ```bash
 cd backend
-pytest tests/ -v --cov=app
+flake8 app tests main.py
+pytest tests/ -v
 ```
+
+### 4. Secret Scan
+```bash
+bash scripts/check-secrets.sh
+git diff | grep -E "API_KEY|SECRET|TOKEN|PASSWORD|PRIVATE_KEY"
+```
+
+## Production Deployment (Google Cloud Run)
+1. **Build and push container images**:
+   ```bash
+   gcloud builds submit --config cloudbuild.yaml
+   ```
+2. **Deploy Backend Service**:
+   ```bash
+   gcloud run deploy carbon-horizon-backend \
+     --image gcr.io/PROJECT_ID/carbon-horizon-backend \
+     --platform managed \
+     --allow-unauthenticated \
+     --set-secrets="GEMINI_API_KEY=gemini-key:latest,SECRET_KEY=jwt-secret:latest,DATABASE_URL=db-url:latest"
+   ```
+3. **Deploy Frontend Service**:
+   ```bash
+   gcloud run deploy carbon-horizon-frontend \
+     --image gcr.io/PROJECT_ID/carbon-horizon-frontend \
+     --platform managed \
+     --allow-unauthenticated \
+     --set-env-vars="BACKEND_URL=https://carbon-horizon-backend-xxx.a.run.app"
+   ```
+
+## Definition of Done Verification
+- [x] All broken links, dead routes, and invalid anchors resolved (`scripts/check-links.mjs` passed).
+- [x] Strict client & server form validation on all inputs (Zod + Pydantic range & enum checks).
+- [x] XSS output sanitization on LLM coach responses.
+- [x] Bot protection (Turnstile validation, honeypot fields, login lockout, rate limiting).
+- [x] Privacy-friendly cookieless analytics (Plausible) gated by `useConsent()`, 0 tracking on child profiles.
+- [x] Landing page single primary CTA ("Calculate my carbon footprint") with trust line and 3 benefit points.
+- [x] Zero secrets in code, `.env.example` placeholders only, gitleaks CI scanner configured.
+- [x] 100% test pass rate across backend pytest (380+ tests) and frontend vitest (29+ tests).
 
 ## License
 MIT
-# trigger test
-

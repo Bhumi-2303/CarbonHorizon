@@ -98,12 +98,12 @@ export default function LittleExplorerDashboard() {
           </div>
           <div className="space-y-4">
             <div className="bg-white/10/50 p-4 rounded-xl border border-slate-700">
-              <h3 className="font-bold text-sky-300 text-lg">Turn off the water while brushing teeth!</h3>
-              <p className="text-slate-400 mt-1 flex items-center gap-2"><Droplet className="w-4 h-4 text-blue-400"/> Keeps the rivers full for the fish.</p>
+              <h3 className="font-bold text-sky-800 dark:text-sky-300 text-lg">Turn off the water while brushing teeth!</h3>
+              <p className="text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-2"><Droplet className="w-4 h-4 text-blue-400"/> Keeps the rivers full for the fish.</p>
             </div>
             <div className="bg-white/10/50 p-4 rounded-xl border border-slate-700">
-              <h3 className="font-bold text-amber-300 text-lg">Turn off the lights when leaving a room!</h3>
-              <p className="text-slate-400 mt-1 flex items-center gap-2"><Sun className="w-4 h-4 text-amber-400"/> Helps the trees rest at night.</p>
+              <h3 className="font-bold text-amber-800 dark:text-amber-300 text-lg">Turn off the lights when leaving a room!</h3>
+              <p className="text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-2"><Sun className="w-4 h-4 text-amber-400"/> Helps the trees rest at night.</p>
             </div>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function LittleExplorerDashboard() {
         <h2 className="text-2xl font-bold text-primary font-poppins mb-6 flex items-center gap-3">
           <TreePine className="w-6 h-6 text-emerald-400" /> Nature Learning Corner
         </h2>
-        <div className="flex gap-4 overflow-x-auto pb-4 snap-x">
+        <div tabIndex={0} role="region" aria-label="Nature Learning Corner ranks" className="flex gap-4 overflow-x-auto pb-4 snap-x focus:outline-none focus:ring-1 focus:ring-emerald-400">
           <div className="min-w-[250px] bg-gradient-to-br from-emerald-900/50 to-slate-900 p-6 rounded-2xl border border-emerald-500/30 snap-start">
             <Leaf className="w-12 h-12 text-emerald-400 mb-4" />
             <h3 className="text-xl font-bold text-primary mb-2">Planet Protector</h3>
@@ -168,33 +168,33 @@ export default function LittleExplorerDashboard() {
           <Award className="w-6 h-6 text-amber-400" /> My Badges
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4">
-          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 10 ? 'bg-amber-400/20 border border-amber-400/50' : 'bg-white/10/30 opacity-50 border border-slate-700'}`}>
+          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 10 ? 'bg-amber-400/20 border border-amber-400/50' : 'bg-bg-secondary/40 border border-dashed border-slate-700/60'}`}>
             <Sun className={`w-10 h-10 mb-2 ${score >= 10 ? 'text-amber-400' : 'text-slate-500'}`} />
-            <span className="text-sm font-bold text-primary">First Step</span>
+            <span className={`text-sm font-bold ${score >= 10 ? 'text-primary' : 'text-slate-600 dark:text-slate-400'}`}>First Step</span>
           </div>
-          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 20 ? 'bg-sky-400/20 border border-sky-400/50' : 'bg-white/10/30 opacity-50 border border-slate-700'}`}>
+          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 20 ? 'bg-sky-400/20 border border-sky-400/50' : 'bg-bg-secondary/40 border border-dashed border-slate-700/60'}`}>
             <Droplet className={`w-10 h-10 mb-2 ${score >= 20 ? 'text-sky-400' : 'text-slate-500'}`} />
-            <span className="text-sm font-bold text-primary">Water Saver</span>
+            <span className={`text-sm font-bold ${score >= 20 ? 'text-primary' : 'text-slate-600 dark:text-slate-400'}`}>Water Saver</span>
           </div>
-          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 40 ? 'bg-emerald-400/20 border border-emerald-400/50' : 'bg-white/10/30 opacity-50 border border-slate-700'}`}>
+          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 40 ? 'bg-emerald-400/20 border border-emerald-400/50' : 'bg-bg-secondary/40 border border-dashed border-slate-700/60'}`}>
             <Leaf className={`w-10 h-10 mb-2 ${score >= 40 ? 'text-emerald-400' : 'text-slate-500'}`} />
-            <span className="text-sm font-bold text-primary">Tree Hugger</span>
+            <span className={`text-sm font-bold ${score >= 40 ? 'text-primary' : 'text-slate-600 dark:text-slate-400'}`}>Tree Hugger</span>
           </div>
-          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 60 ? 'bg-rose-400/20 border border-rose-400/50' : 'bg-white/10/30 opacity-50 border border-slate-700'}`}>
+          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 60 ? 'bg-rose-400/20 border border-rose-400/50' : 'bg-bg-secondary/40 border border-dashed border-slate-700/60'}`}>
             <Flame className={`w-10 h-10 mb-2 ${score >= 60 ? 'text-rose-400' : 'text-slate-500'}`} />
-            <span className="text-sm font-bold text-primary">Energy Hero</span>
+            <span className={`text-sm font-bold ${score >= 60 ? 'text-primary' : 'text-slate-600 dark:text-slate-400'}`}>Energy Hero</span>
           </div>
-          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 75 ? 'bg-purple-400/20 border border-purple-400/50' : 'bg-white/10/30 opacity-50 border border-slate-700'}`}>
+          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 75 ? 'bg-purple-400/20 border border-purple-400/50' : 'bg-bg-secondary/40 border border-dashed border-slate-700/60'}`}>
             <Wind className={`w-10 h-10 mb-2 ${score >= 75 ? 'text-purple-400' : 'text-slate-500'}`} />
-            <span className="text-sm font-bold text-primary">Sky Cleaner</span>
+            <span className={`text-sm font-bold ${score >= 75 ? 'text-primary' : 'text-slate-600 dark:text-slate-400'}`}>Sky Cleaner</span>
           </div>
-          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 90 ? 'bg-teal-400/20 border border-teal-400/50' : 'bg-white/10/30 opacity-50 border border-slate-700'}`}>
+          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 90 ? 'bg-teal-400/20 border border-teal-400/50' : 'bg-bg-secondary/40 border border-dashed border-slate-700/60'}`}>
             <TreePine className={`w-10 h-10 mb-2 ${score >= 90 ? 'text-teal-400' : 'text-slate-500'}`} />
-            <span className="text-sm font-bold text-primary">Forest Friend</span>
+            <span className={`text-sm font-bold ${score >= 90 ? 'text-primary' : 'text-slate-600 dark:text-slate-400'}`}>Forest Friend</span>
           </div>
-          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 95 ? 'bg-amber-400/20 border border-amber-400/50 shadow-lg shadow-amber-400/20' : 'bg-white/10/30 opacity-50 border border-slate-700'}`}>
+          <div className={`flex flex-col items-center text-center p-4 rounded-xl ${score >= 95 ? 'bg-amber-400/20 border border-amber-400/50 shadow-lg shadow-amber-400/20' : 'bg-bg-secondary/40 border border-dashed border-slate-700/60'}`}>
             <Award className={`w-10 h-10 mb-2 ${score >= 95 ? 'text-amber-400' : 'text-slate-500'}`} />
-            <span className="text-sm font-bold text-primary">Earth Champion</span>
+            <span className={`text-sm font-bold ${score >= 95 ? 'text-primary' : 'text-slate-600 dark:text-slate-400'}`}>Earth Champion</span>
           </div>
         </div>
       </div>

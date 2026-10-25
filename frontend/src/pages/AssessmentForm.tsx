@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { useNavigate } from 'react-router-dom'
 import { assessmentApi } from '@/api/assessment'
 import { useAuth } from '@/context/AuthContext'
+import { track } from '@/analytics'
+import { useConsent } from '@/context/ConsentContext'
 import { 
   Car, Zap, Salad, Droplets, Trash2, 
   Home, Laptop, ShoppingBag, Briefcase, MapPin, Leaf, CheckCircle
@@ -156,7 +158,7 @@ function SelectCard({ options, value, onChange }: any) {
               active ? 'border-earth-green bg-earth-green/10' : 'border-slate-700 bg-white/5'
             }`}
           >
-            <span className={`text-sm font-medium ${active ? 'text-emerald-300' : 'text-primary'}`}>
+            <span className={`text-sm font-medium ${active ? 'text-emerald-800 dark:text-emerald-300' : 'text-primary'}`}>
               {opt.label}
             </span>
           </button>
@@ -188,6 +190,7 @@ function Toggle({ checked, onChange, label, description }: any) {
 export default function AssessmentForm() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { canTrackAnalytics } = useConsent()
   const [step, setStep] = useState(1)
   const [apiError, setApiError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -220,6 +223,14 @@ export default function AssessmentForm() {
     setIsSubmitting(true)
     try {
       const result = await assessmentApi.create({ ...data, assessment_period: 'monthly' })
+      track(
+        'assessment_completed',
+        {
+          total_carbon_kg: result?.total_emission,
+          is_repeat: false,
+        },
+        { canTrackAnalytics }
+      )
       navigate('/assessment/result', { state: { assessmentResult: result }, replace: true })
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'Submission failed.')
@@ -232,11 +243,11 @@ export default function AssessmentForm() {
     <div className="min-h-screen bg-bg-primary flex items-center justify-center p-4 py-10">
       <div className="relative w-full max-w-2xl">
         {/* Progress Header */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div tabIndex={0} role="region" aria-label="Assessment progress steps" className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide focus:outline-none focus:ring-1 focus:ring-earth-green">
           {STEPS.map((s) => (
-            <div key={s.id} className="flex flex-col items-center min-w-[60px] gap-1 opacity-80" style={s.id === step ? { opacity: 1 } : {}}>
+            <div key={s.id} className={`flex flex-col items-center min-w-[60px] gap-1 ${s.id === step ? 'text-primary' : 'text-slate-600 dark:text-slate-400'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                s.id < step ? 'bg-earth-green text-primary' : s.id === step ? 'bg-earth-green/20 ring-2 ring-earth-green text-earth-green' : 'bg-bg-secondary text-muted'
+                s.id < step ? 'bg-emerald-600 text-white' : s.id === step ? 'bg-earth-green/20 ring-2 ring-earth-green text-earth-green' : 'bg-bg-secondary text-muted'
               }`}>
                 {s.icon}
               </div>
@@ -544,7 +555,7 @@ export default function AssessmentForm() {
               </button>
             )}
             {step < STEPS.length ? (
-              <button type="button" onClick={goNext} className="px-6 py-2.5 rounded-xl bg-earth-green text-primary font-semibold hover:bg-emerald-500 transition-colors">
+              <button type="button" onClick={goNext} className="px-6 py-2.5 rounded-xl bg-emerald-700 text-white font-semibold hover:bg-emerald-600 transition-colors">
                 Next
               </button>
             ) : (

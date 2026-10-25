@@ -2,6 +2,14 @@ __pycache__/
 *.pyc
 *.pyo
 .env
+.env.*
+!.env.example
+credentials.json
+service-account.json
+*.key
+*.pem
+secrets.json
+secrets.yaml
 .venv/
 *.egg-info/
 dist/

@@ -24,11 +24,18 @@ export interface RegisterPayload {
   country: string
   state_province: string
   city: string
+  terms_accepted?: boolean
+  terms_version?: string
+  terms_accepted_at?: string
+  honeypot?: string
+  turnstile_token?: string
 }
 
 export interface LoginPayload {
   email: string
   password: string
+  honeypot?: string
+  turnstile_token?: string
 }
 
 export interface TokenResponse {

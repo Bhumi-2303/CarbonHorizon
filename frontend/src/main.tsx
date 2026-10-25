@@ -6,6 +6,7 @@ import App from './App'
 import { store } from './store'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { ConsentProvider } from './context/ConsentContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -15,7 +16,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         {/* AuthProvider must be inside BrowserRouter so it can call navigate */}
         <AuthProvider>
           <ThemeProvider>
-            <App />
+            <ConsentProvider>
+              <App />
+            </ConsentProvider>
           </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>

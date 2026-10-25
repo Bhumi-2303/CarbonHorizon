@@ -1,0 +1,21 @@
+# Gitleaks configuration for Carbon Horizon
+title = "Carbon Horizon Gitleaks Config"
+
+[allowlist]
+description = "Global allowlist for example configs and test fixtures"
+paths = [
+    '''(?i)\.env\.example$''',
+    '''(?i)frontend/\.env\.example$''',
+    '''(?i)backend/\.env\.example$''',
+    '''(?i)backend/tests/.*''',
+    '''(?i)frontend/src/.*\.test\..*''',
+]
+regexes = [
+    '''your_gemini_api_key_here''',
+    '''replace_with_openssl_rand_hex_32''',
+    '''changeme_use_strong_password''',
+    '''your_super_secret_jwt_key_here''',
+    '''supersecretproductionkeythats32chars''',
+    '''test-secret-key-32-chars-minimum-for-testing''',
+    '''test-secret-key''',
+]

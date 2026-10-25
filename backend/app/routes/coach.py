@@ -12,6 +12,8 @@ from app.schemas.coach import (
 )
 from app.services import coach_service
 from app.core.rate_limit import limiter
+from app.core.client_ip import get_trusted_client_ip
+from app.core.turnstile import verify_turnstile_token
 
 router = APIRouter()
 
@@ -22,7 +24,7 @@ router = APIRouter()
     status_code=status.HTTP_200_OK,
 )
 @limiter.limit("20/minute")
-def chat_with_coach(
+async def chat_with_coach(
     request: Request,
     payload: ChatRequest,
     db: Session = Depends(get_db),
@@ -31,6 +33,8 @@ def chat_with_coach(
     """
     Send a message to the AI Sustainability Coach.
     """
+    client_ip = get_trusted_client_ip(request)
+    await verify_turnstile_token(payload.turnstile_token, remote_ip=client_ip)
     import logging
 
     logging.info("COACH_ROUTE_VERSION_2")
@@ -55,7 +59,9 @@ def chat_with_coach(
 @router.get(
     "/history", response_model=APIResponse[ConversationHistoryResponse]
 )
+@limiter.limit("60/minute")
 def get_chat_history(
+    request: Request,
     conversation_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

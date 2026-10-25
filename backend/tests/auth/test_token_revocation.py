@@ -13,85 +13,95 @@ import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta, timezone
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 import jwt
 import fakeredis.aioredis
 
 from app.core.config import settings
-from app.core.redis_client import set_redis, get_redis
-import app.core.redis_client as rc
+from app.core.redis_client import set_redis
 from app.core.security import (
     create_access_token,
-    create_refresh_token,
     decode_token,
     get_current_user,
     is_token_revoked,
-    revoke_token,
-    revoke_all_user_tokens,
 )
 from app.services import auth_service
-from app.schemas.auth import RefreshRequest, LogoutRequest
+from app.schemas.auth import RefreshRequest
 
 # Mark all tests in this module as asyncio tests
 pytestmark = pytest.mark.asyncio
 
+
 @pytest.fixture(autouse=True)
 def setup_fake_redis():
-    """Fixture to set up and tear down a fake Redis instance for every test."""
+    """Fixture to set up and tear down a fake Redis instance for test."""
     fake_r = fakeredis.aioredis.FakeRedis(decode_responses=True)
     set_redis(fake_r)
     yield fake_r
     set_redis(None)
 
+
 class TestJTIBlocklist:
     async def test_non_revoked_token_passes(self, db, make_user):
         user = make_user()
         token = create_access_token(subject=str(user.id))
-        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
-
-        # Checking if get_current_user succeeds
+        creds = HTTPAuthorizationCredentials(
+            scheme="Bearer", credentials=token
+        )
         retrieved_user = await get_current_user(creds, db)
         assert retrieved_user.id == user.id
 
-    async def test_revoked_token_raises_401(self, db, make_user, setup_fake_redis):
+    async def test_revoked_token_rejected_with_401(
+        self, setup_fake_redis, db, make_user
+    ):
         user = make_user()
         token = create_access_token(subject=str(user.id))
         claims = decode_token(token)
         jti = claims["jti"]
 
-        # Revoke the token
-        await revoke_token(jti, ttl_seconds=100)
+        # Blocklist the token
+        await setup_fake_redis.set(f"revoked_token:{jti}", "1")
 
-        # Verify it is revoked
-        assert await is_token_revoked(jti) is True
-
-        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+        creds = HTTPAuthorizationCredentials(
+            scheme="Bearer", credentials=token
+        )
         with pytest.raises(HTTPException) as exc_info:
             await get_current_user(creds, db)
         assert exc_info.value.status_code == 401
-        assert "revoked" in exc_info.value.detail
+        assert "revoked" in exc_info.value.detail.lower()
 
-    async def test_legacy_token_without_jti_passes(self, db, make_user):
+    async def test_token_without_jti_is_accepted_for_backwards_compatibility(
+        self, db, make_user
+    ):
         user = make_user()
-        # Create token manually without JTI claim
+        # Create token without JTI manually
         payload = {
             "sub": str(user.id),
             "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
             "type": "access",
         }
-        token = jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+        token = jwt.encode(
+            payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+        )
+        creds = HTTPAuthorizationCredentials(
+            scheme="Bearer", credentials=token
+        )
 
         # Verify it passes
         retrieved_user = await get_current_user(creds, db)
         assert retrieved_user.id == user.id
 
+
 class TestLogoutFlows:
-    async def test_logout_revokes_access_token(self, setup_fake_redis, db, make_user):
+    async def test_logout_revokes_access_token(
+        self, setup_fake_redis, db, make_user
+    ):
         user = make_user()
         # Login to generate token response
-        token_resp = await auth_service.login_user(db, user.email, "TestPass123!")
+        token_resp = await auth_service.login_user(
+            db, user.email, "TestPass123!"
+        )
 
         claims = decode_token(token_resp.access_token)
         jti = claims["jti"]
@@ -106,13 +116,17 @@ class TestLogoutFlows:
         # Should be blocklisted
         assert await is_token_revoked(jti) is True
 
-        # TTL should be set correctly (approx ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+        # TTL should be set correctly
         ttl = await setup_fake_redis.ttl(f"revoked_token:{jti}")
         assert 0 < ttl <= settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
-    async def test_logout_with_refresh_token(self, setup_fake_redis, db, make_user):
+    async def test_logout_with_refresh_token(
+        self, setup_fake_redis, db, make_user
+    ):
         user = make_user()
-        token_resp = await auth_service.login_user(db, user.email, "TestPass123!")
+        token_resp = await auth_service.login_user(
+            db, user.email, "TestPass123!"
+        )
 
         access_claims = decode_token(token_resp.access_token)
         refresh_claims = decode_token(token_resp.refresh_token)
@@ -127,9 +141,13 @@ class TestLogoutFlows:
         assert await is_token_revoked(access_claims["jti"]) is True
         assert await is_token_revoked(refresh_claims["jti"]) is True
 
-    async def test_logout_expired_refresh_token_graceful(self, setup_fake_redis, db, make_user):
+    async def test_logout_expired_refresh_token_graceful(
+        self, setup_fake_redis, db, make_user
+    ):
         user = make_user()
-        token_resp = await auth_service.login_user(db, user.email, "TestPass123!")
+        token_resp = await auth_service.login_user(
+            db, user.email, "TestPass123!"
+        )
         access_claims = decode_token(token_resp.access_token)
 
         # Create an expired refresh token manually
@@ -139,7 +157,9 @@ class TestLogoutFlows:
             "type": "refresh",
             "jti": "some-jti"
         }
-        expired_token = jwt.encode(expired_payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        expired_token = jwt.encode(
+            expired_payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+        )
 
         # Should not crash
         await auth_service.logout(
@@ -149,7 +169,9 @@ class TestLogoutFlows:
         )
         assert await is_token_revoked(access_claims["jti"]) is True
 
-    async def test_logout_all_revokes_all_sessions(self, setup_fake_redis, db, make_user):
+    async def test_logout_all_revokes_all_sessions(
+        self, setup_fake_redis, db, make_user
+    ):
         user = make_user()
 
         # Simulate logging in twice
@@ -166,10 +188,15 @@ class TestLogoutFlows:
         assert await is_token_revoked(claims1["jti"]) is True
         assert await is_token_revoked(claims2["jti"]) is True
 
+
 class TestRefreshTokenRotation:
-    async def test_refresh_token_rotation_and_revocation(self, setup_fake_redis, db, make_user):
+    async def test_refresh_token_rotation_and_revocation(
+        self, setup_fake_redis, db, make_user
+    ):
         user = make_user()
-        token_resp = await auth_service.login_user(db, user.email, "TestPass123!")
+        token_resp = await auth_service.login_user(
+            db, user.email, "TestPass123!"
+        )
 
         old_refresh_claims = decode_token(token_resp.refresh_token)
         old_refresh_jti = old_refresh_claims["jti"]
@@ -191,53 +218,65 @@ class TestRefreshTokenRotation:
         assert exc_info.value.status_code == 401
         assert "Session expired" in exc_info.value.detail
 
+
 class TestRedisFailPolicies:
     async def test_fail_closed_policy_default(self, db, make_user):
         # Set REDIS_FAIL_OPEN to False
         with patch("app.core.security.settings.REDIS_FAIL_OPEN", False):
-            # Mock get_redis to return a client that raises connection error
             mock_client = MagicMock()
 
-            # Since is_token_revoked is async, its call to exists must be awaited.
-            # We mock the exists method as an async function.
             async def mock_exists(*args, **kwargs):
                 raise Exception("Redis Connection Refused")
             mock_client.exists = mock_exists
 
-            with patch("app.core.redis_client.get_redis", return_value=mock_client):
+            with patch(
+                "app.core.redis_client.get_redis", return_value=mock_client
+            ):
                 user = make_user()
                 token = create_access_token(subject=str(user.id))
-                creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+                creds = HTTPAuthorizationCredentials(
+                    scheme="Bearer", credentials=token
+                )
 
                 # Should raise 503 Service Unavailable
                 with pytest.raises(HTTPException) as exc_info:
                     await get_current_user(creds, db)
                 assert exc_info.value.status_code == 503
-                assert "Authentication service temporarily unavailable" in exc_info.value.detail
+                assert "Authentication service temporarily unavailable" in (
+                    exc_info.value.detail
+                )
 
     async def test_fail_open_policy(self, db, make_user):
         # Set REDIS_FAIL_OPEN to True
         with patch("app.core.security.settings.REDIS_FAIL_OPEN", True):
-            # Mock get_redis to return a client that raises connection error
             mock_client = MagicMock()
 
             async def mock_exists(*args, **kwargs):
                 raise Exception("Redis Connection Refused")
             mock_client.exists = mock_exists
 
-            with patch("app.core.redis_client.get_redis", return_value=mock_client):
+            with patch(
+                "app.core.redis_client.get_redis", return_value=mock_client
+            ):
                 user = make_user()
                 token = create_access_token(subject=str(user.id))
-                creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+                creds = HTTPAuthorizationCredentials(
+                    scheme="Bearer", credentials=token
+                )
 
                 # Should proceed and succeed
                 retrieved_user = await get_current_user(creds, db)
                 assert retrieved_user.id == user.id
 
+
 class TestEndpointIntegration:
     async def test_full_integration_flow(self, client, db, test_user):
         # 1. Login
-        login_payload = {"email": test_user.email, "password": "GoodPass42!"}
+        login_payload = {
+            "email": test_user.email,
+            "password": "GoodPass42!",
+            "turnstile_token": "test-turnstile-token",
+        }
         resp = client.post("/api/v1/auth/login", json=login_payload)
         assert resp.status_code == 200
         data = resp.json()["data"]
@@ -251,7 +290,9 @@ class TestEndpointIntegration:
 
         # 3. Logout
         logout_payload = {"refresh_token": refresh_token}
-        logout_resp = client.post("/api/v1/auth/logout", json=logout_payload, headers=headers)
+        logout_resp = client.post(
+            "/api/v1/auth/logout", json=logout_payload, headers=headers
+        )
         assert logout_resp.status_code == 200
 
         # 4. Try accessing protected endpoint again -> should fail with 401
@@ -260,12 +301,18 @@ class TestEndpointIntegration:
 
         # 5. Try using refresh token -> should fail with 401
         refresh_payload = {"refresh_token": refresh_token}
-        refresh_resp = client.post("/api/v1/auth/refresh", json=refresh_payload)
+        refresh_resp = client.post(
+            "/api/v1/auth/refresh", json=refresh_payload
+        )
         assert refresh_resp.status_code == 401
 
     async def test_deactivate_account_revokes_sessions(self, client, test_user):
         # 1. Login
-        login_payload = {"email": test_user.email, "password": "GoodPass42!"}
+        login_payload = {
+            "email": test_user.email,
+            "password": "GoodPass42!",
+            "turnstile_token": "test-turnstile-token",
+        }
         resp = client.post("/api/v1/auth/login", json=login_payload)
         assert resp.status_code == 200
         access_token = resp.json()["data"]["access_token"]
@@ -275,9 +322,10 @@ class TestEndpointIntegration:
         delete_resp = client.delete("/api/v1/auth/account", headers=headers)
         assert delete_resp.status_code == 204
 
-        # 3. Requesting again with same token should fail with 401 because session was revoked
+        # 3. Requesting again with same token should fail with 401
         profile_resp = client.get("/api/v1/auth/profile", headers=headers)
         assert profile_resp.status_code == 401
+
 
 class TestLatencyBenchmark:
     async def test_exists_check_latency(self, setup_fake_redis):
@@ -292,4 +340,4 @@ class TestLatencyBenchmark:
 
         avg_latency_ms = ((end_time - start_time) / iterations) * 1000
         print(f"\nAverage Redis EXISTS check latency: {avg_latency_ms:.4f} ms")
-        assert avg_latency_ms < 5.0  # Must be sub-millisecond to single-digit millisecond
+        assert avg_latency_ms < 5.0

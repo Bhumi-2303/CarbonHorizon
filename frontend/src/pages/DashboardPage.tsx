@@ -277,17 +277,51 @@ export default function DashboardPage() {
         {/* 2. Emission Breakdown */}
         <div className="glass-card lg:col-span-1 flex flex-col">
           <h3 className="heading-md text-primary mb-6">Footprint Breakdown</h3>
-          <div className="flex-1 relative min-h-[250px]">
-            <Doughnut data={donutData} options={donutOptions} />
+          <div className="flex-1 relative min-h-[250px]" role="region" aria-label="Footprint breakdown chart">
+            <Doughnut data={donutData} options={donutOptions} aria-label="Doughnut chart of carbon emissions by category" />
+            <div className="sr-only">
+              <h4>Footprint Breakdown Summary</h4>
+              <table>
+                <caption>Carbon emissions breakdown by category</caption>
+                <thead>
+                  <tr><th scope="col">Category</th><th scope="col">Emissions (kg CO₂e)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Transport</td><td>{latest.transport_emission}</td></tr>
+                  <tr><td>Energy</td><td>{latest.energy_emission}</td></tr>
+                  <tr><td>Food</td><td>{latest.food_emission}</td></tr>
+                  <tr><td>Waste</td><td>{latest.waste_emission}</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
         {/* 3. Assessment History */}
         <div className="glass-card lg:col-span-2 flex flex-col">
           <h3 className="heading-md text-primary mb-6">Emissions Trend</h3>
-          <div className="flex-1 relative min-h-[250px]">
+          <div className="flex-1 relative min-h-[250px]" role="region" aria-label="Emissions trend chart">
             {sortedHist.length > 1 ? (
-              <Line data={lineData} options={lineOptions} />
+              <>
+                <Line data={lineData} options={lineOptions} aria-label="Line chart of emissions history" />
+                <div className="sr-only">
+                  <h4>Emissions Trend Summary</h4>
+                  <table>
+                    <caption>Historical carbon scores over time</caption>
+                    <thead>
+                      <tr><th scope="col">Date</th><th scope="col">Carbon Score</th></tr>
+                    </thead>
+                    <tbody>
+                      {sortedHist.map((h, i) => (
+                        <tr key={i}>
+                          <td>{new Date(h.created_at).toLocaleDateString()}</td>
+                          <td>{h.carbon_score.toFixed(1)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-muted">
                 <p>Complete another assessment to see your trend over time.</p>

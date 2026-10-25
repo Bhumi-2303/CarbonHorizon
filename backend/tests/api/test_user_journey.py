@@ -37,6 +37,8 @@ def test_full_user_journey(client, db, mock_gemini):
             "full_name": "Journey User",
             "email": email,
             "password": password,
+            "terms_accepted": True,
+            "terms_version": "2026-10-24",
         },
     )
     assert reg_res.status_code == 201

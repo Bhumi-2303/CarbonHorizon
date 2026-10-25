@@ -16,6 +16,15 @@ import { FormField } from '@/components/ui/FormField'
 import { useAuth } from '@/context/AuthContext'
 import { authApi } from '@/api/auth'
 import { OCCUPATIONS, isOccupationValidForAge, getOccupationLockReason } from '@/config/occupations'
+import Seo from '@/components/Seo'
+import { SEO_PAGES } from '@/config/seo'
+import { track } from '@/analytics'
+import { useConsent } from '@/context/ConsentContext'
+import {
+  loadGeoDataOnDemand,
+  preloadGeoDataIdle,
+  type GeoDataModule,
+} from '@/services/geoService'
 
 // ─── Zod schema ──────────────────────────────────────────────────────────────
 
@@ -31,7 +40,17 @@ const registerSchema = z.object({
     .max(128, 'Password is too long')
     .refine((v) => !/^\d+$/.test(v), {
       message: 'Password must not be all digits',
+    })
+    .refine((v) => /[A-Z]/.test(v), {
+      message: 'Password must contain at least one uppercase letter',
+    })
+    .refine((v) => /[a-z]/.test(v), {
+      message: 'Password must contain at least one lowercase letter',
+    })
+    .refine((v) => /[0-9]/.test(v), {
+      message: 'Password must contain at least one number',
     }),
+  honeypot: z.string().optional(),
   age: z.coerce.number().int().min(1, 'Age is required').max(150, 'Invalid age'),
   gender: z.enum(['Male', 'Female', 'Non-Binary', 'Prefer Not to Say']),
   age_group: z
@@ -45,6 +64,9 @@ const registerSchema = z.object({
   country: z.string().min(1, 'Country is required'),
   state_province: z.string().min(1, 'State/Province is required'),
   city: z.string().min(1, 'City is required'),
+  terms_accepted: z.boolean().refine((val) => val === true, {
+    message: 'You must accept the Terms of Service and Privacy Policy',
+  }),
 })
 
 type RegisterFormData = z.infer<typeof registerSchema>
@@ -66,6 +88,21 @@ const GENDER_OPTIONS = [
   { value: 'Non-Binary', label: 'Non-Binary' },
   { value: 'Prefer Not to Say', label: 'Prefer Not to Say' },
 ]
+
+function getPasswordStrength(password: string): { score: number; label: string; color: string } {
+  if (!password) return { score: 0, label: 'Empty', color: 'bg-white/10' }
+  let score = 0
+  if (password.length >= 8) score++
+  if (/[A-Z]/.test(password)) score++
+  if (/[a-z]/.test(password)) score++
+  if (/[0-9]/.test(password)) score++
+  if (/[^A-Za-z0-9]/.test(password)) score++
+
+  if (score <= 2) return { score: 1, label: 'Weak', color: 'bg-red-500' }
+  if (score <= 3) return { score: 2, label: 'Fair', color: 'bg-amber-500' }
+  if (score <= 4) return { score: 3, label: 'Good', color: 'bg-blue-500' }
+  return { score: 4, label: 'Strong', color: 'bg-emerald-500' }
+}
 
 // ─── Spinner icon ─────────────────────────────────────────────────────────────
 
@@ -100,15 +137,20 @@ function EyeOffIcon() {
 export default function Register() {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { canTrackAnalytics } = useConsent()
   const [apiError, setApiError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
-  const [geoData, setGeoData] = useState<{ Country: any, State: any, City: any } | null>(null)
+  const [geoData, setGeoData] = useState<GeoDataModule | null>(null)
 
-  // Load huge country data dynamically
   useEffect(() => {
-    import('country-state-city').then((mod) => {
-      setGeoData({ Country: mod.Country, State: mod.State, City: mod.City })
+    track('signup_started', { source: 'register_form' }, { canTrackAnalytics })
+  }, [canTrackAnalytics])
+
+  // Defer heavy location database loading to idle period
+  useEffect(() => {
+    return preloadGeoDataIdle((data) => {
+      setGeoData(data)
     })
   }, [])
 
@@ -132,6 +174,8 @@ export default function Register() {
       country: '',
       state_province: '',
       city: '',
+      terms_accepted: false,
+      honeypot: '',
     },
   })
 
@@ -139,6 +183,8 @@ export default function Register() {
   const selectedCountryCode = watch('country')
   const selectedStateCode = watch('state_province')
   const currentAge = watch('age')
+  const watchedPassword = watch('password') || ''
+  const passwordStrength = useMemo(() => getPasswordStrength(watchedPassword), [watchedPassword])
 
   const lifestyleOptions = useMemo(() => {
     return OCCUPATIONS.map((occ) => {
@@ -180,8 +226,25 @@ export default function Register() {
     setApiError(null)
     try {
       // Resolve names for backend instead of ISO codes
-      const countryObj = geoData ? geoData.Country.getCountryByCode(data.country) : null
-      const stateObj = geoData ? geoData.State.getStateByCodeAndCountry(data.state_province, data.country) : null
+      const geo = geoData || await loadGeoDataOnDemand()
+      const countryObj = geo ? geo.Country.getCountryByCode(data.country) : null
+      const stateObj = geo ? geo.State.getStateByCodeAndCountry(data.state_province, data.country) : null
+
+      const termsTimestamp = new Date().toISOString()
+      const termsVersion = '2026-v1'
+
+      try {
+        localStorage.setItem(
+          'ch_terms_acceptance',
+          JSON.stringify({
+            accepted: true,
+            version: termsVersion,
+            timestamp: termsTimestamp,
+          })
+        )
+      } catch (err) {
+        console.error('Failed to store terms acceptance', err)
+      }
 
       const payload = {
         full_name: data.full_name,
@@ -192,6 +255,11 @@ export default function Register() {
         country: countryObj ? countryObj.name : data.country,
         state_province: stateObj ? stateObj.name : data.state_province,
         city: data.city,
+        terms_accepted: true,
+        terms_version: termsVersion,
+        terms_accepted_at: termsTimestamp,
+        honeypot: data.honeypot || '',
+        turnstile_token: 'test-turnstile-token',
         ...(data.age_group ? { age_group: data.age_group as any } : {}),
         ...(data.lifestyle_type ? { lifestyle_type: data.lifestyle_type as any } : {}),
       }
@@ -216,6 +284,7 @@ export default function Register() {
 
   return (
     <AuthLayout title="Create your account" subtitle="Start tracking your carbon footprint today">
+      <Seo {...SEO_PAGES.signup} />
       {/* @ts-expect-error: handleSubmit type mismatch */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
 
@@ -278,6 +347,37 @@ export default function Register() {
           </button>
         </div>
 
+        {/* Password Strength Meter */}
+        {watchedPassword.length > 0 && (
+          <div className="space-y-1.5" aria-live="polite">
+            <div className="flex justify-between text-xs text-muted">
+              <span>Password strength</span>
+              <span className="font-medium text-primary">{passwordStrength.label}</span>
+            </div>
+            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden flex gap-1">
+              {[1, 2, 3, 4].map((step) => (
+                <div
+                  key={step}
+                  className={`h-full flex-1 transition-all duration-300 ${
+                    step <= passwordStrength.score ? passwordStrength.color : 'bg-white/10'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Hidden Honeypot for bot protection */}
+        <input
+          type="text"
+          id="honeypot"
+          autoComplete="off"
+          tabIndex={-1}
+          aria-hidden="true"
+          className="hidden opacity-0 absolute -z-10 w-0 h-0 pointer-events-none"
+          {...register('honeypot')}
+        />
+
         {/* Age + Gender */}
         <div className="grid grid-cols-2 gap-3">
           <FormField
@@ -329,10 +429,12 @@ export default function Register() {
           as="select"
           fieldId="country"
           label="Country"
-          placeholder="Select Country…"
+          placeholder={countryOptions.length === 0 ? "Select Country (click to load)…" : "Select Country…"}
           required
           options={countryOptions}
           error={errors.country?.message as string}
+          onFocus={() => loadGeoDataOnDemand().then(setGeoData)}
+          onPointerDown={() => loadGeoDataOnDemand().then(setGeoData)}
           {...register('country', {
             onChange: () => {
               setValue('state_province', '')
@@ -368,6 +470,33 @@ export default function Register() {
             error={errors.city?.message as string}
             {...register('city')}
           />
+        </div>
+
+        {/* Terms & Privacy Acceptance */}
+        <div className="pt-1">
+          <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-300">
+            <input
+              type="checkbox"
+              {...register('terms_accepted')}
+              className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 text-earth-green focus:ring-earth-green shrink-0 cursor-pointer"
+            />
+            <span>
+              I agree to the{' '}
+              <Link to="/terms" target="_blank" rel="noopener noreferrer" className="text-earth-green underline hover:text-emerald-300 font-medium">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="text-earth-green underline hover:text-emerald-300 font-medium">
+                Privacy Policy
+              </Link>
+              . I confirm that users under 13 have parental or guardian consent.
+            </span>
+          </label>
+          {errors.terms_accepted && (
+            <p className="mt-1 text-xs text-red-400">
+              {errors.terms_accepted.message as string}
+            </p>
+          )}
         </div>
 
         {/* Submit */}

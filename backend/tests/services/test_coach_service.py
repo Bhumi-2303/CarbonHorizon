@@ -201,6 +201,49 @@ def test_coach_rate_limit(client, db, auth_headers, mock_gemini):
     assert all(status in [200, 429] for status in responses)
 
 
+def test_coach_chat_rate_limit_exceeded(client, auth_headers, mock_gemini):
+    from app.core.rate_limit import limiter
+    limiter.enabled = True
+    try:
+        payload = {"message": "Quick message"}
+        hit_429 = False
+        for _ in range(25):
+            resp = client.post(
+                "/api/v1/coach/chat", json=payload, headers=auth_headers
+            )
+            if resp.status_code == 429:
+                hit_429 = True
+                break
+        assert hit_429, (
+            "Expected 429 Too Many Requests when exceeding rate limit on "
+            "/coach/chat"
+        )
+    finally:
+        limiter.enabled = False
+
+
+def test_coach_history_rate_limit_exceeded(client, auth_headers):
+    from app.core.rate_limit import limiter
+    limiter.enabled = True
+    try:
+        conv_id = str(uuid4())
+        hit_429 = False
+        for _ in range(65):
+            resp = client.get(
+                f"/api/v1/coach/history?conversation_id={conv_id}",
+                headers=auth_headers,
+            )
+            if resp.status_code == 429:
+                hit_429 = True
+                break
+        assert hit_429, (
+            "Expected 429 Too Many Requests when exceeding rate limit on "
+            "/coach/history"
+        )
+    finally:
+        limiter.enabled = False
+
+
 def test_coach_gemini_api_key_missing(client, auth_headers):
     with (
         patch("app.services.coach_service.settings.GEMINI_API_KEY", ""),

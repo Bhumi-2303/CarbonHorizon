@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 import { ErrorBoundary } from './ErrorBoundary'
+import Seo from './Seo'
 
 const PRIMARY_NAV = [
   { path: '/dashboard', label: 'Home', icon: Home },
@@ -72,12 +73,13 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col font-sans">
+      <Seo noindex={true} />
       <a href="#main-content" className="skip-to-content">
         Skip to main content
       </a>
       
       {/* ── Floating Navigation Bar (Desktop) ── */}
-      <header className="fixed top-4 left-4 right-4 z-50 flex items-center justify-between glass-card px-4 py-2 hidden md:flex transition-all duration-300">
+      <header className="fixed top-4 left-4 right-4 z-50 flex items-center justify-between bg-white dark:bg-[#141E19]/90 backdrop-blur-md glass-card px-4 py-2 hidden md:flex transition-all duration-300">
         
         {/* Brand / Logo */}
         <div className="flex items-center gap-3 pr-6 border-r border-slate-700/50">
@@ -98,8 +100,8 @@ export default function AppLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-accent/10 text-accent nav-glow'
-                    : 'text-slate-400 hover:text-primary hover:bg-white/5'
+                    ? 'bg-accent/15 text-emerald-800 dark:text-emerald-300 font-semibold nav-glow'
+                    : 'text-slate-700 dark:text-slate-400 hover:text-primary hover:bg-white/5'
                 }`
               }
             >
@@ -114,7 +116,7 @@ export default function AppLayout() {
               type="button"
               onClick={() => setMoreMenuOpen(!moreMenuOpen)}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                moreMenuOpen ? 'bg-white/10 text-primary' : 'text-slate-400 hover:text-primary hover:bg-white/5'
+                moreMenuOpen ? 'bg-white/10 text-primary' : 'text-slate-700 dark:text-slate-400 hover:text-primary hover:bg-white/5'
               }`}
               aria-expanded={moreMenuOpen}
               aria-haspopup="true"
@@ -131,7 +133,7 @@ export default function AppLayout() {
                     to={item.path}
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-white/5 hover:text-primary'
+                        isActive ? 'bg-accent/15 text-emerald-800 dark:text-emerald-300 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-white/5 hover:text-primary'
                       }`
                     }
                   >

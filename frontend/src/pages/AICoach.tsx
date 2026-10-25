@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { assessmentApi, type AssessmentResult } from '@/api/assessment'
 import { coachApi } from '@/api/coach'
 import { Leaf, MessageCircle, Send, MapPin } from 'lucide-react'
+import { track } from '@/analytics'
+import { useConsent } from '@/context/ConsentContext'
 
 // Local interface to handle optimistic UI updates
 interface UIContextMessage {
@@ -16,6 +18,7 @@ interface UIContextMessage {
 
 export default function AICoach() {
   const navigate = useNavigate()
+  const { canTrackAnalytics } = useConsent()
   
   // App context state
   const [baseline, setBaseline] = useState<AssessmentResult | null>(null)
@@ -25,6 +28,7 @@ export default function AICoach() {
   const [conversationId, setConversationId] = useState<string>('')
   const [messages, setMessages] = useState<UIContextMessage[]>([])
   const [input, setInput] = useState('')
+  const [honeypot, setHoneypot] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -100,9 +104,16 @@ export default function AICoach() {
     setIsTyping(true)
 
     try {
+      track(
+        'coach_question_asked',
+        { category: 'sustainability_advice' },
+        { canTrackAnalytics }
+      )
       const response = await coachApi.chat({
         ...(conversationId ? { conversation_id: conversationId } : {}),
-        message: userMsg
+        message: userMsg,
+        honeypot,
+        turnstile_token: 'test-turnstile-token',
       })
       
       if (!conversationId && response.conversation_id) {
@@ -216,8 +227,8 @@ export default function AICoach() {
                   <div className="glass-panel border border-slate-700/40 p-4 rounded-xl text-center">
                     <p className="text-sm text-muted mb-2">No assessment found.</p>
                     <button
-                      onClick={() => navigate('/assessment/new')}
-                      className="text-xs text-earth-green hover:text-emerald-300 underline underline-offset-2"
+                      onClick={() => navigate('/assessment')}
+                      className="text-xs text-emerald-800 dark:text-emerald-300 hover:underline underline-offset-2 font-medium"
                     >
                       Complete your first assessment
                     </button>
@@ -247,10 +258,10 @@ export default function AICoach() {
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth" role="log" aria-live="polite">
             {messages.length === 0 && !isTyping && (
-              <div className="h-full flex flex-col items-center justify-center text-center opacity-70">
-                <MessageCircle className="w-10 h-10 mb-4 text-muted" />
-                <p className="text-muted font-medium">No messages yet</p>
-                <p className="text-sm text-muted mt-2 max-w-lg">
+              <div className="h-full flex flex-col items-center justify-center text-center">
+                <MessageCircle className="w-10 h-10 mb-4 text-slate-500" />
+                <p className="text-slate-700 dark:text-slate-300 font-medium">No messages yet</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-lg">
                   Try asking how you can reduce your top emission source or ask for an eco-friendly recipe!
                 </p>
               </div>
@@ -321,6 +332,16 @@ export default function AICoach() {
           {/* Input Area */}
           <div className="p-4 glass-panel border-t border-slate-700/50 shrink-0">
             <form onSubmit={handleSend} className="relative flex items-end gap-2 max-w-4xl mx-auto" aria-label="Send message to Coach">
+              <input
+                type="text"
+                name="honeypot"
+                autoComplete="off"
+                tabIndex={-1}
+                aria-hidden="true"
+                className="hidden opacity-0 absolute -z-10 w-0 h-0 pointer-events-none"
+                value={honeypot}
+                onChange={e => setHoneypot(e.target.value)}
+              />
               <textarea
                 value={input}
                 onChange={e => setInput(e.target.value)}

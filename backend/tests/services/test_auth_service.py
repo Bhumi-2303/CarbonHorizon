@@ -53,6 +53,8 @@ def _make_register_payload(**overrides) -> RegisterRequest:
         lifestyle_type="professional",
         city="Mumbai",
         country="India",
+        terms_accepted=True,
+        terms_version="2026-10-24",
     )
     defaults.update(overrides)
     return RegisterRequest(**defaults)
@@ -100,11 +102,33 @@ class TestRegisterUser:
             full_name="Anonymous",
             email=f"anon_{uuid.uuid4().hex[:6]}@example.com",
             password="MinLength8!",
+            terms_accepted=True,
+            terms_version="2026-10-24",
         )
         result = auth_service.register_user(db, payload)
         assert result.user.city is None
         assert result.user.country is None
         assert result.user.age_group is None
+
+    def test_terms_acceptance_stored_in_database(self, db: Session):
+        """Terms acceptance, version, and timestamp must be saved in DB."""
+        ts_str = "2026-10-24T18:30:00Z"
+        payload = _make_register_payload(
+            terms_accepted=True,
+            terms_version="2026-v1",
+            terms_accepted_at=ts_str,
+        )
+        result = auth_service.register_user(db, payload)
+        assert result.user.terms_accepted is True
+        assert result.user.terms_version == "2026-v1"
+        assert result.user.terms_accepted_at is not None
+
+        # Verify DB row
+        user_in_db = db.query(User).filter(User.email == payload.email).first()
+        assert user_in_db is not None
+        assert user_in_db.terms_accepted is True
+        assert user_in_db.terms_version == "2026-v1"
+        assert user_in_db.terms_accepted_at is not None
 
     def test_duplicate_email_raises_409(self, db: Session, make_user):
         """Registering with an already-registered email must raise HTTP 409."""

@@ -8,6 +8,10 @@ import LandingPage from '@/pages/LandingPage'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
 import NotFoundPage from '@/pages/NotFoundPage'
+import CookieConsent from '@/components/CookieConsent'
+
+const PrivacyPage = React.lazy(() => import('@/pages/PrivacyPage'))
+const TermsPage = React.lazy(() => import('@/pages/TermsPage'))
 
 // Lazy-loaded protected pages
 const DashboardPage = React.lazy(() => import('@/pages/DashboardPage'))
@@ -54,6 +58,8 @@ function App() {
         {/* Public routes */}
       <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/privacy"  element={<PrivacyPage />} />
+      <Route path="/terms"    element={<TermsPage />} />
 
       {/* Protected routes — require valid JWT in AuthContext */}
       <Route element={<ProtectedRoute />}>
@@ -103,6 +109,7 @@ function App() {
       {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      <CookieConsent />
     </Suspense>
   )
 }

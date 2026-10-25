@@ -50,7 +50,9 @@ def _sanitize_url(url: Optional[str]) -> str:
             host = parts.hostname or ""
             port = f":{parts.port}" if parts.port else ""
             netloc = f"{user}:***@{host}{port}"
-            return urlunsplit((parts.scheme, netloc, parts.path, parts.query, parts.fragment))
+            return urlunsplit(
+                (parts.scheme, netloc, parts.path, parts.query, parts.fragment)
+            )
         return url
     except Exception:
         return "<sanitized-url>"

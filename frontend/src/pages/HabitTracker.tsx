@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { habitsApi, type Habit } from '@/api/habits'
 import { Bus, RefreshCw, Lightbulb, Droplets, ShoppingBag, Flame, Lock, Award, Shield, CheckCircle, Target } from 'lucide-react'
+import { track } from '@/analytics'
+import { useConsent } from '@/context/ConsentContext'
 
 const HABIT_DEFINITIONS = [
   { id: 'public_transport', label: 'Public Transport', icon: Bus, factor: 1.2 },
@@ -11,6 +13,7 @@ const HABIT_DEFINITIONS = [
 ]
 
 export default function HabitTracker() {
+  const { canTrackAnalytics } = useConsent()
   const [habits, setHabits] = useState<Habit[]>([])
   const [streak, setStreak] = useState(0)
   // weeklySummary removed because it's not currently displayed in the new UI design.
@@ -55,6 +58,7 @@ export default function HabitTracker() {
         habit_type: habitType,
         activity_date: todayStr
       })
+      track('habit_logged', { habit_type: habitType }, { canTrackAnalytics })
       await fetchDashboard()
     } catch (_err: unknown) {
         const err = _err instanceof Error ? _err : new Error(String(_err));
@@ -110,7 +114,7 @@ export default function HabitTracker() {
             {/* 1. Habit Streak Cards (Horizontal Scroll) */}
             <section>
               <h2 className="font-poppins text-xl font-bold text-primary mb-4">Habit Streaks</h2>
-              <div className="flex overflow-x-auto gap-4 snap-x pb-4 custom-scrollbar">
+              <div tabIndex={0} role="region" aria-label="Habits carousel" className="flex overflow-x-auto gap-4 snap-x pb-4 custom-scrollbar focus:outline-none focus:ring-1 focus:ring-earth-green">
                 {HABIT_DEFINITIONS.map(def => {
                   const past7 = past35Days.slice(-7)
                   const completedDays = past7.filter(d => habits.find(h => h.activity_date === d && h.habit_type === def.id && h.completed)).length
@@ -243,28 +247,28 @@ export default function HabitTracker() {
               <h2 className="font-poppins text-xl font-bold text-primary mb-4">Milestones</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 
-                <div className={`glass-card p-5 relative overflow-hidden ${streak >= 7 ? 'border-earth-green/50' : 'opacity-40'}`}>
+                <div className={`glass-card p-5 relative overflow-hidden ${streak >= 7 ? 'border-earth-green/50' : 'border-dashed border-slate-700/60 bg-bg-secondary/40'}`}>
                   {streak < 7 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
                   <Flame className={`w-8 h-8 mb-3 ${streak >= 7 ? 'text-earth-green' : 'text-muted'}`} />
                   <h3 className="font-semibold text-primary">7-Day Streak</h3>
                   <p className="text-xs text-muted mt-1">{streak >= 7 ? 'Unlocked' : 'Keep going'}</p>
                 </div>
 
-                <div className={`glass-card p-5 relative overflow-hidden ${streak >= 30 ? 'border-earth-green/50' : 'opacity-40'}`}>
+                <div className={`glass-card p-5 relative overflow-hidden ${streak >= 30 ? 'border-earth-green/50' : 'border-dashed border-slate-700/60 bg-bg-secondary/40'}`}>
                   {streak < 30 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
                   <Shield className={`w-8 h-8 mb-3 ${streak >= 30 ? 'text-earth-green' : 'text-muted'}`} />
                   <h3 className="font-semibold text-primary">30-Day Streak</h3>
                   <p className="text-xs text-muted mt-1">{streak >= 30 ? 'Unlocked' : 'Requires 30 days'}</p>
                 </div>
 
-                <div className={`glass-card p-5 relative overflow-hidden ${totalCarbonSaved >= 100 ? 'border-earth-green/50' : 'opacity-40'}`}>
+                <div className={`glass-card p-5 relative overflow-hidden ${totalCarbonSaved >= 100 ? 'border-earth-green/50' : 'border-dashed border-slate-700/60 bg-bg-secondary/40'}`}>
                   {totalCarbonSaved < 100 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
                   <Target className={`w-8 h-8 mb-3 ${totalCarbonSaved >= 100 ? 'text-earth-green' : 'text-muted'}`} />
                   <h3 className="font-semibold text-primary">100kg CO₂ Saved</h3>
                   <p className="text-xs text-muted mt-1">{totalCarbonSaved >= 100 ? 'Unlocked' : `${(100 - totalCarbonSaved).toFixed(0)}kg remaining`}</p>
                 </div>
 
-                <div className={`glass-card p-5 relative overflow-hidden ${habits.length > 0 ? 'border-earth-green/50' : 'opacity-40'}`}>
+                <div className={`glass-card p-5 relative overflow-hidden ${habits.length > 0 ? 'border-earth-green/50' : 'border-dashed border-slate-700/60 bg-bg-secondary/40'}`}>
                   {habits.length === 0 && <Lock className="absolute top-4 right-4 w-4 h-4 text-muted" />}
                   <Award className={`w-8 h-8 mb-3 ${habits.length > 0 ? 'text-earth-green' : 'text-muted'}`} />
                   <h3 className="font-semibold text-primary">First Habit</h3>

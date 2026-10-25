@@ -22,6 +22,7 @@ google-api-core==2.25.2
 google-api-python-client==2.197.0
 google-auth==2.54.0
 google-auth-httplib2==0.4.0
+google-cloud-secret-manager>=2.16.0
 google-genai==0.3.0
 googleapis-common-protos==1.75.0
 greenlet==3.5.1
@@ -69,3 +70,4 @@ uritemplate==4.2.0
 urllib3==2.7.0
 uvicorn==0.49.0
 slowapi==0.1.9
+nh3==0.3.7

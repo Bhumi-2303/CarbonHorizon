@@ -39,6 +39,8 @@ REGISTER_BODY = {
     "lifestyle_type": "professional",
     "city": "Bengaluru",
     "country": "India",
+    "terms_accepted": True,
+    "terms_version": "2026-10-24",
 }
 
 LOGIN_BODY = {
@@ -114,14 +116,38 @@ class TestRegisterEndpoint:
         assert user["state_province"] == "Maharashtra"
 
     def test_register_minimal_fields(self, client: TestClient):
-        """Only full_name, email, password are required."""
+        """Only mandatory fields provided (including accepted terms)."""
         body = {
             "full_name": "Minimal User",
             "email": f"minimal_{uuid.uuid4().hex[:6]}@test.com",
             "password": "MinimalPass1!",
+            "terms_accepted": True,
+            "terms_version": "2026-10-24",
         }
         r = client.post("/api/v1/auth/register", json=body)
         assert r.status_code == 201
+
+    def test_register_rejects_terms_accepted_false_with_422(
+        self, client: TestClient
+    ):
+        body = _unique_register_body(terms_accepted=False)
+        r = client.post("/api/v1/auth/register", json=body)
+        assert r.status_code == 422
+
+    def test_register_rejects_missing_terms_version_with_422(
+        self, client: TestClient
+    ):
+        body = _unique_register_body()
+        del body["terms_version"]
+        r = client.post("/api/v1/auth/register", json=body)
+        assert r.status_code == 422
+
+    def test_register_rejects_empty_terms_version_with_422(
+        self, client: TestClient
+    ):
+        body = _unique_register_body(terms_version="  ")
+        r = client.post("/api/v1/auth/register", json=body)
+        assert r.status_code == 422
 
     def test_register_duplicate_email_returns_409(self, client: TestClient):
         body = _unique_register_body()

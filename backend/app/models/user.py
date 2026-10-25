@@ -75,6 +75,17 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
         DateTime(timezone=True), nullable=True
     )
 
+    # Terms of Service & Privacy Policy Acceptance
+    terms_accepted: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    terms_version: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     # Relationships
     preferences: Mapped["UserPreferences"] = relationship(
         "UserPreferences",

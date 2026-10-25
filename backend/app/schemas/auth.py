@@ -124,11 +124,47 @@ class RegisterRequest(BaseModel):
         None,
         description="One of: student, professional, homemaker, retired",
     )
-    age: Optional[int] = Field(None, gt=0)
+    age: Optional[int] = Field(None, gt=0, le=130)
     gender: Optional[Gender] = None
     city: Optional[str] = Field(None, max_length=100, examples=["Mumbai"])
     country: Optional[str] = Field(None, max_length=100, examples=["India"])
     state_province: Optional[str] = Field(None, max_length=100)
+    terms_accepted: bool = Field(
+        ...,
+        description="Must be True indicating explicit acceptance of Terms.",
+    )
+    terms_version: str = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        description="Version string of terms accepted, e.g. '2026-10-24'",
+    )
+    terms_accepted_at: Optional[str] = Field(None, max_length=50)
+    honeypot: Optional[str] = Field(None, max_length=100)
+    turnstile_token: Optional[str] = Field(None, max_length=2048)
+
+    @field_validator("terms_accepted")
+    @classmethod
+    def validate_terms_accepted(cls, v: bool) -> bool:
+        if v is not True:
+            raise ValueError(
+                "You must accept the Terms of Service to register."
+            )
+        return v
+
+    @field_validator("terms_version")
+    @classmethod
+    def validate_terms_version(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("terms_version must be specified.")
+        return v.strip()
+
+    @field_validator("honeypot")
+    @classmethod
+    def validate_honeypot(cls, v: Optional[str]) -> Optional[str]:
+        if v and v.strip():
+            raise ValueError("Bot detected via honeypot")
+        return v
 
     @field_validator("password")
     @classmethod
@@ -142,7 +178,16 @@ class LoginRequest(BaseModel):
     """POST /api/v1/auth/login"""
 
     email: EmailStr = Field(..., examples=["priya@example.com"])
-    password: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1, max_length=128)
+    honeypot: Optional[str] = Field(None, max_length=100)
+    turnstile_token: Optional[str] = Field(None, max_length=2048)
+
+    @field_validator("honeypot")
+    @classmethod
+    def validate_honeypot(cls, v: Optional[str]) -> Optional[str]:
+        if v and v.strip():
+            raise ValueError("Bot detected via honeypot")
+        return v
 
 
 class RefreshRequest(BaseModel):
@@ -193,6 +238,9 @@ class ProfileResponse(BaseModel):
     state_province: Optional[str] = None
     email_verified: bool
     last_login: Optional[datetime] = None
+    terms_accepted: bool = False
+    terms_version: Optional[str] = None
+    terms_accepted_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
@@ -234,7 +282,7 @@ class LogoutAllResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Typed APIResponse aliases  (convenience — avoids repetitive Generic[T] syntax)
+# Typed APIResponse aliases (avoids repetitive Generic[T] syntax)
 # ---------------------------------------------------------------------------
 
 TokenAPIResponse = APIResponse[TokenResponse]

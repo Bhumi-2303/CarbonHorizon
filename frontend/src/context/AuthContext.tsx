@@ -211,7 +211,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
     try {
       const tokens = await authApi.refresh(storedRefresh)
-      const expiresAt = applyTokens(tokens, null)
+      let profile: UserProfile | null = auth.user
+      if (!profile) {
+        try {
+          profile = await authApi.getProfile(tokens.access_token)
+        } catch {
+          // ignore profile fetch error
+        }
+      }
+      const expiresAt = applyTokens(tokens, profile)
 
       // Re-schedule — doRefresh here refers to the same refreshToken fn;
       // we pass it after defining it to avoid circular deps at declaration time.
@@ -226,7 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }, [applyTokens, scheduleRefresh])
+  }, [applyTokens, scheduleRefresh, auth.user])
 
   // Store refreshToken in a ref so scheduleRefresh and the logout fallback
   // can reference it without stale closures.
@@ -273,8 +281,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (refreshTokenRef.current && !accessTokenRef.current) {
       refreshTokenFnRef.current().catch(() => {
         // failed to refresh, state is cleared
-      }).finally(() => {
-        setIsLoading(false)
       })
     } else {
       setIsLoading(false)

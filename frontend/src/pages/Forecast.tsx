@@ -12,6 +12,8 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { generateForecast, ForecastPointResponse } from "../api/forecast";
+import { track } from '@/analytics';
+import { useConsent } from '@/context/ConsentContext';
 
 ChartJS.register(
   CategoryScale,
@@ -25,6 +27,7 @@ ChartJS.register(
 
 export const Forecast: React.FC = () => {
   const navigate = useNavigate();
+  const { canTrackAnalytics } = useConsent();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +58,7 @@ export const Forecast: React.FC = () => {
         setCurrentPathPoints([...current.forecast_points].sort(sortByOffset));
         setRecommendedPathPoints([...recommended.forecast_points].sort(sortByOffset));
         setCustomPathPoints([...custom.forecast_points].sort(sortByOffset));
+        track('forecast_viewed', { timeframe_months: 12 }, { canTrackAnalytics });
 
       } catch (_err: unknown) {
         const err = _err instanceof Error ? _err : new Error(String(_err));
@@ -175,8 +179,33 @@ export const Forecast: React.FC = () => {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Chart Section */}
         <div className="col-span-1 lg:col-span-3 rounded-2xl bg-bg-secondary p-6 shadow-sm ring-1 ring-slate-200 dark:bg-bg-secondary dark:ring-slate-800">
-          <div className="h-80 w-full">
-            <Line options={options} data={data} />
+          <div className="h-80 w-full" role="region" aria-label="Emission forecast chart">
+            <Line options={options} data={data} aria-label="Line chart showing projected carbon trajectories" />
+          </div>
+          {/* Accessible text summary alternative */}
+          <div className="sr-only">
+            <h3>Forecast Data Summary Table</h3>
+            <table>
+              <caption>Projected emissions across 3, 6, and 12 months for Current, Recommended, and Custom trajectories</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Timeline</th>
+                  <th scope="col">Current Path</th>
+                  <th scope="col">Recommended Path</th>
+                  <th scope="col">Custom Path</th>
+                </tr>
+              </thead>
+              <tbody>
+                {labels.map((label, idx) => (
+                  <tr key={label}>
+                    <td>{label}</td>
+                    <td>{currentPathPoints[idx]?.predicted_emission?.toFixed(1) ?? 'N/A'} kg CO₂e</td>
+                    <td>{recommendedPathPoints[idx]?.predicted_emission?.toFixed(1) ?? 'N/A'} kg CO₂e</td>
+                    <td>{customPathPoints[idx]?.predicted_emission?.toFixed(1) ?? 'N/A'} kg CO₂e</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -210,7 +239,7 @@ export const Forecast: React.FC = () => {
               >
                 <div className="absolute inset-0 bg-bg-secondary/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
                 <span className="relative flex items-center gap-2">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                   How to achieve this with AI Coach

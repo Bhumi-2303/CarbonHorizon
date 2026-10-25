@@ -9,4 +9,4 @@ COPY backend/main.py .
 COPY backend/seed_habits.py .
 EXPOSE 8080
 
-CMD ["sh", "-c", "alembic upgrade head && python -m app.db.init_db && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh", "-c", "alembic upgrade head && python -m app.db.init_db && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080} --no-proxy-headers"]

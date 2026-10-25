@@ -179,6 +179,17 @@ def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
     """
     _assert_email_free(db, payload.email)
 
+    terms_dt = None
+    if payload.terms_accepted:
+        if payload.terms_accepted_at:
+            try:
+                clean_ts = payload.terms_accepted_at.replace("Z", "+00:00")
+                terms_dt = datetime.fromisoformat(clean_ts)
+            except Exception:
+                terms_dt = datetime.now(timezone.utc)
+        else:
+            terms_dt = datetime.now(timezone.utc)
+
     user = User(
         id=uuid.uuid4(),
         full_name=payload.full_name,
@@ -192,6 +203,11 @@ def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
         country=payload.country,
         state_province=payload.state_province,
         email_verified=False,
+        terms_accepted=bool(payload.terms_accepted),
+        terms_version=(
+            payload.terms_version or ("2026-v1" if payload.terms_accepted else None)
+        ),
+        terms_accepted_at=terms_dt,
     )
     db.add(user)
     db.commit()
@@ -200,15 +216,37 @@ def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
     return RegisterResponse(user=ProfileResponse.model_validate(user))
 
 
+# Precomputed bcrypt hash for constant-time dummy verification on non-existent accounts
+# Prevents username enumeration through timing side-channel attacks.
+DUMMY_BCRYPT_HASH = (
+    "$2b$12$K.01q.6gXp7M7c2WkXbKMe0K5kF4bBvZzVlCq4b2Q8f4qM8vN4l0S"
+)
+
+
 async def login_user(db: Session, email: str, password: str) -> TokenResponse:
     """Verify credentials, stamp last_login, return token pair."""
     auth_logger.debug(f"LOGIN ATTEMPT: received email={email}")
-    try:
-        user = _get_active_user_by_email(db, email)
-        auth_logger.debug(f"LOGIN ATTEMPT: user found for email={email}")
-    except HTTPException:
+    clean_email = email.strip().lower()
+
+    user = (
+        db.query(User)
+        .filter(
+            func.lower(User.email) == clean_email, User.deleted_at.is_(None)
+        )
+        .first()
+    )
+
+    if not user:
         auth_logger.debug(f"LOGIN ATTEMPT: user not found for email={email}")
-        raise
+        # Execute dummy bcrypt check to equalize response timing with existing accounts
+        verify_password(password, DUMMY_BCRYPT_HASH)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=(
+                "We couldn't sign you in. "
+                "Please check your email and password."
+            ),
+        )
 
     auth_logger.debug(
         f"LOGIN ATTEMPT: stored hash length={len(user.password_hash)}"

@@ -1,5 +1,6 @@
 import { useEffect, useState, FormEvent, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Calendar } from 'lucide-react'
 import { authApi, type UserProfile, type AgeGroup, type LifestyleType, type Gender } from '@/api/auth'
 import { dashboardApi, type DashboardData } from '@/api/dashboard'
 import { useAuth } from '@/context/AuthContext'
@@ -8,6 +9,11 @@ import { OCCUPATIONS, isOccupationValidForAge, getOccupationLockReason } from '@
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { FormField } from '@/components/ui/FormField'
+import {
+  loadGeoDataOnDemand,
+  preloadGeoDataIdle,
+  type GeoDataModule,
+} from '@/services/geoService'
 
 export default function Profile() {
   const { logout, setUser } = useAuth()
@@ -20,6 +26,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<{ fullName?: string; age?: string }>({})
 
   // Form State
   const [fullName, setFullName] = useState('')
@@ -40,11 +47,12 @@ export default function Profile() {
     localStorage.getItem('ch_notifications') !== 'false'
   )
 
-  const [geoData, setGeoData] = useState<{ Country: any, State: any, City: any } | null>(null)
+  const [geoData, setGeoData] = useState<GeoDataModule | null>(null)
 
+  // Defer heavy geography loading to idle time
   useEffect(() => {
-    import('country-state-city').then((mod) => {
-      setGeoData({ Country: mod.Country, State: mod.State, City: mod.City })
+    return preloadGeoDataIdle((data) => {
+      setGeoData(data)
     })
   }, [])
 
@@ -70,18 +78,22 @@ export default function Profile() {
         setGender(profRes.gender || '')
         setAgeGroup(profRes.age_group || '')
         setLifestyle(profRes.lifestyle_type || '')
-        
-        if (profRes.country && geoData) {
-          const c = geoData.Country.getAllCountries().find((x: any) => x.name === profRes.country)
-          if (c) {
-            setSelectedCountryCode(c.isoCode)
-            if (profRes.state_province) {
-              const s = geoData.State.getStatesOfCountry(c.isoCode).find((x: any) => x.name === profRes.state_province)
-              if (s) {
-                setSelectedStateCode(s.isoCode)
+
+        if (profRes.country) {
+          // If profile has saved country, load geo module to resolve codes
+          loadGeoDataOnDemand().then((geo) => {
+            setGeoData(geo)
+            const c = geo.Country.getAllCountries().find((x: any) => x.name === profRes.country)
+            if (c) {
+              setSelectedCountryCode(c.isoCode)
+              if (profRes.state_province) {
+                const s = geo.State.getStatesOfCountry(c.isoCode).find((x: any) => x.name === profRes.state_province)
+                if (s) {
+                  setSelectedStateCode(s.isoCode)
+                }
               }
             }
-          }
+          })
         }
         if (profRes.city) {
           setSelectedCityName(profRes.city)
@@ -133,12 +145,31 @@ export default function Profile() {
 
   const handleProfileSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    setSaving(true)
     setMessage(null)
+
+    const errors: { fullName?: string; age?: string } = {}
+    if (!fullName.trim()) {
+      errors.fullName = 'Full name is required'
+    } else if (fullName.length > 100) {
+      errors.fullName = 'Full name must not exceed 100 characters'
+    }
+    if (age !== '' && age !== undefined) {
+      const numAge = Number(age)
+      if (isNaN(numAge) || numAge < 1 || numAge > 130) {
+        errors.age = 'Age must be between 1 and 130'
+      }
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      return
+    }
+    setFieldErrors({})
+    setSaving(true)
     try {
-      const countryObj = (selectedCountryCode && geoData) ? geoData.Country.getCountryByCode(selectedCountryCode) : null
-      const stateObj = (selectedCountryCode && selectedStateCode && geoData) 
-        ? geoData.State.getStateByCodeAndCountry(selectedStateCode, selectedCountryCode) 
+      const geo = geoData || await loadGeoDataOnDemand()
+      const countryObj = (selectedCountryCode && geo) ? geo.Country.getCountryByCode(selectedCountryCode) : null
+      const stateObj = (selectedCountryCode && selectedStateCode && geo) 
+        ? geo.State.getStateByCodeAndCountry(selectedStateCode, selectedCountryCode) 
         : null
 
       const updated = await authApi.updateProfile({
@@ -223,7 +254,7 @@ export default function Profile() {
           <h1 className="heading-lg text-primary mb-1">{profile.full_name}</h1>
           <p className="text-muted mb-2">{profile.email}</p>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-bg-primary border border-white/10 text-xs text-muted font-medium">
-            <i className="ti ti-calendar"></i>
+            <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
             Member since {new Date(profile.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
           </div>
         </div>
@@ -260,7 +291,11 @@ export default function Profile() {
               type="text"
               required
               value={fullName}
-              onChange={e => setFullName(e.target.value)}
+              error={fieldErrors.fullName}
+              onChange={e => {
+                setFullName(e.target.value)
+                if (fieldErrors.fullName) setFieldErrors(prev => ({ ...prev, fullName: undefined }))
+              }}
             />
             
             <div className="grid grid-cols-2 gap-4">
@@ -270,7 +305,11 @@ export default function Profile() {
                 label="Age"
                 type="number"
                 value={age}
-                onChange={e => setAge(e.target.value ? Number(e.target.value) : '')}
+                error={fieldErrors.age}
+                onChange={e => {
+                  setAge(e.target.value ? Number(e.target.value) : '')
+                  if (fieldErrors.age) setFieldErrors(prev => ({ ...prev, age: undefined }))
+                }}
               />
               <FormField
                 as="select"
@@ -325,7 +364,9 @@ export default function Profile() {
                   setSelectedCityName('')
                 }}
                 options={countryOptions}
-                placeholder="Select Country..."
+                placeholder={countryOptions.length === 0 ? "Select Country (click to load)..." : "Select Country..."}
+                onFocus={() => loadGeoDataOnDemand().then(setGeoData)}
+                onPointerDown={() => loadGeoDataOnDemand().then(setGeoData)}
               />
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -409,7 +450,7 @@ export default function Profile() {
                   <p className="text-xs text-muted">Weekly reports and goal reminders</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" checked={notifications} onChange={e => setNotifications(e.target.checked)} />
+                  <input type="checkbox" aria-label="Toggle weekly email reports" className="sr-only peer" checked={notifications} onChange={e => setNotifications(e.target.checked)} />
                   <div className="w-11 h-6 border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-bg-primary after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
                 </label>
               </div>
@@ -421,7 +462,7 @@ export default function Profile() {
           </Card>
 
           <Card className="border-danger/50 bg-danger/10">
-            <h2 className="heading-md text-danger mb-2 flex items-center gap-2">
+            <h2 className="heading-md text-red-700 dark:text-red-400 mb-2 flex items-center gap-2">
               <i className="ti ti-alert-triangle"></i> Danger Zone
             </h2>
             <p className="text-xs text-muted mb-4">Once you delete your account, there is no going back. Please be certain.</p>

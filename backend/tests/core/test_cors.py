@@ -47,6 +47,18 @@ def test_production_cors_validation_fails_with_wildcard():
         )
 
 
+def test_cors_validation_fails_with_wildcard_in_development():
+    with pytest.raises(
+        ValueError, match="Wildcard '\\*' CORS origin is not allowed"
+    ):
+        Settings(
+            ENVIRONMENT="development",
+            ALLOWED_ORIGINS=["*"],
+            SECRET_KEY="supersecretproductionkeythats32chars",
+            DATABASE_URL="sqlite:///./test.db",
+        )
+
+
 def test_production_cors_validation_fails_with_localhost():
     with pytest.raises(ValueError, match="Invalid CORS origin for production"):
         Settings(
@@ -78,7 +90,10 @@ def test_cors_origins_parsing_from_string():
 
 def test_cors_origins_parsing_from_json_string():
     settings = Settings(
-        ALLOWED_ORIGINS='["https://carbonhorizon.vercel.app", "https://preview.vercel.app"]'
+        ALLOWED_ORIGINS=(
+            '["https://carbonhorizon.vercel.app", '
+            '"https://preview.vercel.app"]'
+        )
     )
     assert settings.ALLOWED_ORIGINS == [
         "https://carbonhorizon.vercel.app",
@@ -90,7 +105,9 @@ def test_production_cors_validation_fails_with_run_app():
     with pytest.raises(ValueError, match="Invalid CORS origin for production"):
         Settings(
             ENVIRONMENT="production",
-            ALLOWED_ORIGINS=["https://carbonhorizon-frontend-tvxxkekeuq-el.a.run.app"],
+            ALLOWED_ORIGINS=[
+                "https://carbonhorizon-frontend-tvxxkekeuq-el.a.run.app"
+            ],
             SECRET_KEY="supersecretproductionkeythats32chars",
             DATABASE_URL="sqlite:///./test.db",
             REDIS_URL="redis://localhost:6379/0",
@@ -107,10 +124,16 @@ def test_database_url_normalization_and_async_derivation():
     local_pg = "postgresql://user:secret@localhost:5432/carbonhorizon"
     pg_settings = Settings(DATABASE_URL=local_pg)
     assert pg_settings.DATABASE_URL == local_pg
-    assert pg_settings.async_database_url == "postgresql+asyncpg://user:secret@localhost:5432/carbonhorizon"
+    assert (
+        pg_settings.async_database_url
+        == "postgresql+asyncpg://user:secret@localhost:5432/carbonhorizon"
+    )
 
     # 3. Neon-style URL with postgres:// scheme and ?sslmode=require
-    neon_url = "postgres://neon_user:neon_pass@ep-cool-1234.us-east-2.aws.neon.tech/neondb?sslmode=require"
+    neon_url = (
+        "postgres://neon_user:neon_pass@ep-cool-1234.us-east-2.aws.neon.tech/"
+        "neondb?sslmode=require"
+    )
     neon_settings = Settings(DATABASE_URL=neon_url)
     assert neon_settings.DATABASE_URL.startswith("postgresql://")
     assert "sslmode=require" in neon_settings.DATABASE_URL
@@ -119,32 +142,47 @@ def test_database_url_normalization_and_async_derivation():
 
 def test_production_settings_validation():
     # Insecure secret key fails
-    with pytest.raises(ValueError, match="SECRET_KEY must be properly configured"):
+    with pytest.raises(
+        ValueError, match="SECRET_KEY must be properly configured"
+    ):
         Settings(
             ENVIRONMENT="production",
             ALLOWED_ORIGINS=["https://carbonhorizon.vercel.app"],
             SECRET_KEY="changeme_use_strong_password",
-            DATABASE_URL="postgresql://user:pass@ep-test.neon.tech/dbname?sslmode=require",
+            DATABASE_URL=(
+                "postgresql://user:pass@ep-test.neon.tech/dbname"
+                "?sslmode=require"
+            ),
             REDIS_URL="redis://localhost:6379/0",
         )
 
     # Insecure default DB password fails
-    with pytest.raises(ValueError, match="DATABASE_URL contains an insecure default password"):
+    with pytest.raises(
+        ValueError,
+        match="DATABASE_URL contains an insecure default password",
+    ):
         Settings(
             ENVIRONMENT="production",
             ALLOWED_ORIGINS=["https://carbonhorizon.vercel.app"],
             SECRET_KEY="supersecretproductionkeythats32chars",
-            DATABASE_URL="postgresql://postgres:password@localhost:5432/carbonhorizon",
+            DATABASE_URL=(
+                "postgresql://postgres:password@localhost:5432/carbonhorizon"
+            ),
             REDIS_URL="redis://localhost:6379/0",
         )
 
     # Missing REDIS_URL in production fails
-    with pytest.raises(ValueError, match="REDIS_URL must be set in production"):
+    with pytest.raises(
+        ValueError, match="REDIS_URL must be set in production"
+    ):
         Settings(
             ENVIRONMENT="production",
             ALLOWED_ORIGINS=["https://carbonhorizon.vercel.app"],
             SECRET_KEY="supersecretproductionkeythats32chars",
-            DATABASE_URL="postgresql://user:realpassword@ep-test.neon.tech/dbname?sslmode=require",
+            DATABASE_URL=(
+                "postgresql://user:realpassword@ep-test.neon.tech/dbname"
+                "?sslmode=require"
+            ),
             REDIS_URL="",
         )
 
@@ -153,7 +191,10 @@ def test_production_settings_validation():
         ENVIRONMENT="production",
         ALLOWED_ORIGINS=["https://carbonhorizon.vercel.app"],
         SECRET_KEY="supersecretproductionkeythats32chars",
-        DATABASE_URL="postgresql://user:realpassword@ep-test.neon.tech/dbname?sslmode=require",
+        DATABASE_URL=(
+            "postgresql://user:realpassword@ep-test.neon.tech/dbname"
+            "?sslmode=require"
+        ),
         REDIS_URL="redis://localhost:6379/0",
         GEMINI_API_KEY="",
     )
@@ -161,12 +202,17 @@ def test_production_settings_validation():
     assert valid_prod.GEMINI_API_KEY == ""
 
     # Placeholder GEMINI_API_KEY in production fails
-    with pytest.raises(ValueError, match="GEMINI_API_KEY contains an invalid placeholder"):
+    with pytest.raises(
+        ValueError, match="GEMINI_API_KEY contains an invalid placeholder"
+    ):
         Settings(
             ENVIRONMENT="production",
             ALLOWED_ORIGINS=["https://carbonhorizon.vercel.app"],
             SECRET_KEY="supersecretproductionkeythats32chars",
-            DATABASE_URL="postgresql://user:realpassword@ep-test.neon.tech/dbname?sslmode=require",
+            DATABASE_URL=(
+                "postgresql://user:realpassword@ep-test.neon.tech/dbname"
+                "?sslmode=require"
+            ),
             REDIS_URL="redis://localhost:6379/0",
             GEMINI_API_KEY="your_gemini_api_key_here",
         )

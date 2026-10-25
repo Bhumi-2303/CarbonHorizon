@@ -4,8 +4,13 @@ import {
   User, GraduationCap, Briefcase, Home, Wrench, Sparkles, Building,
   UserPlus, ClipboardList, BrainCircuit, TrendingUp, Leaf,
   Calculator, MessageSquare, BarChart3, FileText, Lightbulb,
-  ChevronDown, ChevronUp, Code, Mail, Globe2
+  ChevronDown, ChevronUp, Code, Mail, Globe2, CheckCircle, Shield
 } from 'lucide-react'
+import Seo from '@/components/Seo'
+import { SEO_PAGES } from '@/config/seo'
+import { CookieSettingsButton } from '@/components/CookieConsent'
+import { track } from '@/analytics'
+import { useConsent } from '@/context/ConsentContext'
 
 // ─── Header ─────────────────────────────────────────────────────────
 function Header() {
@@ -29,11 +34,11 @@ function Header() {
             </span>
           </div>
           <nav className="flex items-center gap-4" aria-label="Primary Navigation">
-            <Link to="/login" className="text-sm font-semibold text-muted hover:text-primary transition-colors">
+            <Link to="/login" className="text-sm font-semibold text-muted hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-lg px-2 py-1">
               Log In
             </Link>
-            <Link to="/register" className="btn-primary py-2 px-5 text-sm">
-              Sign Up Free
+            <Link to="/register" className="btn-outline py-2 px-4 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
+              Sign In / Register
             </Link>
           </nav>
         </div>
@@ -44,30 +49,88 @@ function Header() {
 
 // ─── Hero Section ───────────────────────────────────────────────────
 function Hero() {
+  const { canTrackAnalytics } = useConsent()
+
+  const handleCtaClick = (location: 'hero' | 'bottom') => {
+    track(
+      'cta_clicked',
+      {
+        cta_label: 'Calculate my carbon footprint',
+        location,
+      },
+      { canTrackAnalytics }
+    )
+  }
+
   return (
-    <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+    <section className="relative pt-32 pb-20 lg:pt-44 lg:pb-32 overflow-hidden">
       {/* Background elements */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-earth-green/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-ocean-blue/10 rounded-full blur-3xl" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-earth-green/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-ocean-blue/10 rounded-full blur-3xl pointer-events-none" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
           <div className="max-w-2xl">
-            <h1 className="heading-xl text-primary leading-tight mb-6">
+            {/* Value Proposition Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-earth-green/10 border border-earth-green/20 text-earth-green text-xs font-semibold uppercase tracking-wider mb-6">
+              <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Intelligent Sustainability Platform</span>
+            </div>
+
+            <h1 className="heading-xl text-primary leading-tight mb-4 text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
               Track your impact. <br />
               <span className="gradient-text">Shape our horizon.</span>
             </h1>
-            <p className="body text-muted text-lg mb-8 leading-relaxed">
-              Carbon Horizon is an intelligent sustainability platform that helps individuals and organizations measure their carbon footprint, discover tailored reduction strategies, and build eco-friendly habits with the help of an AI Coach.
+
+            {/* One-line Value Proposition */}
+            <p className="text-base sm:text-lg text-slate-300 font-medium mb-6 leading-relaxed">
+              Measure your environmental footprint and cut emissions with tailored AI coaching.
             </p>
-            <div className="flex flex-wrap items-center gap-4">
-              <Link to="/register" className="btn-primary flex items-center gap-2 text-lg">
-                Start Assessment <TrendingUp className="w-5 h-5" aria-hidden="true" />
+
+            {/* 3 Short Benefit Points */}
+            <div className="space-y-3 mb-8">
+              <div className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-earth-green shrink-0 mt-0.5" aria-hidden="true" />
+                <span className="text-sm text-slate-300"><strong>Regional Precision:</strong> Accurate calculations across transit, energy, food, and lifestyle factors.</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-earth-green shrink-0 mt-0.5" aria-hidden="true" />
+                <span className="text-sm text-slate-300"><strong>Tailored AI Coaching:</strong> Practical weekly micro-habits that lower energy bills and emissions.</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-earth-green shrink-0 mt-0.5" aria-hidden="true" />
+                <span className="text-sm text-slate-300"><strong>Privacy-First Design:</strong> Anonymized calculations, DPDP &amp; GDPR compliant, zero data selling.</span>
+              </div>
+            </div>
+
+            {/* EXACT SINGLE PRIMARY CTA IN HERO */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              <Link
+                to="/register"
+                onClick={() => handleCtaClick('hero')}
+                className="group inline-flex flex-col items-center justify-center px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold shadow-lg shadow-emerald-500/25 transition-all text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+              >
+                <span className="text-base sm:text-lg flex items-center gap-2">
+                  Calculate my carbon footprint
+                  <TrendingUp className="w-5 h-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                </span>
+                <span className="text-xs font-normal opacity-90 text-slate-900">
+                  (Free, takes about 5 minutes)
+                </span>
               </Link>
-              <a href="#about" className="btn-outline text-lg">
+              <a
+                href="#about"
+                className="inline-flex items-center justify-center px-5 py-3 rounded-xl border border-white/10 hover:border-white/25 text-slate-300 hover:text-white transition-all text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+              >
                 Learn More
               </a>
             </div>
+
+            {/* Trust Line */}
+            <p className="mt-4 text-xs text-slate-400 flex items-center gap-2">
+              <Shield className="w-4 h-4 text-earth-green" aria-hidden="true" />
+              <span>Free forever • No credit card required • Privacy-first</span>
+            </p>
           </div>
           
           <div className="relative h-80 lg:h-[500px] flex items-center justify-center">
@@ -262,6 +325,56 @@ function FAQ() {
   )
 }
 
+// ─── Bottom CTA ─────────────────────────────────────────────────────
+function BottomCTA() {
+  const { canTrackAnalytics } = useConsent()
+
+  const handleCtaClick = () => {
+    track(
+      'cta_clicked',
+      {
+        cta_label: 'Calculate my carbon footprint',
+        location: 'bottom',
+      },
+      { canTrackAnalytics }
+    )
+  }
+
+  return (
+    <section className="py-20 relative overflow-hidden bg-gradient-to-b from-bg-primary to-bg-secondary/60 border-t border-white/5">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 className="heading-lg text-primary text-3xl sm:text-4xl font-bold mb-4">
+          Ready to discover your climate impact?
+        </h2>
+        <p className="text-slate-300 max-w-xl mx-auto mb-8 text-base">
+          Join thousands taking daily actionable steps toward net-zero living with personalized guidance.
+        </p>
+
+        {/* EXACT REPEATED PRIMARY CTA */}
+        <Link
+          to="/register"
+          onClick={handleCtaClick}
+          className="group inline-flex flex-col items-center justify-center px-10 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold shadow-xl shadow-emerald-500/25 transition-all text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 mx-auto"
+        >
+          <span className="text-lg flex items-center gap-2">
+            Calculate my carbon footprint
+            <TrendingUp className="w-5 h-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+          </span>
+          <span className="text-xs font-normal opacity-90 text-slate-900">
+            (Free, takes about 5 minutes)
+          </span>
+        </Link>
+
+        {/* Trust Line */}
+        <p className="mt-4 text-xs text-slate-400 flex items-center justify-center gap-2">
+          <Shield className="w-4 h-4 text-earth-green" aria-hidden="true" />
+          <span>Free forever • No credit card required • Privacy-first</span>
+        </p>
+      </div>
+    </section>
+  )
+}
+
 // ─── Footer ─────────────────────────────────────────────────────────
 function Footer() {
   return (
@@ -278,7 +391,7 @@ function Footer() {
             </p>
           </div>
           <div>
-            <h4 className="font-semibold text-primary mb-4">Platform</h4>
+            <p className="font-semibold text-primary mb-4">Platform</p>
             <ul className="space-y-2">
               <li><Link to="/login" className="text-slate-400 hover:text-earth-green transition-colors">Log In</Link></li>
               <li><Link to="/register" className="text-slate-400 hover:text-earth-green transition-colors">Sign Up</Link></li>
@@ -286,13 +399,14 @@ function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-primary mb-4">Legal & Connect</h4>
+            <p className="font-semibold text-primary mb-4">Legal & Connect</p>
             <ul className="space-y-2">
-              <li><a href="#" className="text-slate-400 hover:text-earth-green transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-earth-green transition-colors">Terms of Service</a></li>
+              <li><Link to="/privacy" className="text-slate-400 hover:text-earth-green transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="text-slate-400 hover:text-earth-green transition-colors">Terms of Service</Link></li>
+              <li><CookieSettingsButton /></li>
               <li className="pt-2 flex gap-4">
-                <a href="#" className="text-slate-400 hover:text-primary"><Code className="w-5 h-5" aria-hidden="true" /></a>
-                <a href="#" className="text-slate-400 hover:text-primary"><Mail className="w-5 h-5" aria-hidden="true" /></a>
+                <a href="https://github.com/CarbonHorizon" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-primary" aria-label="GitHub"><Code className="w-5 h-5" aria-hidden="true" /></a>
+                <a href="mailto:contact@carbonhorizon.app" className="text-slate-400 hover:text-primary" aria-label="Email"><Mail className="w-5 h-5" aria-hidden="true" /></a>
               </li>
             </ul>
           </div>
@@ -310,6 +424,7 @@ function Footer() {
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-bg-primary font-sans text-muted selection:bg-earth-green/30">
+      <Seo {...SEO_PAGES.landing} />
       <Header />
       <main>
         <Hero />
@@ -318,6 +433,7 @@ export default function LandingPage() {
         <HowItWorks />
         <CoreFeatures />
         <FAQ />
+        <BottomCTA />
       </main>
       <Footer />
     </div>

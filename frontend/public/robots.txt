@@ -1,0 +1,25 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /privacy
+Allow: /terms
+Allow: /login
+Allow: /register
+
+# Disallow authenticated application areas and backend API
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /assessment
+Disallow: /coach
+Disallow: /emissions
+Disallow: /reports
+Disallow: /journey
+Disallow: /profile
+Disallow: /settings
+Disallow: /goals
+Disallow: /habits
+Disallow: /simulator
+Disallow: /forecast
+Disallow: /organization
+
+Sitemap: https://carbonhorizon.app/sitemap.xml

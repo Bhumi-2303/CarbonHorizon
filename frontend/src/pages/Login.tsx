@@ -10,12 +10,15 @@ import { AuthLayout } from '@/components/ui/AuthLayout'
 import { FormField } from '@/components/ui/FormField'
 import { useAuth } from '@/context/AuthContext'
 import { authApi } from '@/api/auth'
+import Seo from '@/components/Seo'
+import { SEO_PAGES } from '@/config/seo'
 
 // ─── Zod schema ──────────────────────────────────────────────────────────────
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email'),
   password: z.string().min(1, 'Password is required'),
+  honeypot: z.string().optional(),
 })
 
 type LoginFormData = z.infer<typeof loginSchema>
@@ -66,13 +69,18 @@ export default function Login() {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: '', password: '', honeypot: '' },
   })
 
   const onSubmit = async (data: LoginFormData) => {
     setApiError(null)
     try {
-      const tokens = await authApi.login(data)
+      const tokens = await authApi.login({
+        email: data.email,
+        password: data.password,
+        honeypot: data.honeypot || '',
+        turnstile_token: 'test-turnstile-token',
+      })
       const profile = await authApi.getProfile(tokens.access_token)
       login(tokens, profile)
       navigate(redirectTo, { replace: true })
@@ -91,6 +99,7 @@ export default function Login() {
 
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to your Carbon Horizon account">
+      <Seo {...SEO_PAGES.login} />
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
 
         {/* API error banner */}
@@ -138,6 +147,17 @@ export default function Login() {
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
+
+        {/* Hidden Honeypot for bot protection */}
+        <input
+          type="text"
+          id="login-honeypot"
+          autoComplete="off"
+          tabIndex={-1}
+          aria-hidden="true"
+          className="hidden opacity-0 absolute -z-10 w-0 h-0 pointer-events-none"
+          {...register('honeypot')}
+        />
 
         {/* Forgot password stub */}
         <div className="flex justify-end -mt-1">

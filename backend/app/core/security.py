@@ -42,6 +42,7 @@ from jwt.exceptions import InvalidTokenError as JWTError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.db.session import SessionLocal
 
 security_logger = logging.getLogger("security.token_revocation")
 
@@ -219,18 +220,21 @@ async def is_token_revoked(jti: str) -> bool:
     except Exception as e:
         if settings.REDIS_FAIL_OPEN:
             security_logger.warning(
-                "Redis unavailable, fail-open policy — allowing token | jti=%s | error=%s",
+                "Redis unavailable, fail-open policy — allowing token | "
+                "jti=%s | error=%s",
                 jti, str(e)
             )
             return False
         else:
             security_logger.error(
-                "Redis unavailable, fail-closed policy — rejecting request | jti=%s | error=%s",
+                "Redis unavailable, fail-closed policy — rejecting request | "
+                "jti=%s | error=%s",
                 jti, str(e)
             )
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Authentication service temporarily unavailable. Please try again.",
+                detail="Authentication service temporarily unavailable. "
+                       "Please try again.",
             )
 
 
@@ -336,8 +340,6 @@ async def revoke_all_user_tokens(user_id: str) -> int:
 # 4. FastAPI dependencies
 # ---------------------------------------------------------------------------
 
-# Needed for the DB session dependency
-from app.db.session import SessionLocal
 
 # HTTPBearer reads `Authorization: Bearer <token>` from the request header.
 _bearer_scheme = HTTPBearer(auto_error=True)
@@ -464,3 +466,30 @@ def get_current_active_user(
             detail="Account has been deactivated",
         )
     return current_user
+
+
+def set_secure_cookie(
+    response: Any,
+    key: str,
+    value: str,
+    max_age: Optional[int] = None,
+    path: str = "/",
+    domain: Optional[str] = None,
+    secure: bool = True,
+    httponly: bool = True,
+    samesite: str = "lax",
+) -> None:
+    """
+    Set an HTTP cookie with strict security defaults:
+    Secure=True, HttpOnly=True, SameSite=lax (or strict).
+    """
+    response.set_cookie(
+        key=key,
+        value=value,
+        max_age=max_age,
+        path=path,
+        domain=domain,
+        secure=secure,
+        httponly=httponly,
+        samesite=samesite,
+    )
