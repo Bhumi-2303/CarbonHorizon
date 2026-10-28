@@ -268,7 +268,7 @@ export default function Profile() {
       <Card className="flex items-center gap-6 p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl"></div>
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent to-emerald-700 flex items-center justify-center shadow-lg shadow-accent/20 border-4 border-bg-primary z-10">
-          <span className="text-3xl font-bold text-bg-primary">{initials}</span>
+          <span className="text-3xl font-bold text-white">{initials}</span>
         </div>
         <div className="z-10">
           <h1 className="heading-lg text-primary mb-1">{profile.full_name}</h1>

@@ -94,9 +94,14 @@ jobs:
           npm ci --legacy-peer-deps || npm install --legacy-peer-deps
           npx playwright install chromium --with-deps
       - name: Build frontend
+        env:
+          VITE_APP_URL: https://carbonhorizon.app
+          VITE_API_URL: /api/v1
+          VITE_TURNSTILE_SITE_KEY: 0x4AAAAAAAxPlaceholderTurnstileKey
+          VITE_ANALYTICS_DOMAIN: carbonhorizon.app
         run: |
           cd frontend
-          VITE_APP_URL=https://carbonhorizon.app npm run build
+          npm run build
       - name: Run Playwright + Axe audit
         run: |
           cd frontend

@@ -3,6 +3,7 @@ UserService — business logic for user management.
 No logic implemented yet; method stubs only.
 """
 
+from datetime import datetime, timezone
 import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -41,6 +42,8 @@ class UserService:
     @staticmethod
     def create(db: Session, payload: UserCreate) -> User:
         """Create a new user (hashes password before saving)."""
+        terms_acc = getattr(payload, "terms_accepted", False)
+        terms_ver = getattr(payload, "terms_version", None)
         db_user = User(
             email=payload.email,
             password_hash=hash_password(payload.password),
@@ -52,6 +55,9 @@ class UserService:
             city=payload.city,
             age_group=payload.age_group,
             lifestyle_type=payload.lifestyle_type,
+            terms_accepted=terms_acc,
+            terms_version=terms_ver,
+            terms_accepted_at=datetime.now(timezone.utc) if terms_acc else None,
         )
         db.add(db_user)
         db.commit()

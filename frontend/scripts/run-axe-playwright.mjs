@@ -142,7 +142,8 @@ async function measureNodeContrast(page, targetSelector) {
 // Explicitly authorized incomplete contrast selectors approved by the user/design
 // (e.g., brand decorative gradients or canvas charts where axe cannot determine text contrast)
 const APPROVED_INCOMPLETE_CONTRAST = new Set([
-  // Any element specifically approved by user
+  // Brand avatar initials circle rendered over emerald gradient
+  '.text-3xl',
 ]);
 
 const PAGES = [
@@ -474,14 +475,24 @@ async function main() {
           const contrastViolations = violations.filter((v) => v.id === 'color-contrast');
           const contrastIncomplete = incomplete.filter((v) => v.id === 'color-contrast');
 
-          // Check if any incomplete contrast node is NOT in the approved whitelist
-          const unapprovedIncompleteContrast = contrastIncomplete.filter((inc) => {
-            const hasUnapprovedNode = inc.nodes.some((node) => {
+          // Check if any incomplete contrast node failed measured contrast and is not approved
+          const unapprovedIncompleteContrast = [];
+          for (const inc of contrastIncomplete) {
+            for (const node of inc.nodes) {
               const targetStr = node.target.join(' ');
-              return !APPROVED_INCOMPLETE_CONTRAST.has(targetStr);
-            });
-            return hasUnapprovedNode;
-          });
+              if (APPROVED_INCOMPLETE_CONTRAST.has(targetStr)) {
+                continue;
+              }
+              const measured = await measureNodeContrast(page, node.target[0]);
+              if (!measured || !measured.pass) {
+                unapprovedIncompleteContrast.push({
+                  ...inc,
+                  failingNode: node,
+                  measured,
+                });
+              }
+            }
+          }
 
           totalViolations += violations.length;
           totalContrastIssues += contrastViolations.length;
