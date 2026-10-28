@@ -210,7 +210,7 @@ async def add_security_headers(request: Request, call_next):
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com data:; "
         "img-src 'self' data:; "
-        "connect-src 'self' https://challenges.cloudflare.com https://plausible.io; "
+        "connect-src 'self' https://challenges.cloudflare.com https://plausible.io https://*.onrender.com; "
         "object-src 'none'; "
         "base-uri 'self'; "
         "frame-ancestors 'none';"

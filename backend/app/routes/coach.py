@@ -1,6 +1,7 @@
+import logging
+import uuid
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
-import uuid
 
 from app.core.security import get_db, get_current_user
 from app.models.user import User
@@ -35,10 +36,6 @@ async def chat_with_coach(
     """
     client_ip = get_trusted_client_ip(request)
     await verify_turnstile_token(payload.turnstile_token, remote_ip=client_ip)
-    import logging
-
-    logging.info("COACH_ROUTE_VERSION_2")
-    print("COACH_ROUTE_VERSION_2", flush=True)
     try:
         response_data = coach_service.chat(
             db=db,

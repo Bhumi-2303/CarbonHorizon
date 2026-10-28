@@ -46,11 +46,11 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.security import (
     _calculate_ttl,
+    atomic_rotate_refresh_token,
     create_access_token,
     create_refresh_token,
     decode_token,
     hash_password,
-    is_token_revoked,
     revoke_all_user_tokens,
     revoke_token,
     track_user_session,
@@ -67,8 +67,6 @@ from app.schemas.auth import (
 from app.schemas.user import UpdateProfileRequest, validate_age_occupation
 
 security_logger = logging.getLogger("security.token_revocation")
-auth_logger = logging.getLogger("auth_debug")
-auth_logger.setLevel(logging.DEBUG)
 
 
 # ---------------------------------------------------------------------------
@@ -209,9 +207,17 @@ def register_user(db: Session, payload: RegisterRequest) -> RegisterResponse:
         ),
         terms_accepted_at=terms_dt,
     )
+    from sqlalchemy.exc import IntegrityError
     db.add(user)
-    db.commit()
-    db.refresh(user)
+    try:
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email address already exists.",
+        )
 
     return RegisterResponse(user=ProfileResponse.model_validate(user))
 
@@ -225,7 +231,6 @@ DUMMY_BCRYPT_HASH = (
 
 async def login_user(db: Session, email: str, password: str) -> TokenResponse:
     """Verify credentials, stamp last_login, return token pair."""
-    auth_logger.debug(f"LOGIN ATTEMPT: received email={email}")
     clean_email = email.strip().lower()
 
     user = (
@@ -237,7 +242,6 @@ async def login_user(db: Session, email: str, password: str) -> TokenResponse:
     )
 
     if not user:
-        auth_logger.debug(f"LOGIN ATTEMPT: user not found for email={email}")
         # Execute dummy bcrypt check to equalize response timing with existing accounts
         verify_password(password, DUMMY_BCRYPT_HASH)
         raise HTTPException(
@@ -248,12 +252,7 @@ async def login_user(db: Session, email: str, password: str) -> TokenResponse:
             ),
         )
 
-    auth_logger.debug(
-        f"LOGIN ATTEMPT: stored hash length={len(user.password_hash)}"
-    )
-
     is_valid = verify_password(password, user.password_hash)
-    auth_logger.debug(f"LOGIN ATTEMPT: bcrypt verification result={is_valid}")
 
     if not is_valid:
         raise HTTPException(
@@ -306,21 +305,20 @@ async def refresh_tokens(db: Session, payload: RefreshRequest) -> TokenResponse:
     if not user_id:
         raise credentials_exc
 
-    # --- Refresh token rotation: check and revoke old token ---
+    # --- Refresh token rotation: atomic check and revoke old token ---
     old_jti = claims.get("jti")
     if old_jti:
-        # Check if already revoked (token replay / theft detection)
-        if await is_token_revoked(old_jti):
+        ttl = _calculate_ttl(claims["exp"])
+        rotated = await atomic_rotate_refresh_token(old_jti, ttl)
+        if not rotated:
             security_logger.warning(
                 "SECURITY: Refresh token replay detected — possible token theft | "
                 "jti=%s | user_id=%s | action=rejected",
-                old_jti, user_id
+                old_jti,
+                user_id,
             )
             raise credentials_exc
 
-        # Revoke the old refresh token (single-use enforcement)
-        ttl = _calculate_ttl(claims["exp"])
-        await revoke_token(old_jti, ttl)
         security_logger.info(
             "Refresh token rotated | old_jti=%s | user_id=%s", old_jti, user_id
         )

@@ -9,8 +9,6 @@ import { ChevronUp, ChevronDown } from 'lucide-react'
 
 const labelCls = 'block text-sm font-medium text-primary mb-1.5'
 
-// Using glass background, visible border, accent focus ring, near-white text (text-primary)
-// Disabled state matches Button.tsx
 const inputCls =
   'w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/20 ' +
   'text-primary placeholder-muted text-sm ' +
@@ -55,102 +53,103 @@ interface TextAreaFieldProps extends Omit<React.TextareaHTMLAttributes<HTMLTextA
 
 type FormFieldProps = InputFieldProps | SelectFieldProps | TextAreaFieldProps
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Sub-components ensuring constant hook count ───────────────────────────────
 
-export const FormField = React.forwardRef<
-  HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
-  FormFieldProps
->((props, ref) => {
-  if (props.as === 'select') {
-    const { label, fieldId, error, hint, options, placeholder, as: _as, className = '', onChange, ...rest } = props
-    const cls = [inputCls, 'appearance-none cursor-pointer data-[chosen=false]:text-muted', error ? errorInputCls : '', className].join(' ')
-    const errorId = error ? `${fieldId}-error` : undefined
-    const hintId = hint ? `${fieldId}-hint` : undefined
-    
-    // We use a local state to track if a valid option is selected to style the placeholder differently
-    const isChosenInitial = rest.value !== undefined ? rest.value !== '' : (rest.defaultValue !== undefined ? rest.defaultValue !== '' : false);
-    const [chosen, setChosen] = React.useState(isChosenInitial);
+const SelectFormField = React.forwardRef<HTMLSelectElement, SelectFieldProps>((props, ref) => {
+  const { label, fieldId, error, hint, options, placeholder, as: _as, className = '', onChange, ...rest } = props
+  const cls = [inputCls, 'appearance-none cursor-pointer data-[chosen=false]:text-muted', error ? errorInputCls : '', className].join(' ')
+  const errorId = error ? `${fieldId}-error` : undefined
+  const hintId = hint ? `${fieldId}-hint` : undefined
 
-    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setChosen(e.target.value !== '')
-      if (onChange) onChange(e)
-    }
+  const isControlled = rest.value !== undefined
+  const [internalChosen, setInternalChosen] = React.useState(
+    isControlled ? rest.value !== '' : (rest.defaultValue !== undefined ? rest.defaultValue !== '' : false)
+  )
+  const chosen = isControlled ? rest.value !== '' : internalChosen
 
-    return (
-      <div>
-        <label htmlFor={fieldId} className={labelCls}>
-          {label}
-        </label>
-        <div className="relative">
-          <select
-            id={fieldId}
-            ref={ref as React.Ref<HTMLSelectElement>}
-            className={cls}
-            aria-invalid={error ? 'true' : 'false'}
-            aria-describedby={errorId}
-            onChange={handleChange}
-            data-chosen={chosen ? 'true' : 'false'}
-            {...rest}
-          >
-            {placeholder && (
-              <option value="" disabled className="bg-bg-primary text-muted">
-                {placeholder}
-              </option>
-            )}
-            {options.map((o) => (
-              <option 
-                key={o.value} 
-                value={o.value} 
-                className="bg-bg-primary text-primary disabled:text-slate-500"
-                disabled={o.disabled}
-                title={o.title}
-              >
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-            <ChevronDown className="w-4 h-4" />
-          </div>
-        </div>
-        {hint && !error && <p id={hintId} className="mt-1 text-xs text-muted">{hint}</p>}
-        {error && <p id={errorId} className={errorMsgCls} role="alert">{error}</p>}
-      </div>
-    )
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setInternalChosen(e.target.value !== '')
+    if (onChange) onChange(e)
   }
 
-  if (props.as === 'textarea') {
-    const { label, fieldId, error, hint, as: _as, className = '', ...rest } = props
-    const cls = [inputCls, 'resize-y min-h-[100px]', error ? errorInputCls : '', className].join(' ')
-    const errorId = error ? `${fieldId}-error` : undefined
-    const hintId = hint ? `${fieldId}-hint` : undefined
-    return (
-      <div>
-        <label htmlFor={fieldId} className={labelCls}>
-          {label}
-        </label>
-        <textarea
+  return (
+    <div>
+      <label htmlFor={fieldId} className={labelCls}>
+        {label}
+      </label>
+      <div className="relative">
+        <select
           id={fieldId}
-          ref={ref as React.Ref<HTMLTextAreaElement>}
+          ref={ref}
           className={cls}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={errorId}
+          onChange={handleChange}
+          data-chosen={chosen ? 'true' : 'false'}
           {...rest}
-        />
-        {hint && !error && <p id={hintId} className="mt-1 text-xs text-muted">{hint}</p>}
-        {error && <p id={errorId} className={errorMsgCls} role="alert">{error}</p>}
+        >
+          {placeholder && (
+            <option value="" disabled className="bg-bg-primary text-muted">
+              {placeholder}
+            </option>
+          )}
+          {options.map((o) => (
+            <option
+              key={o.value}
+              value={o.value}
+              className="bg-bg-primary text-primary disabled:text-slate-500"
+              disabled={o.disabled}
+              title={o.title}
+            >
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+          <ChevronDown className="w-4 h-4" />
+        </div>
       </div>
-    )
-  }
+      {hint && !error && <p id={hintId} className="mt-1 text-xs text-muted">{hint}</p>}
+      {error && <p id={errorId} className={errorMsgCls} role="alert">{error}</p>}
+    </div>
+  )
+})
+SelectFormField.displayName = 'SelectFormField'
 
+const TextAreaFormField = React.forwardRef<HTMLTextAreaElement, TextAreaFieldProps>((props, ref) => {
+  const { label, fieldId, error, hint, as: _as, className = '', ...rest } = props
+  const cls = [inputCls, 'resize-y min-h-[100px]', error ? errorInputCls : '', className].join(' ')
+  const errorId = error ? `${fieldId}-error` : undefined
+  const hintId = hint ? `${fieldId}-hint` : undefined
+
+  return (
+    <div>
+      <label htmlFor={fieldId} className={labelCls}>
+        {label}
+      </label>
+      <textarea
+        id={fieldId}
+        ref={ref}
+        className={cls}
+        aria-invalid={error ? 'true' : 'false'}
+        aria-describedby={errorId}
+        {...rest}
+      />
+      {hint && !error && <p id={hintId} className="mt-1 text-xs text-muted">{hint}</p>}
+      {error && <p id={errorId} className={errorMsgCls} role="alert">{error}</p>}
+    </div>
+  )
+})
+TextAreaFormField.displayName = 'TextAreaFormField'
+
+const InputFormField = React.forwardRef<HTMLInputElement, InputFieldProps>((props, ref) => {
   const { label, fieldId, error, hint, as: _as, className = '', type, ...rest } = props
   const cls = [inputCls, error ? errorInputCls : '', className].join(' ')
   const errorId = error ? `${fieldId}-error` : undefined
   const hintId = hint ? `${fieldId}-hint` : undefined
 
-  // Number input custom spinner logic
   const internalRef = React.useRef<HTMLInputElement | null>(null)
-  
+
   const setRefs = React.useCallback(
     (node: HTMLInputElement) => {
       internalRef.current = node
@@ -192,15 +191,15 @@ export const FormField = React.forwardRef<
             id={fieldId}
             ref={setRefs}
             type="number"
-            className={cls + " pr-10"}
+            className={cls + ' pr-10'}
             aria-invalid={error ? 'true' : 'false'}
             aria-describedby={errorId}
             {...rest}
           />
           <div className="absolute right-2 top-0 bottom-0 flex flex-col justify-center gap-0.5">
-            <button 
-              type="button" 
-              onClick={handleIncrement} 
+            <button
+              type="button"
+              onClick={handleIncrement}
               className="p-0.5 text-muted hover:text-accent transition-colors disabled:opacity-50"
               disabled={rest.disabled}
               tabIndex={-1}
@@ -208,9 +207,9 @@ export const FormField = React.forwardRef<
             >
               <ChevronUp className="w-3.5 h-3.5" />
             </button>
-            <button 
-              type="button" 
-              onClick={handleDecrement} 
+            <button
+              type="button"
+              onClick={handleDecrement}
               className="p-0.5 text-muted hover:text-accent transition-colors disabled:opacity-50"
               disabled={rest.disabled}
               tabIndex={-1}
@@ -233,7 +232,7 @@ export const FormField = React.forwardRef<
       </label>
       <input
         id={fieldId}
-        ref={ref as React.Ref<HTMLInputElement>}
+        ref={ref}
         type={type}
         className={cls}
         aria-invalid={error ? 'true' : 'false'}
@@ -244,6 +243,22 @@ export const FormField = React.forwardRef<
       {error && <p id={errorId} className={errorMsgCls} role="alert">{error}</p>}
     </div>
   )
+})
+InputFormField.displayName = 'InputFormField'
+
+// ─── Main FormField facade ───────────────────────────────────────────────────
+
+export const FormField = React.forwardRef<
+  HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
+  FormFieldProps
+>((props, ref) => {
+  if (props.as === 'select') {
+    return <SelectFormField ref={ref as React.Ref<HTMLSelectElement>} {...props} />
+  }
+  if (props.as === 'textarea') {
+    return <TextAreaFormField ref={ref as React.Ref<HTMLTextAreaElement>} {...props} />
+  }
+  return <InputFormField ref={ref as React.Ref<HTMLInputElement>} {...props} />
 })
 
 FormField.displayName = 'FormField'

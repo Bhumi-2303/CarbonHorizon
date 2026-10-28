@@ -168,7 +168,9 @@ class RegisterRequest(BaseModel):
 
     @field_validator("password")
     @classmethod
-    def password_not_all_digits(cls, v: str) -> str:
+    def password_validation(cls, v: str) -> str:
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("Password cannot exceed 72 bytes in UTF-8 encoding")
         if v.isdigit():
             raise ValueError("Password must not consist of digits only")
         return v
@@ -181,6 +183,13 @@ class LoginRequest(BaseModel):
     password: str = Field(..., min_length=1, max_length=128)
     honeypot: Optional[str] = Field(None, max_length=100)
     turnstile_token: Optional[str] = Field(None, max_length=2048)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_length(cls, v: str) -> str:
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("Password cannot exceed 72 bytes in UTF-8 encoding")
+        return v
 
     @field_validator("honeypot")
     @classmethod

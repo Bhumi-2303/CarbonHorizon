@@ -142,6 +142,8 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
 
   const [geoData, setGeoData] = useState<GeoDataModule | null>(null)
+  const [isLoadingGeo, setIsLoadingGeo] = useState(false)
+  const [geoError, setGeoError] = useState<string | null>(null)
 
   useEffect(() => {
     track('signup_started', { source: 'register_form' }, { canTrackAnalytics })
@@ -149,16 +151,42 @@ export default function Register() {
 
   // Defer heavy location database loading to idle period
   useEffect(() => {
-    return preloadGeoDataIdle((data) => {
-      setGeoData(data)
+    let active = true
+    setIsLoadingGeo(true)
+    const cleanup = preloadGeoDataIdle((data) => {
+      if (active) {
+        setGeoData(data)
+        setIsLoadingGeo(false)
+      }
     })
+    return () => {
+      active = false
+      cleanup?.()
+    }
   }, [])
+
+  const ensureGeoData = async () => {
+    if (geoData) return geoData
+    setIsLoadingGeo(true)
+    setGeoError(null)
+    try {
+      const data = await loadGeoDataOnDemand()
+      setGeoData(data)
+      return data
+    } catch {
+      setGeoError('Failed to load location options. Please enter location manually.')
+      return null
+    } finally {
+      setIsLoadingGeo(false)
+    }
+  }
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     // @ts-expect-error: zod resolver type mismatch due to coerce
@@ -182,6 +210,7 @@ export default function Register() {
   // Cascading location logic
   const selectedCountryCode = watch('country')
   const selectedStateCode = watch('state_province')
+  const selectedCityName = watch('city')
   const currentAge = watch('age')
   const watchedPassword = watch('password') || ''
   const passwordStrength = useMemo(() => getPasswordStrength(watchedPassword), [watchedPassword])
@@ -206,29 +235,74 @@ export default function Register() {
     }))
   }, [geoData])
 
+  // Does the selected country have states in the dataset?
+  const countryHasStates = useMemo(() => {
+    if (!selectedCountryCode || !geoData) return true
+    return geoData.State.getStatesOfCountry(selectedCountryCode).length > 0
+  }, [selectedCountryCode, geoData])
+
   const stateOptions = useMemo(() => {
     if (!selectedCountryCode || !geoData) return []
-    return geoData.State.getStatesOfCountry(selectedCountryCode).map((s: any) => ({
+    const states = geoData.State.getStatesOfCountry(selectedCountryCode)
+    if (states.length === 0) {
+      return [{ value: 'N/A', label: 'Not Applicable' }]
+    }
+    return states.map((s: any) => ({
       value: s.isoCode,
       label: s.name
     }))
   }, [selectedCountryCode, geoData])
 
+  // Does the selected state have cities in the dataset?
+  const stateHasCities = useMemo(() => {
+    if (!selectedCountryCode || !geoData) return true
+    if (!countryHasStates) return false
+    if (!selectedStateCode || selectedStateCode === 'N/A') return false
+    return geoData.City.getCitiesOfState(selectedCountryCode, selectedStateCode).length > 0
+  }, [selectedCountryCode, selectedStateCode, geoData, countryHasStates])
+
   const cityOptions = useMemo(() => {
-    if (!selectedCountryCode || !selectedStateCode || !geoData) return []
+    if (!selectedCountryCode || !selectedStateCode || !geoData || selectedStateCode === 'N/A') return []
     return geoData.City.getCitiesOfState(selectedCountryCode, selectedStateCode).map((c: any) => ({
       value: c.name, // City usually doesn't have an ISO code, we store name
       label: c.name
     }))
   }, [selectedCountryCode, selectedStateCode, geoData])
 
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value
+    setValue('country', val, { shouldValidate: true })
+    if (geoData && geoData.State.getStatesOfCountry(val).length === 0) {
+      setValue('state_province', 'N/A', { shouldValidate: true })
+    } else {
+      setValue('state_province', '', { shouldValidate: true })
+    }
+    setValue('city', '', { shouldValidate: true })
+    clearErrors(['state_province', 'city'])
+  }
+
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value
+    setValue('state_province', val, { shouldValidate: true })
+    setValue('city', '', { shouldValidate: false })
+    clearErrors('city')
+  }
+
   const onSubmit = async (data: RegisterFormData) => {
     setApiError(null)
     try {
       // Resolve names for backend instead of ISO codes
-      const geo = geoData || await loadGeoDataOnDemand()
-      const countryObj = geo ? geo.Country.getCountryByCode(data.country) : null
-      const stateObj = geo ? geo.State.getStateByCodeAndCountry(data.state_province, data.country) : null
+      const geo = geoData || await ensureGeoData()
+      const countryObj = geo && data.country ? geo.Country.getCountryByCode(data.country) : null
+      const stateObj = (geo && countryObj && data.state_province && data.state_province !== 'N/A')
+        ? geo.State.getStateByCodeAndCountry(data.state_province, countryObj.isoCode)
+        : null
+
+      const countryName = countryObj ? countryObj.name : data.country
+      const stateName = stateObj
+        ? stateObj.name
+        : (data.state_province === 'N/A' ? countryName : data.state_province)
+      const cityName = data.city.trim()
 
       const termsTimestamp = new Date().toISOString()
       const termsVersion = '2026-v1'
@@ -252,9 +326,9 @@ export default function Register() {
         password: data.password,
         age: data.age,
         gender: data.gender,
-        country: countryObj ? countryObj.name : data.country,
-        state_province: stateObj ? stateObj.name : data.state_province,
-        city: data.city,
+        country: countryName,
+        state_province: stateName,
+        city: cityName,
         terms_accepted: true,
         terms_version: termsVersion,
         terms_accepted_at: termsTimestamp,
@@ -429,18 +503,22 @@ export default function Register() {
           as="select"
           fieldId="country"
           label="Country"
-          placeholder={countryOptions.length === 0 ? "Select Country (click to load)…" : "Select Country…"}
+          value={selectedCountryCode || ''}
+          placeholder={
+            isLoadingGeo
+              ? 'Loading countries…'
+              : countryOptions.length === 0
+                ? 'Select Country (click to load)…'
+                : 'Select Country…'
+          }
           required
           options={countryOptions}
           error={errors.country?.message as string}
-          onFocus={() => loadGeoDataOnDemand().then(setGeoData)}
-          onPointerDown={() => loadGeoDataOnDemand().then(setGeoData)}
-          {...register('country', {
-            onChange: () => {
-              setValue('state_province', '')
-              setValue('city', '')
-            }
-          })}
+          hint={geoError || undefined}
+          onFocus={ensureGeoData}
+          onPointerDown={ensureGeoData}
+          {...register('country')}
+          onChange={handleCountryChange}
         />
 
         <div className="grid grid-cols-2 gap-3">
@@ -448,28 +526,72 @@ export default function Register() {
             as="select"
             fieldId="state_province"
             label="State / Province"
-            placeholder="Select State…"
+            value={selectedStateCode || ''}
+            placeholder={
+              !selectedCountryCode
+                ? 'Select country first…'
+                : isLoadingGeo
+                  ? 'Loading states…'
+                  : 'Select State…'
+            }
             required
             disabled={!selectedCountryCode}
             options={stateOptions}
             error={errors.state_province?.message as string}
-            {...register('state_province', {
-              onChange: () => {
-                setValue('city', '')
+            hint={
+              selectedCountryCode && !countryHasStates
+                ? 'No states/provinces in this region'
+                : undefined
+            }
+            {...register('state_province')}
+            onChange={handleStateChange}
+          />
+
+          {selectedCountryCode && (!countryHasStates || (selectedStateCode && !stateHasCities)) ? (
+            <FormField
+              as="input"
+              type="text"
+              fieldId="city"
+              label="City"
+              value={selectedCityName || ''}
+              placeholder="Enter your city…"
+              required
+              error={errors.city?.message as string}
+              hint={
+                selectedStateCode && selectedStateCode !== 'N/A'
+                  ? 'No predefined cities for this region. Please enter your city.'
+                  : undefined
               }
-            })}
-          />
-          <FormField
-            as="select"
-            fieldId="city"
-            label="City"
-            placeholder="Select City…"
-            required
-            disabled={!selectedStateCode}
-            options={cityOptions}
-            error={errors.city?.message as string}
-            {...register('city')}
-          />
+              {...register('city')}
+              onChange={(e) => {
+                setValue('city', e.target.value, { shouldValidate: true })
+              }}
+            />
+          ) : (
+            <FormField
+              as="select"
+              fieldId="city"
+              label="City"
+              value={selectedCityName || ''}
+              placeholder={
+                !selectedCountryCode
+                  ? 'Select country first…'
+                  : !selectedStateCode
+                    ? 'Select state first…'
+                    : isLoadingGeo
+                      ? 'Loading cities…'
+                      : 'Select City…'
+              }
+              required
+              disabled={!selectedStateCode}
+              options={cityOptions}
+              error={errors.city?.message as string}
+              {...register('city')}
+              onChange={(e) => {
+                setValue('city', e.target.value, { shouldValidate: true })
+              }}
+            />
+          )}
         </div>
 
         {/* Terms & Privacy Acceptance */}
