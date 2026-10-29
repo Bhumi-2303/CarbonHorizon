@@ -101,6 +101,11 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "production"  # development | staging | production
     DEBUG: bool = False
 
+    @property
+    def is_production(self) -> bool:
+        """Return True if running in production environment."""
+        return self.ENVIRONMENT.lower() == "production"
+
     # ── Database ────────────────────────────────────────────────────────────
     # PostgreSQL configuration
     DATABASE_URL: str = (
@@ -145,10 +150,12 @@ class Settings(BaseSettings):
     # ── CORS ────────────────────────────────────────────────────────────────
     ALLOWED_ORIGINS: List[str] = [
         "https://carbonhorizon.app",
+        "https://carbon-horizon.vercel.app",
     ]
 
     # ── Trusted Proxies & Client IP ─────────────────────────────────────────
-    # In Cloud Run with Nginx frontend reverse proxy (Browser -> Frontend Nginx -> Backend Run.app),
+    # In Cloud Run with Nginx frontend reverse proxy:
+    # (Browser -> Frontend Nginx -> Backend Run.app),
     # there are 2 trusted proxy hops from the right (Backend GFE and Frontend Nginx).
     TRUSTED_PROXY_COUNT: int = 1
     DEBUG_CLIENT_IP: bool = False
@@ -169,7 +176,11 @@ class Settings(BaseSettings):
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
     SMTP_USER: Optional[str] = os.getenv("SMTP_USER")
     SMTP_PASSWORD: Optional[str] = resolve_secret("SMTP_PASSWORD")
-    SMTP_USE_TLS: bool = os.getenv("SMTP_USE_TLS", "true").lower() in ("true", "1", "yes")
+    SMTP_USE_TLS: bool = os.getenv("SMTP_USE_TLS", "true").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -189,7 +200,10 @@ class Settings(BaseSettings):
                         "http://localhost:5173",
                     ]
                 else:
-                    data["ALLOWED_ORIGINS"] = ["https://carbonhorizon.app"]
+                    data["ALLOWED_ORIGINS"] = [
+                        "https://carbonhorizon.app",
+                        "https://carbon-horizon.vercel.app",
+                    ]
         return data
 
     @field_validator("ALLOWED_ORIGINS", mode="before")

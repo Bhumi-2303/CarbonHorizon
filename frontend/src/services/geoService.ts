@@ -33,14 +33,19 @@ export function loadGeoDataOnDemand(): Promise<GeoDataModule> {
     return Promise.resolve(cachedGeoModule)
   }
   if (!pendingLoadPromise) {
-    pendingLoadPromise = import('country-state-city').then((mod) => {
-      cachedGeoModule = {
-        Country: mod.Country,
-        State: mod.State,
-        City: mod.City,
-      }
-      return cachedGeoModule
-    })
+    pendingLoadPromise = import('country-state-city')
+      .then((mod) => {
+        cachedGeoModule = {
+          Country: mod.Country,
+          State: mod.State,
+          City: mod.City,
+        }
+        return cachedGeoModule
+      })
+      .catch((err) => {
+        pendingLoadPromise = null
+        throw err
+      })
   }
   return pendingLoadPromise
 }

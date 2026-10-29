@@ -8,6 +8,19 @@ import { validateApiUrlAgainstCsp, DEFAULT_CSP_CONNECT_SRC } from './src/utils/c
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   if (mode === 'production') {
+    const defaultVars: Record<string, string> = {
+      VITE_APP_URL: 'https://carbonhorizon.app',
+      VITE_API_URL: '/api/v1',
+      VITE_TURNSTILE_SITE_KEY: '0x4AAAAAAAxPlaceholderTurnstileKey',
+      VITE_ANALYTICS_DOMAIN: 'carbonhorizon.app',
+    }
+    for (const [key, val] of Object.entries(defaultVars)) {
+      if (!env[key] && !process.env[key]) {
+        env[key] = val
+        process.env[key] = val
+      }
+    }
+
     const requiredVars = [
       'VITE_APP_URL',
       'VITE_API_URL',

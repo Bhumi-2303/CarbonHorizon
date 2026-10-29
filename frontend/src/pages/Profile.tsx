@@ -115,16 +115,32 @@ export default function Profile() {
     }))
   }, [geoData])
 
+  const countryHasStates = useMemo(() => {
+    if (!selectedCountryCode || !geoData) return true
+    return geoData.State.getStatesOfCountry(selectedCountryCode).length > 0
+  }, [selectedCountryCode, geoData])
+
   const stateOptions = useMemo(() => {
     if (!selectedCountryCode || !geoData) return []
-    return geoData.State.getStatesOfCountry(selectedCountryCode).map((s: any) => ({
+    const states = geoData.State.getStatesOfCountry(selectedCountryCode)
+    if (states.length === 0) {
+      return [{ value: 'N/A', label: 'Not Applicable' }]
+    }
+    return states.map((s: any) => ({
       value: s.isoCode,
       label: s.name
     }))
   }, [selectedCountryCode, geoData])
 
+  const stateHasCities = useMemo(() => {
+    if (!selectedCountryCode || !geoData) return true
+    if (!countryHasStates) return false
+    if (!selectedStateCode || selectedStateCode === 'N/A') return false
+    return geoData.City.getCitiesOfState(selectedCountryCode, selectedStateCode).length > 0
+  }, [selectedCountryCode, selectedStateCode, geoData, countryHasStates])
+
   const cityOptions = useMemo(() => {
-    if (!selectedCountryCode || !selectedStateCode || !geoData) return []
+    if (!selectedCountryCode || !selectedStateCode || !geoData || selectedStateCode === 'N/A') return []
     return geoData.City.getCitiesOfState(selectedCountryCode, selectedStateCode).map((c: any) => ({
       value: c.name,
       label: c.name
@@ -168,9 +184,13 @@ export default function Profile() {
     try {
       const geo = geoData || await loadGeoDataOnDemand()
       const countryObj = (selectedCountryCode && geo) ? geo.Country.getCountryByCode(selectedCountryCode) : null
-      const stateObj = (selectedCountryCode && selectedStateCode && geo) 
+      const stateObj = (selectedCountryCode && selectedStateCode && selectedStateCode !== 'N/A' && geo) 
         ? geo.State.getStateByCodeAndCountry(selectedStateCode, selectedCountryCode) 
         : null
+      const countryName = countryObj ? countryObj.name : (selectedCountryCode || undefined)
+      const stateName = stateObj
+        ? stateObj.name
+        : (selectedStateCode === 'N/A' ? countryName : (selectedStateCode || undefined))
 
       const updated = await authApi.updateProfile({
         full_name: fullName,
@@ -178,8 +198,8 @@ export default function Profile() {
         gender: gender ? (gender as Gender) : undefined,
         age_group: ageGroup ? (ageGroup as AgeGroup) : undefined,
         lifestyle_type: lifestyle ? (lifestyle as LifestyleType) : undefined,
-        country: countryObj ? countryObj.name : undefined,
-        state_province: stateObj ? stateObj.name : undefined,
+        country: countryName,
+        state_province: stateName,
         city: selectedCityName || undefined
       })
       setProfile(updated)
@@ -248,7 +268,7 @@ export default function Profile() {
       <Card className="flex items-center gap-6 p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl"></div>
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent to-emerald-700 flex items-center justify-center shadow-lg shadow-accent/20 border-4 border-bg-primary z-10">
-          <span className="text-3xl font-bold text-bg-primary">{initials}</span>
+          <span className="text-3xl font-bold text-white">{initials}</span>
         </div>
         <div className="z-10">
           <h1 className="heading-lg text-primary mb-1">{profile.full_name}</h1>
@@ -359,8 +379,13 @@ export default function Profile() {
                 label="Country"
                 value={selectedCountryCode}
                 onChange={e => {
-                  setSelectedCountryCode(e.target.value)
-                  setSelectedStateCode('')
+                  const val = e.target.value
+                  setSelectedCountryCode(val)
+                  if (geoData && geoData.State.getStatesOfCountry(val).length === 0) {
+                    setSelectedStateCode('N/A')
+                  } else {
+                    setSelectedStateCode('')
+                  }
                   setSelectedCityName('')
                 }}
                 options={countryOptions}
@@ -379,21 +404,44 @@ export default function Profile() {
                     setSelectedCityName('')
                   }}
                   disabled={!selectedCountryCode}
-                  hint={!selectedCountryCode ? "Select a country first" : undefined}
+                  hint={
+                    !selectedCountryCode
+                      ? "Select a country first"
+                      : (selectedCountryCode && !countryHasStates)
+                        ? "No states/provinces in this region"
+                        : undefined
+                  }
                   options={stateOptions}
                   placeholder="Select State..."
                 />
-                <FormField
-                  as="select"
-                  fieldId="city"
-                  label="City"
-                  value={selectedCityName}
-                  onChange={e => setSelectedCityName(e.target.value)}
-                  disabled={!selectedStateCode}
-                  hint={!selectedStateCode ? "Select a state first" : undefined}
-                  options={cityOptions}
-                  placeholder="Select City..."
-                />
+                {selectedCountryCode && (!countryHasStates || (selectedStateCode && !stateHasCities)) ? (
+                  <FormField
+                    as="input"
+                    type="text"
+                    fieldId="city"
+                    label="City"
+                    value={selectedCityName}
+                    onChange={e => setSelectedCityName(e.target.value)}
+                    placeholder="Enter your city..."
+                    hint={
+                      selectedStateCode && selectedStateCode !== 'N/A'
+                        ? "No predefined cities for this region. Please enter your city."
+                        : undefined
+                    }
+                  />
+                ) : (
+                  <FormField
+                    as="select"
+                    fieldId="city"
+                    label="City"
+                    value={selectedCityName}
+                    onChange={e => setSelectedCityName(e.target.value)}
+                    disabled={!selectedStateCode}
+                    hint={!selectedStateCode ? "Select a state first" : undefined}
+                    options={cityOptions}
+                    placeholder="Select City..."
+                  />
+                )}
               </div>
             </div>
             

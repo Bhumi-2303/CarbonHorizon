@@ -10,8 +10,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
-import pydantic
+from pydantic import BaseModel, EmailStr, Field
 
 
 # ---------------------------------------------------------------------------
@@ -19,6 +18,7 @@ import pydantic
 # ---------------------------------------------------------------------------
 
 from app.models.enums import AgeGroup, LifestyleType, Gender
+from app.schemas.auth import RegisterRequest
 
 
 # ---------------------------------------------------------------------------
@@ -50,40 +50,6 @@ def validate_age_occupation(
         raise ValueError(
             f"Occupation '{lifestyle.value}' is not available for age {age}."
         )
-
-
-class RegisterRequest(BaseModel):
-    """POST /auth/register"""
-
-    full_name: str = Field(..., min_length=1, max_length=100)
-    email: EmailStr
-    password: str = Field(..., min_length=8, max_length=128)
-    age: int = Field(..., gt=0, le=130)
-    gender: Gender
-    age_group: Optional[AgeGroup] = None
-    lifestyle_type: Optional[LifestyleType] = None
-    country: str = Field(..., max_length=100)
-    state_province: str = Field(..., max_length=100)
-    city: str = Field(..., max_length=100)
-
-    @field_validator("password")
-    @classmethod
-    def password_strength(cls, v: str) -> str:
-        if v.isdigit():
-            raise ValueError("Password must not be all digits")
-        return v
-
-    @pydantic.model_validator(mode="after")
-    def validate_lifestyle(self) -> RegisterRequest:
-        validate_age_occupation(self.age, self.lifestyle_type)
-        return self
-
-
-class LoginRequest(BaseModel):
-    """POST /auth/login"""
-
-    email: EmailStr
-    password: str
 
 
 class UpdateProfileRequest(BaseModel):

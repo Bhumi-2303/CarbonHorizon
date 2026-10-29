@@ -52,15 +52,31 @@ security_logger = logging.getLogger("security.token_revocation")
 
 
 def hash_password(plain: str) -> str:
-    """Return a bcrypt hash of *plain* text password."""
-    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode(
-        "utf-8"
-    )
+    """Return a bcrypt hash of *plain* text password. Rejects > 72 UTF-8 bytes."""
+    encoded = plain.encode("utf-8")
+    if len(encoded) > 72:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Password cannot exceed 72 bytes in UTF-8 encoding",
+        )
+    try:
+        return bcrypt.hashpw(encoded, bcrypt.gensalt()).decode("utf-8")
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Password cannot exceed 72 bytes in UTF-8 encoding",
+        )
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    """Return True if *plain* matches the bcrypt *hashed* password."""
-    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    """Return True if *plain* matches the bcrypt *hashed* password. Never raises 500."""
+    try:
+        encoded = plain.encode("utf-8")
+        if len(encoded) > 72:
+            return False
+        return bcrypt.checkpw(encoded, hashed.encode("utf-8"))
+    except Exception:
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -186,6 +202,11 @@ async def revoke_token(jti: str, ttl_seconds: int) -> None:
         security_logger.warning(
             "Redis not available — cannot revoke token | jti=%s", jti
         )
+        if settings.is_production:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Authentication service temporarily unavailable",
+            )
         return
 
     ttl = max(ttl_seconds, 1)
@@ -193,6 +214,49 @@ async def revoke_token(jti: str, ttl_seconds: int) -> None:
     security_logger.info(
         "Token revoked | jti=%s | ttl=%ds", jti, ttl
     )
+
+
+async def atomic_rotate_refresh_token(jti: str, ttl_seconds: int) -> bool:
+    """
+    Atomically registers a refresh token's JTI as revoked using Redis SET NX.
+    Returns True if the token was successfully rotated/revoked (first time seen).
+    Returns False if the token was ALREADY revoked (replay attack / reuse).
+    In production, fails closed (503) if Redis is unavailable.
+    """
+    from app.core.redis_client import get_redis
+
+    r = get_redis()
+    if r is None:
+        if settings.is_production:
+            security_logger.error(
+                "Redis unavailable during refresh token rotation in production"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Authentication service temporarily unavailable",
+            )
+        security_logger.warning(
+            "Redis not available in development/test — skipping revocation | jti=%s",
+            jti,
+        )
+        return True
+
+    ttl = max(ttl_seconds, 1)
+    try:
+        # SET key value EX ttl NX returns True if key was set,
+        # None/False if key already existed.
+        res = await r.set(f"revoked_token:{jti}", "1", ex=ttl, nx=True)
+        return bool(res)
+    except Exception as e:
+        security_logger.error(
+            "Redis error during atomic token rotation: %s", str(e)
+        )
+        if settings.is_production:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Authentication service temporarily unavailable",
+            )
+        return True
 
 
 async def is_token_revoked(jti: str) -> bool:

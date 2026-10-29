@@ -29,13 +29,13 @@ export default function LittleExplorerLayout() {
         <nav className="flex-1 px-4 flex items-center gap-2">
           <NavLink 
             to="/dashboard" 
-            className={({ isActive }) => `px-4 py-2 rounded-xl font-bold transition-all ${isActive ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-400 hover:text-primary'}`}
+            className={({ isActive }) => `px-4 py-2 rounded-xl font-bold transition-all ${isActive ? 'bg-emerald-500/20 text-emerald-800 dark:bg-emerald-950/90 dark:text-emerald-200 dark:border dark:border-emerald-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-primary'}`}
           >
             My Dashboard
           </NavLink>
           <NavLink 
             to="/coach" 
-            className={({ isActive }) => `px-4 py-2 rounded-xl font-bold transition-all ${isActive ? 'bg-sky-500/20 text-sky-800 dark:text-sky-300' : 'text-slate-600 dark:text-slate-400 hover:text-primary'}`}
+            className={({ isActive }) => `px-4 py-2 rounded-xl font-bold transition-all ${isActive ? 'bg-sky-500/20 text-sky-800 dark:bg-sky-950/90 dark:text-sky-200 dark:border dark:border-sky-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-primary'}`}
           >
             Nature Guide
           </NavLink>

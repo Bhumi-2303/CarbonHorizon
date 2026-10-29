@@ -353,6 +353,7 @@ async def test_login_route_progressive_delay_uses_asyncio_sleep(client):
                 "turnstile_token": "test-mock-token",
             },
         )
+        assert response.status_code == 401
         assert mock_sleep.called
         # Verify sleep duration is > 0
         assert mock_sleep.call_args[0][0] > 0

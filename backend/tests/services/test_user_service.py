@@ -15,6 +15,8 @@ def test_user_service_crud(db):
         city="SF",
         age_group="adult",
         lifestyle_type="professional",
+        terms_accepted=True,
+        terms_version="2026-10-25",
     )
     user = UserService.create(db, user_payload)
 
