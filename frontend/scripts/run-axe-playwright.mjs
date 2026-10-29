@@ -184,12 +184,21 @@ async function main() {
   let totalIncompleteContrast = 0;
   let totalUnapprovedIncompleteContrast = 0;
 
+  const launchOptions = {
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+  };
+
+  if (process.env.PLAYWRIGHT_CHROMIUM_PATH) {
+    const customPath = path.resolve(process.env.PLAYWRIGHT_CHROMIUM_PATH);
+    if (!fs.existsSync(customPath)) {
+      throw new Error(`Configured PLAYWRIGHT_CHROMIUM_PATH does not exist: ${customPath}`);
+    }
+    launchOptions.executablePath = customPath;
+  }
+
   try {
-    browser = await chromium.launch({
-      headless: true,
-      executablePath: '/home/bhumi/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome',
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
-    });
+    browser = await chromium.launch(launchOptions);
 
     const context = await browser.newContext();
 

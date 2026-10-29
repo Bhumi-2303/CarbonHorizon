@@ -30,6 +30,11 @@ jobs:
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +42,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
@@ -48,7 +54,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:password@localhost:5432/postgres
           ENVIRONMENT: testing
-          SECRET_KEY: test-secret-key
+          SECRET_KEY: test-secret-key-32-chars-minimum-for-testing
         run: |
           cd backend
           pytest
@@ -92,7 +98,7 @@ jobs:
         run: |
           cd frontend
           npm ci --legacy-peer-deps || npm install --legacy-peer-deps
-          npx playwright install chromium --with-deps
+          npx playwright install --with-deps chromium
       - name: Build frontend
         env:
           VITE_APP_URL: https://carbonhorizon.app
